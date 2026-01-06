@@ -1,14 +1,24 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
+  const [apiData, setApiData] = useState('Loading...')
+
+  useEffect(() => {
+    fetch('http://localhost:5000/')
+      .then(res => res.text())
+      .then(data => setApiData(data))
+  }, [])
 
   return (
     <>
       <div>
+        <h1>
+          {apiData}
+        </h1>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
         </a>
