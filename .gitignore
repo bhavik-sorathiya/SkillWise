@@ -137,3 +137,21 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# --- Custom Additions for SkillWise ---
+
+# React/Vite production builds
+dist/
+dist-ssr/
+*.local
+
+# IDE Settings
+.vscode/
+.idea/
+*.swp
+*.scratch
+
+# Database (if you use local SQLite or MongoDB dumps)
+*.db
+*.sqlite
+dump.rdb
