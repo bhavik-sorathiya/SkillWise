@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise - Opportunities Board</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#FF6B00",
+                        "background-light": "#F9FAFB",
+                        "surface-light": "#FFFFFF",
+                    },
+                    fontFamily: {
+                        display: ["Outfit", "sans-serif"],
+                        body: ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.75rem",
+                        'xl': "1rem",
+                        '2xl': "1.5rem",
+                    },
+                },
+            },
+        };
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .row-expanded .chevron-icon {
+            transform: rotate(180deg);
+        }
+        .details-content {
+            display: none;
+        }
+        .expansion-toggle:checked ~ .details-content {
+            display: block;
+        }
+        .expansion-toggle:checked ~ label .chevron-icon {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="bg-background-light text-gray-900 font-body min-h-screen flex flex-col">
+<nav class="fixed top-0 w-full z-50 bg-white border-b border-gray-100">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex justify-between items-center h-16">
+<div class="flex items-center">
+<div class="flex items-center cursor-pointer">
+<span class="material-symbols-outlined text-primary text-3xl mr-2 transform -rotate-12">school</span>
+<span class="font-display font-bold text-xl tracking-tight">SkillWise</span>
+</div>
+</div>
+<div class="flex items-center space-x-6">
+<a class="flex items-center text-sm font-semibold text-primary border-b-2 border-primary py-5" href="#">
+<span class="material-symbols-outlined text-[18px] mr-1">explore</span>
+                        Opportunities
+                    </a>
+<div class="flex items-center space-x-4 ml-4">
+<button class="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="flex items-center space-x-1 cursor-pointer group">
+<div class="h-8 w-8 rounded-full overflow-hidden border border-gray-200">
+<img alt="Profile" class="h-full w-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBnSqY7ZqoGiWgo4Nz8L3PxBnFegxn8yOQpZ5MnF6S5wIzS2sfM6mRXlYkZgbXECR4s4HZ82j0wN97YNEzw14K5wrUm32JH5xzEt8ylmVlfgr78kU39LDnhnPbXbtOqNwgfSsx1A_-CeNX2rB-SnRPd95ONLbIv7sAbkeABI_-szo9-Mm4uGKG0oxEIgvn1MzrnbRIgI83Z7nORWBpp-3s_VfLtSXJR0ANgbL4XVjUeCB7LawQj_FUm4KexofLFyJC4ta9JzXwbPJg"/>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-[20px] group-hover:text-gray-600">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</nav>
+<main class="flex-grow pt-24 pb-12 px-4 sm:px-6 lg:px-8">
+<div class="max-w-7xl mx-auto">
+<div class="mb-8">
+<h1 class="font-display font-bold text-3xl text-gray-900">Open Opportunities</h1>
+<p class="text-gray-500 mt-1">Discover your next career milestone on the SkillWise network.</p>
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-white border-b border-gray-100">
+<th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider w-12 text-center"></th>
+<th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Job Title</th>
+<th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Company</th>
+<th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Location</th>
+<th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider">Type</th>
+<th class="px-6 py-4 text-[11px] font-bold text-gray-400 uppercase tracking-wider text-center">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-50">
+<tr class="hover:bg-gray-50/50 transition-colors">
+<td class="px-6 py-5 text-center">
+<input class="hidden expansion-toggle" id="expand-1" type="checkbox"/>
+<label class="cursor-pointer" for="expand-1">
+<span class="material-symbols-outlined text-gray-300 chevron-icon transition-transform block text-[20px]">expand_more</span>
+</label>
+<div class="details-content fixed left-0 w-full bg-white z-10 shadow-inner px-12 py-8 text-left border-t border-b border-gray-100">
+<div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-12">
+<div class="col-span-2 space-y-6">
+<div>
+<h4 class="font-bold text-gray-900 mb-2">Job Description</h4>
+<p class="text-sm text-gray-600 leading-relaxed">
+                                                        We are looking for a Senior Product Designer to join our core team. You will be responsible for defining the visual language and user experience across our web and mobile platforms.
+                                                        <br/><br/>
+<strong>Responsibilities:</strong>
+</p>
+<ul class="list-disc ml-4 mt-2 text-sm text-gray-600 space-y-1">
+<li>Lead end-to-end design process from discovery to high-fidelity handoff.</li>
+<li>Collaborate with engineers and product managers to define roadmaps.</li>
+<li>Maintain and expand our design system.</li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-gray-900 mb-2 text-sm">Required Skills</h4>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">Figma</span>
+<span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">Design Systems</span>
+<span class="px-3 py-1 bg-gray-100 text-gray-600 text-xs font-medium rounded-full">User Research</span>
+</div>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<h4 class="font-bold text-gray-900 mb-2 text-sm">Interview Process</h4>
+<ul class="space-y-3 text-xs text-gray-600">
+<li class="flex items-center"><span class="w-5 h-5 rounded-full bg-orange-100 text-primary flex items-center justify-center mr-2 font-bold">1</span> Recruiter Screening</li>
+<li class="flex items-center"><span class="w-5 h-5 rounded-full bg-orange-100 text-primary flex items-center justify-center mr-2 font-bold">2</span> Portfolio Review</li>
+<li class="flex items-center"><span class="w-5 h-5 rounded-full bg-orange-100 text-primary flex items-center justify-center mr-2 font-bold">3</span> Live Design Challenge</li>
+</ul>
+</div>
+<div>
+<h4 class="font-bold text-gray-900 mb-2 text-sm">Compensation &amp; Incentives</h4>
+<p class="text-sm text-gray-600">$140k - $180k + Equity Package<br/>Remote-first culture with annual retreats.</p>
+</div>
+</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5 font-semibold text-[13px] text-gray-900">Senior Product Designer</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">QuantumFlow</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">San Francisco, CA</td>
+<td class="px-6 py-5">
+<span class="px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full">Full-time</span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="bg-primary hover:bg-orange-600 text-white px-6 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">Apply</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50 transition-colors">
+<td class="px-6 py-5 text-center">
+<input class="hidden expansion-toggle" id="expand-2" type="checkbox"/>
+<label class="cursor-pointer" for="expand-2">
+<span class="material-symbols-outlined text-gray-300 chevron-icon transition-transform block text-[20px]">expand_more</span>
+</label>
+</td>
+<td class="px-6 py-5 font-semibold text-[13px] text-gray-900">Frontend Architect</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">Nebula Systems</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">Remote (Global)</td>
+<td class="px-6 py-5">
+<span class="px-2.5 py-1 bg-purple-50 text-purple-600 text-[11px] font-bold rounded-full">Contract</span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="bg-primary hover:bg-orange-600 text-white px-6 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">Apply</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50 transition-colors">
+<td class="px-6 py-5 text-center">
+<input class="hidden expansion-toggle" id="expand-3" type="checkbox"/>
+<label class="cursor-pointer" for="expand-3">
+<span class="material-symbols-outlined text-gray-300 chevron-icon transition-transform block text-[20px]">expand_more</span>
+</label>
+</td>
+<td class="px-6 py-5 font-semibold text-[13px] text-gray-900">Data Engineering Lead</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">Metricsly</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">New York, NY</td>
+<td class="px-6 py-5">
+<span class="px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full">Full-time</span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="bg-primary hover:bg-orange-600 text-white px-6 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">Apply</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50/50 transition-colors">
+<td class="px-6 py-5 text-center">
+<input class="hidden expansion-toggle" id="expand-4" type="checkbox"/>
+<label class="cursor-pointer" for="expand-4">
+<span class="material-symbols-outlined text-gray-300 chevron-icon transition-transform block text-[20px]">expand_more</span>
+</label>
+</td>
+<td class="px-6 py-5 font-semibold text-[13px] text-gray-900">Product Marketing Manager</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">Zenith Labs</td>
+<td class="px-6 py-5 text-[13px] text-gray-500">London, UK</td>
+<td class="px-6 py-5">
+<span class="px-2.5 py-1 bg-blue-50 text-blue-600 text-[11px] font-bold rounded-full">Full-time</span>
+</td>
+<td class="px-6 py-5 text-center">
+<button class="bg-primary hover:bg-orange-600 text-white px-6 py-2 rounded-lg text-[13px] font-bold shadow-sm transition-all">Apply</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="mt-8 flex justify-between items-center text-[12px] text-gray-400">
+<p>Showing 4 of 24 open opportunities</p>
+<div class="flex space-x-2">
+<button class="px-4 py-2 border border-gray-100 rounded-lg hover:bg-gray-50 text-gray-500 font-medium">Previous</button>
+<button class="px-4 py-2 bg-white border border-gray-100 rounded-lg text-primary font-bold shadow-sm">1</button>
+<button class="px-4 py-2 border border-gray-100 rounded-lg hover:bg-gray-50 text-gray-500 font-medium">2</button>
+<button class="px-4 py-2 border border-gray-100 rounded-lg hover:bg-gray-50 text-gray-500 font-medium">3</button>
+<button class="px-4 py-2 border border-gray-100 rounded-lg hover:bg-gray-50 text-gray-500 font-medium">Next</button>
+</div>
+</div>
+</div>
+</main>
+<footer class="bg-white border-t border-gray-100 py-12 mt-auto">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-center w-full">
+<div class="flex space-x-12 text-[14px] font-medium text-gray-500">
+<a class="hover:text-primary transition-colors" href="#">About</a>
+<a class="hover:text-primary transition-colors" href="#">Help</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms</a>
+</div>
+<div class="text-[14px] text-gray-400">
+                    © 2023 SkillWise Inc. All rights reserved.
+                </div>
+</div>
+</div>
+</footer>
+
+</body></html>

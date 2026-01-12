@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise: Create Job Opportunity</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "primary-hover": "#e07b1a",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#1a130d",
+                        "card-light": "#ffffff",
+                        "card-dark": "#251b12",
+                        "border-light": "#e8dbce",
+                        "border-dark": "#3a322b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e8dbce; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3a322b; }[type='text']:focus, [type='email']:focus, [type='url']:focus, [type='password']:focus, [type='number']:focus, [type='date']:focus, [type='datetime-local']:focus, [type='month']:focus, [type='search']:focus, [type='tel']:focus, [type='time']:focus, [type='week']:focus, [multiple]:focus, textarea:focus, select:focus {
+            --tw-ring-color: #f48c25;
+            border-color: #f48c25;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c140d] dark:text-gray-100 flex h-screen overflow-hidden font-display">
+<div class="flex-1 flex flex-col h-full relative">
+<header class="h-16 bg-white dark:bg-card-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 z-30 transition-colors duration-200">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-9 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined icon-filled">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-[#1c140d] dark:text-white">SkillWise</h1>
+</div>
+<div class="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden md:block"></div>
+<div class="hidden md:flex items-center gap-2">
+<span class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Add Job</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<button class="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY');"></div>
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="w-24 bg-white dark:bg-card-dark border-r border-border-light dark:border-border-dark flex flex-col items-center py-8 gap-6 shrink-0 z-20 transition-colors duration-200">
+<nav class="flex flex-col gap-8 w-full items-center">
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">home</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-primary">Home</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">video_chat</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-primary">Interviews</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-primary">Candidates</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">manage_accounts</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400 group-hover:text-primary">Manager</span>
+</a>
+<div class="w-8 h-1 rounded-full bg-primary/20 mt-2"></div>
+</nav>
+<div class="mt-auto">
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</div>
+</a>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth bg-background-light dark:bg-background-dark">
+<div class="max-w-4xl mx-auto flex flex-col min-h-full">
+<div class="mb-8">
+<a class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary mb-4 transition-colors" href="#">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                        Back to Dashboard
+                    </a>
+<h2 class="text-3xl font-bold text-[#1c140d] dark:text-white tracking-tight">Create Job Opportunity</h2>
+<p class="text-gray-500 dark:text-gray-400 mt-2">Fill in the details below to post a new opening for your company.</p>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-2xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden flex-1">
+<div class="p-8 space-y-8">
+<div>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white flex items-center gap-2 mb-6">
+<span class="flex items-center justify-center size-8 rounded-full bg-orange-100 dark:bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-[18px]">description</span>
+</span>
+                                Job Information
+                            </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="md:col-span-2 space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="job-title">Job Title</label>
+<input class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4" id="job-title" placeholder="e.g. Senior Product Designer" type="text"/>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="location">Location</label>
+<div class="relative">
+<select class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4 appearance-none" id="location">
+<option>Remote</option>
+<option>Hybrid</option>
+<option>Onsite</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="employment-type">Employment Type</label>
+<div class="relative">
+<select class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4 appearance-none" id="employment-type">
+<option>Full-time</option>
+<option>Part-time</option>
+<option>Contract</option>
+<option>Internship</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="experience">Experience Required</label>
+<div class="relative">
+<select class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4 appearance-none" id="experience">
+<option>Entry Level (0-2 years)</option>
+<option>Mid Level (3-5 years)</option>
+<option>Senior Level (5-8 years)</option>
+<option>Executive (8+ years)</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+<span class="material-symbols-outlined text-[20px]">expand_more</span>
+</div>
+</div>
+</div>
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="compensation">
+                                        Compensation <span class="text-gray-400 font-normal ml-1">(Optional)</span>
+</label>
+<input class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4" id="compensation" placeholder="e.g. $120k - $150k / year" type="text"/>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Required Skills</label>
+<div class="flex flex-wrap items-center gap-2 p-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-shadow">
+<span class="inline-flex items-center px-2.5 py-1 rounded bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm">
+                                            Figma
+                                            <button class="ml-1.5 inline-flex items-center justify-center text-gray-400 hover:text-gray-600 focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</span>
+<span class="inline-flex items-center px-2.5 py-1 rounded bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-600 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm">
+                                            UI Design
+                                            <button class="ml-1.5 inline-flex items-center justify-center text-gray-400 hover:text-gray-600 focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 p-1 text-sm text-gray-900 dark:text-white min-w-[120px]" placeholder="Type and press Enter..." type="text"/>
+</div>
+<p class="text-xs text-gray-500">Add up to 10 skills relevant to the role.</p>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="description">Job Description</label>
+<textarea class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4 resize-y" id="description" placeholder="Describe the role, responsibilities, and requirements..." rows="6"></textarea>
+</div>
+<div class="md:col-span-2 space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300" for="interview-process">Interview Process</label>
+<textarea class="block w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:border-primary focus:ring-primary sm:text-sm py-3 px-4 resize-y" id="interview-process" placeholder="Briefly outline the interview stages (e.g. Phone screen, Technical Challenge, Final Interview)" rows="3"></textarea>
+</div>
+</div>
+</div>
+</div>
+<div class="px-8 py-5 bg-gray-50 dark:bg-gray-800/50 border-t border-border-light dark:border-border-dark flex items-center justify-end gap-4">
+<button class="px-5 py-2.5 text-sm font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors" type="button">
+                            Save Draft
+                        </button>
+<button class="px-8 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold text-sm shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 active:translate-y-0" type="button">
+                            Publish Job
+                        </button>
+</div>
+</div>
+<footer class="mt-auto pt-10 pb-4">
+<div class="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-400 border-t border-border-light dark:border-border-dark pt-6">
+<p>© 2024 SkillWise Inc. All rights reserved.</p>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">About</a>
+<a class="hover:text-primary transition-colors" href="#">Help Center</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Terms of Service</a>
+</div>
+</div>
+</footer>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

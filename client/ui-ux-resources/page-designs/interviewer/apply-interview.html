@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise Interviewer Application</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "primary-hover": "#e07b1a",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#1a130d",
+                        "card-light": "#ffffff",
+                        "card-dark": "#251b12",
+                        "border-light": "#e8dbce",
+                        "border-dark": "#3a322b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e8dbce; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3a322b; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c140d] dark:text-gray-100 flex h-screen overflow-hidden font-display">
+<div class="flex-1 flex flex-col h-full relative">
+<header class="h-16 bg-white dark:bg-card-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 z-30 transition-colors duration-200">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-9 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined icon-filled">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-[#1c140d] dark:text-white">SkillWise</h1>
+</div>
+<div class="flex items-center gap-6">
+<a class="hidden md:flex items-center gap-2 text-sm font-medium text-gray-900 dark:text-white border-b-2 border-primary py-5" href="#">
+<span class="material-symbols-outlined text-[20px] icon-filled text-primary">assignment_turned_in</span>
+                Apply
+            </a>
+<div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+<button class="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY');"></div>
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<main class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+<div class="max-w-3xl mx-auto space-y-8 pb-10">
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark">
+<div class="flex flex-col sm:flex-row gap-6 items-start">
+<div class="size-20 rounded-xl bg-gray-50 border border-gray-100 dark:border-gray-800 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+<div class="bg-center bg-no-repeat bg-cover size-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmLx7iQOflStagC5aqo54NutdpkiLkJRwAP38P9W6gCOB-49gs3XzimI9XMgaHkFbJyOzAMRiXR5gKDxPLNUr-URVo6EnkcXYQyYljczV_hwvUIGLOMF_chkKVjxU7eQ6rCWAZfSGM1fY7PjSbNKrc3CM3mrLO7XQdNGKFyMwnCUKZf4B6fmWsEEZlBdettsyarhqCeUS_usvUvBj62K3KWcgn1CjwZfaH4pur5_yAtR0pbL0N-tvX86P43aBAP5ftO6n6IlbeKmY");'></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-start justify-between mb-2">
+<div>
+<h2 class="text-2xl font-bold text-[#1c140d] dark:text-white mb-1">Senior Frontend Interviewer</h2>
+<p class="text-gray-500 dark:text-gray-400 font-medium">TechCorp Inc.</p>
+</div>
+<span class="px-3 py-1 rounded bg-orange-100 dark:bg-primary/20 text-primary text-xs font-bold uppercase tracking-wide">Remote</span>
+</div>
+<div class="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+<span class="material-symbols-outlined text-[18px] text-primary">video_camera_front</span>
+<span>Technical Screening</span>
+</div>
+<div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+<span class="material-symbols-outlined text-[18px] text-primary">schedule</span>
+<span>45-60 min/session</span>
+</div>
+<div class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+<span class="material-symbols-outlined text-[18px] text-primary">payments</span>
+<span>$120/interview</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark space-y-6">
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology</span>
+                            Your Expertise
+                        </h3>
+<div class="space-y-4">
+<div>
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Primary Skill Areas (Auto-filled)</label>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                                        React.js
+                                        <button class="hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</span>
+<span class="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                                        TypeScript
+                                        <button class="hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</span>
+<span class="px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200 text-sm font-medium border border-gray-200 dark:border-gray-700 flex items-center gap-2">
+                                        System Design
+                                        <button class="hover:text-red-500 transition-colors"><span class="material-symbols-outlined text-[16px]">close</span></button>
+</span>
+<button class="px-3 py-1.5 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-400 hover:border-primary hover:text-primary text-sm font-medium flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span> Add Skill
+                                    </button>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Years of Experience in this Role</label>
+<div class="relative max-w-xs">
+<input class="w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 py-2.5 pl-4 pr-10 text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm" placeholder="e.g. 5" type="number"/>
+<span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400 text-sm">years</span>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark space-y-6">
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">calendar_month</span>
+                            Availability
+                        </h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Select the time blocks you are generally available to conduct interviews.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<label class="relative flex cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 p-4 shadow-sm focus:outline-none hover:border-primary/50 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+<input class="sr-only peer" name="availability" type="checkbox"/>
+<span class="flex flex-1">
+<span class="flex flex-col">
+<span class="block text-sm font-bold text-gray-900 dark:text-white">Weekdays (Morning)</span>
+<span class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px] mr-1">sunny</span>
+                                            8:00 AM - 12:00 PM EST
+                                        </span>
+</span>
+</span>
+<span class="material-symbols-outlined text-gray-300 peer-checked:text-primary text-xl" data-checked="check_circle" data-unchecked="radio_button_unchecked">check_circle</span>
+</label>
+<label class="relative flex cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 p-4 shadow-sm focus:outline-none hover:border-primary/50 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+<input class="sr-only peer" name="availability" type="checkbox"/>
+<span class="flex flex-1">
+<span class="flex flex-col">
+<span class="block text-sm font-bold text-gray-900 dark:text-white">Weekdays (Afternoon)</span>
+<span class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px] mr-1">wb_twilight</span>
+                                            1:00 PM - 5:00 PM EST
+                                        </span>
+</span>
+</span>
+<span class="material-symbols-outlined text-gray-300 peer-checked:text-primary text-xl">radio_button_unchecked</span>
+</label>
+<label class="relative flex cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 p-4 shadow-sm focus:outline-none hover:border-primary/50 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+<input class="sr-only peer" name="availability" type="checkbox"/>
+<span class="flex flex-1">
+<span class="flex flex-col">
+<span class="block text-sm font-bold text-gray-900 dark:text-white">Weekdays (Evening)</span>
+<span class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px] mr-1">bedtime</span>
+                                            6:00 PM - 9:00 PM EST
+                                        </span>
+</span>
+</span>
+<span class="material-symbols-outlined text-gray-300 peer-checked:text-primary text-xl">radio_button_unchecked</span>
+</label>
+<label class="relative flex cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/30 p-4 shadow-sm focus:outline-none hover:border-primary/50 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+<input class="sr-only peer" name="availability" type="checkbox"/>
+<span class="flex flex-1">
+<span class="flex flex-col">
+<span class="block text-sm font-bold text-gray-900 dark:text-white">Weekends</span>
+<span class="mt-1 flex items-center text-xs text-gray-500 dark:text-gray-400">
+<span class="material-symbols-outlined text-[14px] mr-1">weekend</span>
+                                            Flexible Hours
+                                        </span>
+</span>
+</span>
+<span class="material-symbols-outlined text-gray-300 peer-checked:text-primary text-xl">radio_button_unchecked</span>
+</label>
+</div>
+<div class="pt-2">
+<button class="text-sm font-semibold text-primary hover:text-primary-hover flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[18px]">add</span>
+                            Add Custom Time Block
+                        </button>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark space-y-4">
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">edit_note</span>
+                            Optional Note
+                        </h3>
+<div class="relative">
+<textarea class="w-full rounded-xl border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800/50 py-3 px-4 text-gray-900 dark:text-white shadow-sm focus:border-primary focus:ring-primary sm:text-sm min-h-[120px]" placeholder="Share any specific preferences, questions, or additional context about your application..."></textarea>
+</div>
+</section>
+<div class="flex flex-col items-center gap-4 pt-4">
+<button class="w-full md:w-auto min-w-[300px] bg-primary hover:bg-primary-hover text-white font-bold py-4 px-8 rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg">
+                        Submit Application
+                        <span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<button class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium transition-colors">
+                        Save as Draft
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</div>
+<script>
+        // Simple script to toggle checkbox icons for demonstration visually (since real inputs are hidden)
+        document.querySelectorAll('input[name="availability"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const icon = this.parentElement.querySelector('.material-symbols-outlined');
+                if (this.checked) {
+                    icon.textContent = 'check_circle';
+                    icon.classList.add('text-primary');
+                    icon.classList.remove('text-gray-300');
+                } else {
+                    icon.textContent = 'radio_button_unchecked';
+                    icon.classList.remove('text-primary');
+                    icon.classList.add('text-gray-300');
+                }
+            });
+        });
+    </script>
+
+</body></html>

@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise | Candidate Detailed Review</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#fcfaf8",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f4ede7;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f48c25;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-[#fcfaf8] dark:bg-background-dark font-display text-[#1c140d] dark:text-white min-h-screen">
+<header class="sticky top-0 z-50 flex h-16 w-full items-center justify-between border-b border-solid border-[#e8dbce] dark:border-[#3d2d1d] bg-white dark:bg-[#1a130c] px-6 lg:px-10">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-3xl">school</span>
+<h2 class="text-xl font-bold leading-tight tracking-tight text-[#1c140d] dark:text-white">SkillWise</h2>
+</div>
+</div>
+<div class="flex flex-1 items-center justify-end gap-6 lg:gap-8">
+<div class="hidden md:flex items-center gap-2 text-[#1c140d] dark:text-white hover:text-primary transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-xl">explore</span>
+<span class="text-sm font-medium">Opportunities</span>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative flex size-10 items-center justify-center rounded-lg bg-[#f4ede7] dark:bg-[#2d2218] text-[#1c140d] dark:text-white hover:bg-[#e8dbce] transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 rounded-full bg-primary border-2 border-white dark:border-[#1a130c]"></span>
+</button>
+<div class="flex items-center gap-3 pl-4 border-l border-[#e8dbce] dark:border-[#3d2d1d]">
+<div class="size-9 rounded-full bg-cover bg-center ring-2 ring-primary/20" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCYukCLaSS11FApPauB0w3QmjyPXWGEM9RUR94H8nmTxw9NrmOSCG4gVLsx9U48w8zDqvMOk5TfLnbGixgSNMjLTaBCQAwYIsC1ut9DDb-Q6Go8hNetWfPvg3_END3UkNVUyfFVnKXjthuVsaeICoOCsW9n1jDcWhtTl19xUXfblQDJ4rwyGnx0dqT9t_XL-MxNshBStaVyG-YvfFc5oSq81_Hwp9voxpA4xYZJ70s7STALJkDRj8e8qVrN-lbKWWc6RhLwFFzdoa0");'></div>
+<span class="material-symbols-outlined text-[#9c7349]">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-6 lg:px-10 py-10 space-y-10">
+<div class="flex items-center justify-between">
+<nav class="flex items-center gap-2 text-sm text-[#9c7349]">
+<a class="hover:text-primary transition-colors" href="#">Candidates</a>
+<span class="material-symbols-outlined text-base">chevron_right</span>
+<span class="font-medium text-[#1c140d] dark:text-white">Jordan Smith</span>
+</nav>
+</div>
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 flex items-start gap-6 bg-white dark:bg-[#1a130c] p-8 rounded-2xl border border-[#e8dbce] dark:border-[#3d2d1d] shadow-sm">
+<div class="size-24 rounded-2xl bg-cover bg-center ring-4 ring-primary/10" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBI59hGJVnKflJy5SD-pnlUkGkZ9l05TBxsr9CGkaHkBhGweaiyIOva_xyMAn76-nwgergJ5dOrjmYtIjKnXU0ZcnN99DBlEsmCGzykFc_dzO9KpZD1-Y-Gq31eUQX8YRhLFm2rUqe13q12HmwenPex3wteLyA_JHM0r54jcc6aitTDi8J_b_4JyfrEEbFrQRFnsYOvz5swrkLunp2rS-MFsyB8BSTuHps_OHAdBz3BepruPokkz4TYqX8p0vTzIsI7TdqQ-FJI9Vo");'></div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<div>
+<h1 class="text-3xl font-black tracking-tight text-[#1c140d] dark:text-white">Jordan Smith</h1>
+<p class="text-lg font-medium text-[#9c7349]">Product Designer</p>
+</div>
+<span class="px-4 py-1.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 uppercase tracking-widest">In Progress</span>
+</div>
+<div class="mt-6 grid grid-cols-3 gap-4 border-t border-[#f4ede7] pt-6">
+<div>
+<p class="text-[10px] font-bold text-[#9c7349] uppercase tracking-widest">Experience</p>
+<p class="font-semibold text-[#1c140d] dark:text-white">6.5 Years</p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-[#9c7349] uppercase tracking-widest">Location</p>
+<p class="font-semibold text-[#1c140d] dark:text-white">San Francisco, CA</p>
+</div>
+<div>
+<p class="text-[10px] font-bold text-[#9c7349] uppercase tracking-widest">Expected Sal.</p>
+<p class="font-semibold text-[#1c140d] dark:text-white">$145k - $160k</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-primary text-white p-8 rounded-2xl shadow-lg relative overflow-hidden flex flex-col justify-between">
+<div class="relative z-10">
+<h3 class="text-[10px] font-bold uppercase tracking-widest opacity-80 mb-2">Role Fit Summary</h3>
+<div class="flex items-baseline gap-2">
+<span class="text-5xl font-black">9.2</span>
+<span class="text-xl font-medium opacity-80">/ 10</span>
+</div>
+</div>
+<div class="relative z-10 mt-6">
+<p class="text-sm font-medium leading-relaxed opacity-95">Exceptional match for the Senior Product Designer position. Strong visual systems expertise and Fintech domain knowledge.</p>
+</div>
+<span class="material-symbols-outlined absolute -right-4 -bottom-4 text-white/10 text-9xl">analytics</span>
+</div>
+</section>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+<div class="lg:col-span-8 space-y-10">
+<section>
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-xl font-bold text-[#1c140d] dark:text-white flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">description</span>
+                        Resume &amp; Skills
+                    </h2>
+</div>
+<div class="bg-white dark:bg-[#1a130c] rounded-2xl border border-[#e8dbce] dark:border-[#3d2d1d] overflow-hidden">
+<div class="p-4 border-b border-[#e8dbce] dark:border-[#3d2d1d] overflow-x-auto custom-scrollbar">
+<div class="flex items-center gap-2 whitespace-nowrap">
+<span class="px-3 py-1.5 rounded-lg bg-primary/5 border border-primary/20 text-xs font-bold text-primary">Figma</span>
+<span class="px-3 py-1.5 rounded-lg bg-[#fcfaf8] border border-[#e8dbce] text-xs font-semibold text-[#1c140d]">Design Systems</span>
+<span class="px-3 py-1.5 rounded-lg bg-[#fcfaf8] border border-[#e8dbce] text-xs font-semibold text-[#1c140d]">UX Research</span>
+<span class="px-3 py-1.5 rounded-lg bg-[#fcfaf8] border border-[#e8dbce] text-xs font-semibold text-[#1c140d]">Prototyping</span>
+<span class="px-3 py-1.5 rounded-lg bg-[#fcfaf8] border border-[#e8dbce] text-xs font-semibold text-[#1c140d]">Fintech UI</span>
+<span class="px-3 py-1.5 rounded-lg bg-[#fcfaf8] border border-[#e8dbce] text-xs font-semibold text-[#1c140d]">Stakeholder Mgmt</span>
+<span class="px-3 py-1.5 rounded-lg bg-[#fcfaf8] border border-[#e8dbce] text-xs font-semibold text-[#1c140d]">React Basics</span>
+</div>
+</div>
+<div class="aspect-[4/5] w-full bg-[#f4ede7] p-8 flex flex-col items-center">
+<div class="w-full h-full bg-white shadow-xl rounded-sm p-10 flex flex-col gap-6">
+<div class="h-4 w-1/3 bg-gray-200 rounded"></div>
+<div class="space-y-3">
+<div class="h-2 w-full bg-gray-100 rounded"></div>
+<div class="h-2 w-full bg-gray-100 rounded"></div>
+<div class="h-2 w-5/6 bg-gray-100 rounded"></div>
+</div>
+<div class="h-4 w-1/4 bg-gray-200 rounded mt-4"></div>
+<div class="space-y-3">
+<div class="h-2 w-full bg-gray-100 rounded"></div>
+<div class="h-2 w-full bg-gray-100 rounded"></div>
+<div class="h-2 w-full bg-gray-100 rounded"></div>
+<div class="h-2 w-3/4 bg-gray-100 rounded"></div>
+</div>
+<div class="mt-auto flex justify-center">
+<button class="flex items-center gap-2 text-primary font-bold text-sm">
+<span class="material-symbols-outlined">zoom_in</span>
+                                    Preview Full Resume
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section>
+<h2 class="text-xl font-bold text-[#1c140d] dark:text-white mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">assessment</span>
+                    Interview Performance
+                </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="bg-white dark:bg-[#1a130c] p-6 rounded-2xl border border-[#e8dbce] dark:border-[#3d2d1d]">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="size-10 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+<span class="material-symbols-outlined">code</span>
+</span>
+<div>
+<h4 class="font-bold text-[#1c140d]">Technical Round</h4>
+<p class="text-xs text-[#9c7349]">Completed March 12, 2024</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xl font-black text-[#1c140d]">8.8</span>
+<span class="text-xs text-[#9c7349] block">Score</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="p-3 bg-[#fcfaf8] rounded-xl border border-[#e8dbce]/50">
+<p class="text-xs italic text-[#5c4033] leading-relaxed">"Strong understanding of React architecture despite being a designer. Led the whiteboarding session with confidence."</p>
+<p class="text-[10px] font-bold mt-2 text-[#1c140d] uppercase tracking-wider">— Sarah L., Tech Lead</p>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a130c] p-6 rounded-2xl border border-[#e8dbce] dark:border-[#3d2d1d]">
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<span class="size-10 flex items-center justify-center rounded-lg bg-green-50 text-green-600">
+<span class="material-symbols-outlined">groups</span>
+</span>
+<div>
+<h4 class="font-bold text-[#1c140d]">HR &amp; Culture</h4>
+<p class="text-xs text-[#9c7349]">Completed March 14, 2024</p>
+</div>
+</div>
+<div class="text-right">
+<span class="text-xl font-black text-[#1c140d]">9.5</span>
+<span class="text-xs text-[#9c7349] block">Score</span>
+</div>
+</div>
+<div class="space-y-4">
+<div class="p-3 bg-[#fcfaf8] rounded-xl border border-[#e8dbce]/50">
+<p class="text-xs italic text-[#5c4033] leading-relaxed">"Values-aligned and highly articulate. Clearly understood our mission to democratize learning through design."</p>
+<p class="text-[10px] font-bold mt-2 text-[#1c140d] uppercase tracking-wider">— Mark D., HR Manager</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<aside class="lg:col-span-4 space-y-10">
+<section class="bg-[#fffcf9] dark:bg-[#2d2218] p-8 rounded-3xl border-2 border-primary/20 sticky top-24">
+<div class="flex items-center gap-2 mb-8">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h2 class="text-xl font-black text-[#1c140d] dark:text-white uppercase tracking-tight">AI Candidate Review</h2>
+</div>
+<div class="space-y-8">
+<div>
+<h4 class="text-[10px] font-extrabold text-primary uppercase tracking-widest mb-4">Key Strengths</h4>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-600 text-lg mt-0.5">check_circle</span>
+<span class="text-sm font-medium text-[#1c140d]">Extensive experience in high-growth Fintech.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-600 text-lg mt-0.5">check_circle</span>
+<span class="text-sm font-medium text-[#1c140d]">Top 1% scores in design systems thinking.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-600 text-lg mt-0.5">check_circle</span>
+<span class="text-sm font-medium text-[#1c140d]">Strong portfolio of scalable design solutions.</span>
+</li>
+</ul>
+</div>
+<div>
+<h4 class="text-[10px] font-extrabold text-[#9c7349] uppercase tracking-widest mb-4">Focus Areas</h4>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-amber-500 text-lg mt-0.5">info</span>
+<span class="text-sm font-medium text-[#1c140d]">Expected salary is at the upper limit of budget.</span>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-amber-500 text-lg mt-0.5">info</span>
+<span class="text-sm font-medium text-[#1c140d]">Limited experience with B2B SaaS workflows.</span>
+</li>
+</ul>
+</div>
+<div class="pt-6 border-t border-primary/10">
+<p class="text-xs font-bold text-primary mb-2 uppercase tracking-widest">AI Verdict</p>
+<div class="bg-white dark:bg-[#1a130c] p-4 rounded-xl shadow-sm border border-primary/10">
+<p class="text-sm font-semibold text-[#1c140d] leading-relaxed">
+                                Recommended for hiring. The candidate brings rare senior-level design leadership that would significantly accelerate our product roadmap.
+                            </p>
+</div>
+</div>
+<button class="w-full py-4 bg-[#1c140d] text-white rounded-xl text-sm font-bold hover:bg-black transition-colors flex items-center justify-center gap-2">
+                        Add to Shortlist
+                        <span class="material-symbols-outlined text-lg">star</span>
+</button>
+</div>
+</section>
+</aside>
+</div>
+</main>
+
+</body></html>

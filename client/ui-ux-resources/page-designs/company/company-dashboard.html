@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise Refined Company Manager Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#1a130d",
+                        "card-light": "#ffffff",
+                        "card-dark": "#251b12",
+                        "border-light": "#e8dbce",
+                        "border-dark": "#3a322b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e8dbce; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3a322b; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c140d] dark:text-gray-100 flex h-screen overflow-hidden font-display">
+<div class="flex-1 flex flex-col h-full relative">
+<header class="h-16 bg-white dark:bg-card-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 z-30 transition-colors duration-200">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-9 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined icon-filled">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-[#1c140d] dark:text-white">SkillWise</h1>
+</div>
+<div class="flex items-center gap-6">
+<a class="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+                Opportunities
+            </a>
+<div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+<button class="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY');"></div>
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="w-24 bg-white dark:bg-card-dark border-r border-border-light dark:border-border-dark flex flex-col items-center py-8 gap-6 shrink-0 z-20 transition-colors duration-200">
+<nav class="flex flex-col gap-8 w-full items-center">
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl bg-primary/10 text-primary shadow-sm">
+<span class="material-symbols-outlined icon-filled">home</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary">Home</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary">
+<span class="material-symbols-outlined">video_chat</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Interviews</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Candidates</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary">
+<span class="material-symbols-outlined">manage_accounts</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Manager</span>
+</a>
+</nav>
+<div class="mt-auto">
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</div>
+</a>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+<div class="max-w-7xl mx-auto space-y-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<section class="bg-white dark:bg-card-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark transition-all hover:shadow-md">
+<div class="flex flex-col sm:flex-row gap-6 items-start">
+<div class="size-24 rounded-2xl bg-gray-50 border border-gray-100 dark:border-gray-800 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+<div class="bg-center bg-no-repeat bg-cover size-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmLx7iQOflStagC5aqo54NutdpkiLkJRwAP38P9W6gCOB-49gs3XzimI9XMgaHkFbJyOzAMRiXR5gKDxPLNUr-URVo6EnkcXYQyYljczV_hwvUIGLOMF_chkKVjxU7eQ6rCWAZfSGM1fY7PjSbNKrc3CM3mrLO7XQdNGKFyMwnCUKZf4B6fmWsEEZlBdettsyarhqCeUS_usvUvBj62K3KWcgn1CjwZfaH4pur5_yAtR0pbL0N-tvX86P43aBAP5ftO6n6IlbeKmY");'></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-2xl font-bold text-[#1c140d] dark:text-white truncate">TechCorp</h2>
+<span class="px-2.5 py-1 rounded bg-orange-100 dark:bg-primary/20 text-primary text-xs font-bold uppercase tracking-wide">Enterprise</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-[15px] text-gray-500 dark:text-gray-400">
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-primary">domain</span> SaaS</span>
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-primary">groups</span> 50-200 Employees</span>
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-primary">location_on</span> San Francisco</span>
+<a class="text-primary font-semibold hover:underline truncate flex items-center gap-2" href="#">
+<span class="material-symbols-outlined text-[20px]">link</span> techcorp.com
+                                    </a>
+</div>
+</div>
+<button class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark transition-all hover:shadow-md">
+<div class="flex flex-col sm:flex-row gap-6 items-start">
+<div class="size-24 rounded-2xl bg-gray-50 border border-gray-100 dark:border-gray-800 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+<div class="bg-center bg-no-repeat bg-cover size-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY");'></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-3">
+<h2 class="text-2xl font-bold text-[#1c140d] dark:text-white truncate">Alex Rivera</h2>
+<span class="px-2.5 py-1 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wide">Manager</span>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-[15px] text-gray-500 dark:text-gray-400">
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-primary">badge</span> Hiring Manager</span>
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-primary">mail</span> a.rivera@techcorp.com</span>
+<span class="flex items-center gap-2"><span class="material-symbols-outlined text-[20px] text-primary">schedule</span> PST Timezone</span>
+<span class="flex items-center gap-2 text-green-600 dark:text-green-400 font-medium">
+<span class="material-symbols-outlined text-[20px]">verified</span> Identity Verified
+                                    </span>
+</div>
+</div>
+<button class="p-2 rounded-lg bg-gray-50 dark:bg-gray-800 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+</div>
+</section>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<div class="lg:col-span-4 bg-white dark:bg-card-dark p-6 rounded-2xl border border-border-light dark:border-border-dark shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-sm font-bold uppercase tracking-wider text-gray-500">Hiring Overview</h3>
+<span class="text-xs text-green-500 font-bold bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded">+12% growth</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-orange-50/50 dark:bg-orange-900/10 rounded-xl space-y-1">
+<div class="flex items-center gap-2 text-gray-400 mb-1">
+<span class="material-symbols-outlined text-orange-500 text-lg">work</span>
+<span class="text-xs font-bold uppercase tracking-tight">Active</span>
+</div>
+<p class="text-4xl font-bold text-[#1c140d] dark:text-white">5</p>
+<p class="text-[10px] text-gray-400">Open positions</p>
+</div>
+<div class="p-4 bg-blue-50/50 dark:bg-blue-900/10 rounded-xl space-y-1">
+<div class="flex items-center gap-2 text-gray-400 mb-1">
+<span class="material-symbols-outlined text-blue-500 text-lg">people</span>
+<span class="text-xs font-bold uppercase tracking-tight">Total</span>
+</div>
+<p class="text-4xl font-bold text-[#1c140d] dark:text-white">82</p>
+<p class="text-[10px] text-gray-400">Candidates</p>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 bg-white dark:bg-card-dark p-6 rounded-2xl border border-border-light dark:border-border-dark shadow-sm">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-sm font-bold uppercase tracking-wider text-gray-500">Interview Activity</h3>
+<button class="text-xs text-primary font-bold hover:underline">CALENDAR</button>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="p-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-xl space-y-1">
+<div class="flex items-center gap-2 text-gray-400 mb-1">
+<span class="material-symbols-outlined text-amber-500 text-lg">calendar_today</span>
+<span class="text-xs font-bold uppercase tracking-tight">Today</span>
+</div>
+<p class="text-4xl font-bold text-[#1c140d] dark:text-white">12</p>
+<p class="text-[10px] text-gray-400">Scheduled</p>
+</div>
+<div class="p-4 bg-green-50/50 dark:bg-green-900/10 rounded-xl space-y-1">
+<div class="flex items-center gap-2 text-gray-400 mb-1">
+<span class="material-symbols-outlined text-green-500 text-lg">verified</span>
+<span class="text-xs font-bold uppercase tracking-tight">Month</span>
+</div>
+<p class="text-4xl font-bold text-[#1c140d] dark:text-white">34</p>
+<p class="text-[10px] text-gray-400">Completed</p>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4">
+<div class="bg-gradient-to-br from-primary to-[#d97706] rounded-2xl p-6 text-white shadow-xl shadow-primary/20 relative overflow-hidden group h-full flex flex-col justify-center">
+<div class="absolute -top-10 -right-10 size-40 bg-white/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all duration-500"></div>
+<div class="relative z-10 space-y-4">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-2xl font-light">add_circle</span>
+</div>
+<h3 class="text-xl font-bold">Post a New Job</h3>
+</div>
+<p class="text-white/80 text-xs leading-relaxed">Reach thousands of qualified candidates today.</p>
+<button class="w-full py-2.5 rounded-xl bg-white text-primary font-extrabold text-xs uppercase tracking-widest hover:bg-gray-50 transition-all shadow-md active:scale-[0.98]">
+                                    Create Listing
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Current Hiring Focus</h3>
+<a class="text-xs font-bold text-primary hover:text-orange-600 flex items-center gap-1 transition-colors" href="#">
+                            View Detailed Pipeline <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+</a>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-border-light dark:border-border-dark">
+<th class="px-8 py-5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Role &amp; Department</th>
+<th class="px-8 py-5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Location</th>
+<th class="px-8 py-5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Status</th>
+<th class="px-8 py-5 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Candidates</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors cursor-pointer group">
+<td class="px-8 py-5">
+<div>
+<p class="font-bold text-[#1c140d] dark:text-white text-base group-hover:text-primary transition-colors">Senior Product Designer</p>
+<p class="text-sm text-gray-500 mt-0.5">Design Team</p>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm text-gray-500">Remote</td>
+<td class="px-8 py-5 text-center">
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold border border-green-200 dark:border-green-800 uppercase tracking-tight">Active</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-end gap-4">
+<div class="flex -space-x-3">
+<div class="size-9 rounded-full border-2 border-white dark:border-card-dark bg-gray-300 bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwpmAD8nI3MS7SUORaRYsjpaxsGnZ8EkL37UuAhwzmR4c4rs6VPnxSLOU2C4a--lmNCnsI9c5ewammTzWhHOWXexVIeuL6Q5h-_erwFFq7tzNxxYdT_ULl-tV9sCM9cyMS75lRtiNG1BPtAp71sAKREFD2AMqZo8-qjpiwrhjX4RgL08yz-_c2N36fFNydB9fWAaxSchEzgRs6wVG0QoVzhFL4PRY2UqY6AwFGc7qYrcyH2hQw9rNmUpb8E8ZuFl0HLytrs7Uf7t0");'></div>
+<div class="size-9 rounded-full border-2 border-white dark:border-card-dark bg-gray-300 bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCBQVxKRJCzOqXCQXa3pTH14bxZiTibswYhzSDznylIHJKrRbumQPpBV3V5o8654l4vBrOqei8eklhnmx3_ogrbdNJU5dhF155qf8cmyGV5zKJPDfssmA-gw2rvVITb09VNdlHfygGGqMqda9BvtroNFOfsNtUdQQHex_rLVLlE2e_zoG0H1IHdYV8Lktg62ut05E2QaTwT40Jps_RG4C3WruN6hUZgNad72ah_zg420tH_0nstkpoE_Jqe6sIsUGyf1eNe9DQSYOs");'></div>
+</div>
+<span class="text-base font-bold text-gray-700 dark:text-gray-300">15</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors cursor-pointer group">
+<td class="px-8 py-5">
+<div>
+<p class="font-bold text-[#1c140d] dark:text-white text-base group-hover:text-primary transition-colors">Frontend Engineer (React)</p>
+<p class="text-sm text-gray-500 mt-0.5">Engineering Team</p>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm text-gray-500">San Francisco, CA</td>
+<td class="px-8 py-5 text-center">
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold border border-green-200 dark:border-green-800 uppercase tracking-tight">Active</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-end gap-4">
+<div class="flex -space-x-3">
+<div class="size-9 rounded-full border-2 border-white dark:border-card-dark bg-gray-300 bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHTN5GBOMa1wrSjqxz0UpfAAoy14XjdOlvXvDpSqHfZnFFCXgzXKnJ8qUuBDirQHfDRDniuPgzej_dMmmhawxqCmJhBc47aJvDZnF1G1iASlfeAfj6MtwDwrkvrMDwCBFIvhmjEA13wjItJh0zaa5aHe2o-6CpmPodmLrlBBZSHtQsAvodL6IKE7rcH82sNgQ-ozIGMVSw_iCfLEh2-P1Vw38yOBlu3ZwyMPwJ_vr96ctB0dh56T6MOoxQLW3_b-ENxKKNagUnF_A");'></div>
+<div class="size-9 rounded-full border-2 border-white dark:border-card-dark bg-gray-300 bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB-pkM8cEAUkXfvXmaJd5pGYyurG-TnlpY3p4a4pt6QH1qc9aPoYTyxrvUp89WR7UveoGU-v-Ll7QIhfFqH8bBxUusdPXi7gW-PEg_kJa7uqWODMg9VZgTysSu1KRNXTvhKqnjE5GkKKnalVbpooFLVm3M-jJGJ7BoRPSLPrvTwZucOni1qiyHSvpJjMvZTUhKQwWzHwM4Y04KYZ5AhuaVHvTQjlUOHMGjaCHGT0LC_gXnnegdstq9ltlPiLO6lLbelkAS7SJQLPVw");'></div>
+<div class="size-9 rounded-full border-2 border-white dark:border-card-dark bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-600 dark:text-gray-400">+4</div>
+</div>
+<span class="text-base font-bold text-gray-700 dark:text-gray-300">28</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors cursor-pointer group">
+<td class="px-8 py-5">
+<div>
+<p class="font-bold text-[#1c140d] dark:text-white text-base group-hover:text-primary transition-colors">Marketing Manager</p>
+<p class="text-sm text-gray-500 mt-0.5">Marketing Team</p>
+</div>
+</td>
+<td class="px-8 py-5 text-center text-sm text-gray-500">New York, NY</td>
+<td class="px-8 py-5 text-center">
+<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-800 uppercase tracking-tight">Reviewing</span>
+</td>
+<td class="px-8 py-5">
+<div class="flex items-center justify-end gap-4">
+<div class="flex -space-x-3">
+<div class="size-9 rounded-full border-2 border-white dark:border-card-dark bg-gray-300 bg-cover" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBIeQqfZCNACeAELxbxtzuIGDbZ45l4p2aQUTrvA6lI1O8eloFO9wFvHKdR4GNcMpzqY-FiUa3ItsL1BUrCysCnB6jGsGbjpgMrkV3iumMpU3NWze0yaJYAvE7zUCbMeSmrAFKMhI9kfGuLRtblbR2mPF4EkdNShqSM6rY1ySQ7KVLTtMzZ7dWT9JOHHzWaRf1QSLTI5eHldV5BdIFeOZ8CrRsddxKToGZRmTH_QEfTtx9vpGOnbuicr8EyJfWZKyGAPYc7_GTeeGE");'></div>
+</div>
+<span class="text-base font-bold text-gray-700 dark:text-gray-300">8</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-8 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-center">
+<button class="text-sm font-bold text-gray-500 hover:text-primary transition-colors flex items-center gap-1">
+                                View All Open Positions <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+
+</body></html>

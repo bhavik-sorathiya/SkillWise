@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Company Managers Management Hub | SkillWise</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#1a130d",
+                        "card-light": "#ffffff",
+                        "card-dark": "#251b12",
+                        "border-light": "#e8dbce",
+                        "border-dark": "#3a322b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e8dbce; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3a322b; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c140d] dark:text-gray-100 flex h-screen overflow-hidden font-display">
+<div class="flex-1 flex flex-col h-full relative">
+<header class="h-16 bg-white dark:bg-card-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 z-30 transition-colors duration-200">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-9 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined icon-filled">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-[#1c140d] dark:text-white">SkillWise</h1>
+</div>
+<div class="flex items-center gap-6">
+<a class="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+                Opportunities
+            </a>
+<div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+<button class="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY');"></div>
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="w-24 bg-white dark:bg-card-dark border-r border-border-light dark:border-border-dark flex flex-col items-center py-8 gap-6 shrink-0 z-20 transition-colors duration-200">
+<nav class="flex flex-col gap-8 w-full items-center">
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary">
+<span class="material-symbols-outlined">home</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Home</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary">
+<span class="material-symbols-outlined">video_chat</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Interviews</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-primary/10 hover:text-primary">
+<span class="material-symbols-outlined">group</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-gray-400">Candidates</span>
+</a>
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl bg-primary/10 text-primary shadow-sm">
+<span class="material-symbols-outlined icon-filled">manage_accounts</span>
+</div>
+<span class="text-[10px] font-bold uppercase tracking-wider text-primary">Managers</span>
+</a>
+</nav>
+<div class="mt-auto">
+<a class="group flex flex-col items-center gap-1 transition-all" href="#">
+<div class="flex items-center justify-center size-12 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+</div>
+</a>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto flex flex-col scroll-smooth">
+<div class="flex-1 p-6 lg:p-10">
+<div class="max-w-7xl mx-auto space-y-8">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+<h2 class="text-3xl font-extrabold text-[#1c140d] dark:text-white tracking-tight">Company Managers</h2>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-2xl border border-border-light dark:border-border-dark shadow-sm overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-border-light dark:border-border-dark">
+<th class="px-8 py-5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Name</th>
+<th class="px-8 py-5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Email</th>
+<th class="px-8 py-5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Role</th>
+<th class="px-8 py-5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">Status</th>
+<th class="px-8 py-5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center border border-gray-100" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY");'></div>
+<p class="font-bold text-[#1c140d] dark:text-white">Alex Rivera</p>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">a.rivera@techcorp.com</td>
+<td class="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">Administrator</td>
+<td class="px-8 py-5 text-center">
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold border border-green-200 dark:border-green-800 uppercase tracking-tight">Active</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center border border-gray-100" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwpmAD8nI3MS7SUORaRYsjpaxsGnZ8EkL37UuAhwzmR4c4rs6VPnxSLOU2C4a--lmNCnsI9c5ewammTzWhHOWXexVIeuL6Q5h-_erwFFq7tzNxxYdT_ULl-tV9sCM9cyMS75lRtiNG1BPtAp71sAKREFD2AMqZo8-qjpiwrhjX4RgL08yz-_c2N36fFNydB9fWAaxSchEzgRs6wVG0QoVzhFL4PRY2UqY6AwFGc7qYrcyH2hQw9rNmUpb8E8ZuFl0HLytrs7Uf7t0");'></div>
+<p class="font-bold text-[#1c140d] dark:text-white">Sarah Jenkins</p>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">s.jenkins@techcorp.com</td>
+<td class="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">Recruiter</td>
+<td class="px-8 py-5 text-center">
+<span class="px-3 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-xs font-bold border border-green-200 dark:border-green-800 uppercase tracking-tight">Active</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center border border-gray-100" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCBQVxKRJCzOqXCQXa3pTH14bxZiTibswYhzSDznylIHJKrRbumQPpBV3V5o8654l4vBrOqei8eklhnmx3_ogrbdNJU5dhF155qf8cmyGV5zKJPDfssmA-gw2rvVITb09VNdlHfygGGqMqda9BvtroNFOfsNtUdQQHex_rLVLlE2e_zoG0H1IHdYV8Lktg62ut05E2QaTwT40Jps_RG4C3WruN6hUZgNad72ah_zg420tH_0nstkpoE_Jqe6sIsUGyf1eNe9DQSYOs");'></div>
+<p class="font-bold text-[#1c140d] dark:text-white">Michael Chen</p>
+</div>
+</td>
+<td class="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">m.chen@techcorp.com</td>
+<td class="px-8 py-5 text-sm text-gray-600 dark:text-gray-400">Hiring Manager</td>
+<td class="px-8 py-5 text-center">
+<span class="px-3 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 text-xs font-bold border border-amber-200 dark:border-amber-800 uppercase tracking-tight">Pending</span>
+</td>
+<td class="px-8 py-5 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="flex justify-start">
+<button class="flex items-center gap-2 px-8 py-4 bg-primary hover:bg-[#e07b1d] text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined">person_add</span>
+                            Add New Manager
+                        </button>
+</div>
+</div>
+</div>
+<footer class="mt-auto px-10 py-8 border-t border-border-light dark:border-border-dark bg-white dark:bg-card-dark transition-colors duration-200">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-[16px] icon-filled">school</span>
+</div>
+<span class="text-sm font-bold text-gray-400">© 2024 SkillWise</span>
+</div>
+<nav class="flex items-center gap-8">
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">About</a>
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">Help</a>
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">Terms</a>
+</nav>
+</div>
+</footer>
+</main>
+</div>
+</div>
+
+</body></html>

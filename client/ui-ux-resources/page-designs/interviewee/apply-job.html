@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise: Job Application Page</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#1a130d",
+                        "card-light": "#ffffff",
+                        "card-dark": "#251b12",
+                        "border-light": "#e8dbce",
+                        "border-dark": "#3a322b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e8dbce; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3a322b; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c140d] dark:text-gray-100 flex flex-col min-h-screen overflow-y-auto font-display selection:bg-primary/20 selection:text-primary">
+<header class="h-16 bg-white dark:bg-card-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 sticky top-0 z-30 transition-colors duration-200">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-9 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined icon-filled">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-[#1c140d] dark:text-white">SkillWise</h1>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="flex items-center gap-2 text-sm font-medium text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors" href="#">
+                Home
+            </a>
+<div class="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
+<span class="flex items-center gap-2 text-sm font-bold text-primary">
+<span class="material-symbols-outlined text-[20px] icon-filled">description</span>
+                Apply for Job
+            </span>
+</nav>
+</div>
+<div class="flex items-center gap-4 md:gap-6">
+<button class="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY');"></div>
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<main class="flex-1 w-full max-w-3xl mx-auto px-6 py-10 space-y-8">
+<div class="flex items-center justify-between">
+<h2 class="text-2xl font-bold text-[#1c140d] dark:text-white tracking-tight">Job Application</h2>
+<span class="text-sm text-gray-500">Step 1 of 2</span>
+</div>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-6 shadow-sm border border-border-light dark:border-border-dark transition-all hover:shadow-md">
+<div class="flex flex-col sm:flex-row gap-6 items-start">
+<div class="size-20 rounded-xl bg-gray-50 border border-gray-100 dark:border-gray-800 dark:bg-gray-800 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
+<div class="bg-center bg-no-repeat bg-cover size-full" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmLx7iQOflStagC5aqo54NutdpkiLkJRwAP38P9W6gCOB-49gs3XzimI9XMgaHkFbJyOzAMRiXR5gKDxPLNUr-URVo6EnkcXYQyYljczV_hwvUIGLOMF_chkKVjxU7eQ6rCWAZfSGM1fY7PjSbNKrc3CM3mrLO7XQdNGKFyMwnCUKZf4B6fmWsEEZlBdettsyarhqCeUS_usvUvBj62K3KWcgn1CjwZfaH4pur5_yAtR0pbL0N-tvX86P43aBAP5ftO6n6IlbeKmY");'></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-xl font-bold text-[#1c140d] dark:text-white">Senior Product Designer</h3>
+<span class="px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-bold uppercase tracking-wide border border-green-200 dark:border-green-800">Full-time</span>
+</div>
+<div class="flex flex-wrap items-center gap-y-2 gap-x-5 text-sm text-gray-500 dark:text-gray-400">
+<span class="flex items-center gap-1.5 font-medium text-gray-700 dark:text-gray-300">
+<span class="material-symbols-outlined text-[18px] text-primary">business</span> TechCorp
+                    </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-gray-400">location_on</span> San Francisco, CA (Hybrid)
+                    </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-gray-400">payments</span> $140k - $180k
+                    </span>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark space-y-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="flex items-center justify-center size-8 rounded-full bg-orange-100 text-primary">
+<span class="material-symbols-outlined text-[20px]">person</span>
+</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">Your Profile</h3>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<div class="space-y-2">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Select Resume</label>
+<div class="relative">
+<select class="w-full pl-4 pr-10 py-3 rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 focus:border-primary focus:ring-primary transition-shadow cursor-pointer appearance-none font-medium">
+<option>My_Resume_v4.pdf (Last used)</option>
+<option>Portfolio_Design_2024.pdf</option>
+<option>Generic_CV.pdf</option>
+</select>
+<div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
+<span class="material-symbols-outlined text-gray-500">expand_more</span>
+</div>
+</div>
+<div class="flex justify-between items-center mt-1">
+<p class="text-xs text-gray-400">Uploaded on Oct 12, 2023</p>
+<button class="text-xs font-bold text-primary hover:underline flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">upload</span> Upload New
+                    </button>
+</div>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">Key Skills <span class="text-gray-400 font-normal">(Auto-filled from resume)</span></label>
+<button class="text-xs text-primary font-bold hover:underline">Edit Skills</button>
+</div>
+<div class="flex flex-wrap gap-2">
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-orange-50 dark:bg-primary/10 text-primary text-sm font-semibold border border-orange-100 dark:border-primary/20">
+                        Figma
+                        <button class="ml-2 hover:text-orange-700 flex items-center"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-orange-50 dark:bg-primary/10 text-primary text-sm font-semibold border border-orange-100 dark:border-primary/20">
+                        UI Prototyping
+                        <button class="ml-2 hover:text-orange-700 flex items-center"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-orange-50 dark:bg-primary/10 text-primary text-sm font-semibold border border-orange-100 dark:border-primary/20">
+                        Design Systems
+                        <button class="ml-2 hover:text-orange-700 flex items-center"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+<span class="inline-flex items-center px-3 py-1.5 rounded-lg bg-orange-50 dark:bg-primary/10 text-primary text-sm font-semibold border border-orange-100 dark:border-primary/20">
+                        User Research
+                        <button class="ml-2 hover:text-orange-700 flex items-center"><span class="material-symbols-outlined text-[14px]">close</span></button>
+</span>
+<button class="inline-flex items-center px-3 py-1.5 rounded-lg border border-dashed border-gray-300 text-gray-400 hover:border-primary hover:text-primary text-sm font-semibold transition-colors">
+<span class="material-symbols-outlined text-[16px] mr-1">add</span> Add Skill
+                    </button>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark space-y-6">
+<div class="flex items-center gap-2 mb-2">
+<span class="flex items-center justify-center size-8 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+<span class="material-symbols-outlined text-[20px]">calendar_clock</span>
+</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">Interview Availability</h3>
+</div>
+<div class="space-y-4">
+<p class="text-sm text-gray-500 dark:text-gray-400">Please select at least 2 time slots that work best for you for an initial screening.</p>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<label class="relative flex items-start gap-3 p-4 rounded-xl border-2 border-primary bg-orange-50/30 dark:bg-primary/5 cursor-pointer transition-all">
+<input checked="" class="mt-1 size-5 text-primary border-gray-300 rounded focus:ring-primary" type="checkbox"/>
+<div class="flex-1">
+<span class="block font-bold text-gray-900 dark:text-white">Monday, Oct 24</span>
+<span class="text-sm text-gray-500">10:00 AM - 11:00 AM</span>
+</div>
+</label>
+<label class="relative flex items-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-all">
+<input class="mt-1 size-5 text-primary border-gray-300 rounded focus:ring-primary" type="checkbox"/>
+<div class="flex-1">
+<span class="block font-bold text-gray-900 dark:text-white">Monday, Oct 24</span>
+<span class="text-sm text-gray-500">02:00 PM - 03:00 PM</span>
+</div>
+</label>
+<label class="relative flex items-start gap-3 p-4 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-all">
+<input class="mt-1 size-5 text-primary border-gray-300 rounded focus:ring-primary" type="checkbox"/>
+<div class="flex-1">
+<span class="block font-bold text-gray-900 dark:text-white">Tuesday, Oct 25</span>
+<span class="text-sm text-gray-500">11:00 AM - 12:00 PM</span>
+</div>
+</label>
+<button class="flex items-center justify-center gap-2 p-4 rounded-xl border border-dashed border-gray-300 dark:border-gray-600 text-gray-500 hover:text-primary hover:border-primary hover:bg-primary/5 transition-all h-full">
+<span class="material-symbols-outlined">add_circle</span>
+<span class="font-semibold text-sm">Propose New Time</span>
+</button>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark space-y-4">
+<div class="flex items-center justify-between mb-2">
+<div class="flex items-center gap-2">
+<span class="flex items-center justify-center size-8 rounded-full bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">Optional Note</h3>
+</div>
+<span class="text-xs text-gray-400 font-medium bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">0/500</span>
+</div>
+<div>
+<textarea class="w-full rounded-xl border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-200 placeholder:text-gray-400 focus:border-primary focus:ring-primary resize-none text-sm p-4" placeholder="Share anything else you'd like the hiring team to know..." rows="4"></textarea>
+</div>
+</section>
+<div class="pt-2 pb-10">
+<button class="group relative w-full flex items-center justify-center py-4 px-6 rounded-2xl bg-gradient-to-r from-primary to-orange-600 text-white font-bold text-lg shadow-lg shadow-orange-500/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 overflow-hidden">
+<span class="relative z-10 flex items-center gap-2">
+                Submit Application
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">send</span>
+</span>
+<div class="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></div>
+</button>
+<p class="text-center text-xs text-gray-400 mt-4">By submitting, you agree to SkillWise's <a class="underline hover:text-gray-600" href="#">Terms of Service</a>.</p>
+</div>
+</main>
+
+</body></html>

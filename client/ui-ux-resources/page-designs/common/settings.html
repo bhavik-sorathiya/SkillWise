@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise Settings Hub</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f48c25",
+                        "background-light": "#f8f7f5",
+                        "background-dark": "#1a130d",
+                        "card-light": "#ffffff",
+                        "card-dark": "#251b12",
+                        "border-light": "#e8dbce",
+                        "border-dark": "#3a322b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .icon-filled { font-variation-settings: 'FILL' 1; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e8dbce; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #3a322b; }
+        .toggle-checkbox:checked {
+            @apply right-0 border-primary bg-primary;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            @apply bg-primary/20;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c140d] dark:text-gray-100 flex h-screen overflow-hidden font-display">
+<div class="flex-1 flex flex-col h-full relative">
+<header class="h-16 bg-white dark:bg-card-dark border-b border-border-light dark:border-border-dark flex items-center justify-between px-6 shrink-0 z-30 transition-colors duration-200">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center size-9 rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined icon-filled">school</span>
+</div>
+<h1 class="text-xl font-bold tracking-tight text-[#1c140d] dark:text-white">SkillWise</h1>
+</div>
+<div class="flex items-center gap-6">
+<a class="hidden md:flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-300 hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+                Opportunities
+            </a>
+<div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-1"></div>
+<button class="relative flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2.5 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<div class="size-8 rounded-full bg-gray-200 overflow-hidden bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCSdFzTQtvT0_xVByHn5hv3_ZA867l6K26JnHyF-Umhqo7f_ACgtstiM9B_Ty4N66AHyz_0GKs3QuGf2JEJfzb0aWxCvFNFg8hLuka9C1PebZ2-amyqIw4u26sHgRG1ztyPFExHX-ZrTNz8HGDSMF8cCGeOfS_HwZcJ2rMs2eZRhumdMUQZ4RlPrBSdNmevzKo3VIaOLgY83hEmqiz04rYo-S5yBJ0zrhVP8S3kW-A9HPOhc92suA7Bifq47SP8-x0KMpD9GOosNdY');"></div>
+<span class="material-symbols-outlined text-gray-500 dark:text-gray-400">arrow_drop_down</span>
+</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<main class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth w-full">
+<div class="max-w-4xl mx-auto space-y-8 pb-12">
+<div class="space-y-1 text-center md:text-left">
+<h2 class="text-3xl font-extrabold text-[#1c140d] dark:text-white">Settings Hub</h2>
+<p class="text-gray-500 dark:text-gray-400">Manage your interview preferences and application experience.</p>
+</div>
+<div class="grid grid-cols-1 gap-6">
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">tune</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">General Preferences</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-3">
+<label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Theme Selection</label>
+<div class="flex p-1 bg-gray-100 dark:bg-gray-800 rounded-xl">
+<button class="flex-1 py-2 px-4 rounded-lg bg-white dark:bg-gray-700 shadow-sm text-sm font-bold text-primary flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">light_mode</span> Light
+                                    </button>
+<button class="flex-1 py-2 px-4 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">dark_mode</span> Dark
+                                    </button>
+<button class="flex-1 py-2 px-4 rounded-lg text-sm font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">desktop_windows</span> System
+                                    </button>
+</div>
+</div>
+<div class="space-y-3">
+<label class="text-sm font-semibold text-gray-700 dark:text-gray-300">Language</label>
+<div class="relative">
+<select class="w-full bg-gray-50 dark:bg-gray-800 border-border-light dark:border-border-dark rounded-xl py-2.5 px-4 text-sm focus:ring-primary focus:border-primary appearance-none">
+<option>English (US)</option>
+<option>Spanish</option>
+<option>French</option>
+<option>German</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-2.5 text-gray-400 pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">videocam</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">Interview Preferences</h3>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-200">Default Video/Mic On</p>
+<p class="text-xs text-gray-500">Automatically enable camera and microphone when joining an interview.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-200">Join Reminders</p>
+<p class="text-xs text-gray-500">Show a notification 5 minutes before your interview starts.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">security</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">Privacy &amp; Security</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<a class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary">lock_reset</span>
+<span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Change Password</span>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</a>
+<a class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors group" href="#">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary">devices</span>
+<span class="text-sm font-semibold text-gray-700 dark:text-gray-300">Manage Active Sessions</span>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</a>
+</div>
+</section>
+<section class="bg-white dark:bg-card-dark rounded-2xl p-8 shadow-sm border border-border-light dark:border-border-dark">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">notifications_active</span>
+<h3 class="text-lg font-bold text-[#1c140d] dark:text-white">Communication</h3>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-200">Email Notifications</p>
+<p class="text-xs text-gray-500">Receive weekly summaries and application updates via email.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+<div class="flex items-center justify-between py-2">
+<div>
+<p class="font-semibold text-gray-800 dark:text-gray-200">Interview Reminders</p>
+<p class="text-xs text-gray-500">Push notifications on your device for upcoming interview calls.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</section>
+</div>
+<div class="flex justify-end">
+<button class="px-10 py-3.5 rounded-xl bg-primary text-white font-extrabold text-sm uppercase tracking-widest hover:bg-[#e67e15] transition-all shadow-lg shadow-primary/25 active:scale-[0.98]">
+                        Update Settings
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

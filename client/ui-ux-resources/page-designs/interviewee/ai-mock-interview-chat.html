@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Mock Interview — Chat Mode</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec7f13",
+                        "primary-dark": "#d66e0d",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem", 
+                        "lg": "0.5rem", 
+                        "xl": "0.75rem", 
+                        "2xl": "1rem", 
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        #chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #chat-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        #chat-container::-webkit-scrollbar-thumb {
+            background-color: #e5e7eb;
+            border-radius: 20px;
+        }
+        .dark #chat-container::-webkit-scrollbar-thumb {
+            background-color: #3a2e25;
+        }
+    </style>
+</head>
+<body class="bg-[#fcfcfc] dark:bg-background-dark text-[#181411] dark:text-white font-display flex flex-col h-screen overflow-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#e5e7eb] dark:border-[#3a2e25] bg-white dark:bg-[#1a120b] px-8 py-4 z-30 shrink-0">
+<div class="flex items-center gap-2 text-[#181411] dark:text-white">
+<div class="h-8 w-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">school</span>
+</div>
+<h2 class="text-[#181411] dark:text-white text-xl font-bold leading-tight tracking-[-0.015em]">SkillWise</h2>
+</div>
+<div class="flex items-center gap-6">
+<a class="flex items-center gap-1.5 text-[#181411] dark:text-white text-sm font-semibold leading-normal hover:text-primary transition-colors hidden sm:flex" href="#">
+<span class="material-symbols-outlined text-[20px]">explore</span>
+                Opportunities
+            </a>
+<div class="flex items-center gap-3">
+<button class="p-1 text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[24px]">notifications</span>
+</button>
+<div class="flex items-center gap-1 group cursor-pointer">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-8 w-8 border border-[#e5e7eb] dark:border-[#3a2e25]" data-alt="Portrait of a professional user" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAHa-BCyDEacmyRbkMt_Pf2PX9K5SRtw2lW3R-EfnbkYj_7IxwQVmXzrUM2D5XaRr1gpV9_zoJ8um2HblL6QoWSv12OR2Zr4n2R2yEuZQ8QOaJ__u1rBl-tiwT5AbKUonhA774H-rLWW2zZxhFZIEg4yxq5ywp6BMw8JC7DZLx6Hdgl6BrziAw7ue4kQTb1z1-nU53QlziR6nJUE7s7GmKHbnVaXnmfyX7MGfiGCmS5Rsv8BJq2FotWwWO5TXPMPVpcgF0TnOozfkQ");'></div>
+<span class="material-symbols-outlined text-gray-400 text-[20px] group-hover:text-primary transition-colors">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 flex flex-col relative overflow-hidden w-full bg-white dark:bg-[#1a120b]">
+<div class="sticky top-0 shrink-0 z-20 bg-white/95 dark:bg-[#1a120b]/95 backdrop-blur-md border-b border-[#f4f2f0] dark:border-[#3a2e25] px-8 py-3">
+<div class="flex flex-wrap items-center gap-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-xl">info</span>
+<span class="text-sm font-semibold text-[#181411] dark:text-white">Interview Info</span>
+</div>
+<div class="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
+<div class="flex gap-2 flex-wrap">
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded-full bg-[#f8f7f6] dark:bg-[#2c2016] px-3 border border-gray-100 dark:border-[#3a2e25]">
+<span class="material-symbols-outlined text-gray-400 text-[16px]">code</span>
+<p class="text-[#181411] dark:text-gray-200 text-xs font-medium">Role: Frontend Dev</p>
+</div>
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded-full bg-[#f8f7f6] dark:bg-[#2c2016] px-3 border border-gray-100 dark:border-[#3a2e25]">
+<span class="material-symbols-outlined text-primary text-[16px]">bar_chart</span>
+<p class="text-[#181411] dark:text-gray-200 text-xs font-medium">Difficulty: Medium</p>
+</div>
+<div class="flex h-7 items-center justify-center gap-x-1.5 rounded-full bg-[#fef5ec] dark:bg-[#432d19] px-3 border border-primary/20">
+<span class="material-symbols-outlined text-primary text-[16px]">chat</span>
+<p class="text-primary text-xs font-medium">Mode: Chat</p>
+</div>
+</div>
+</div>
+<div>
+<button class="text-xs font-medium text-gray-500 hover:text-red-500 flex items-center gap-1 transition-colors group">
+<span class="material-symbols-outlined text-[18px] group-hover:text-red-500 transition-colors">power_settings_new</span>
+<span class="hidden sm:inline">End Session</span>
+</button>
+</div>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto p-4 sm:p-8 flex flex-col gap-8 scroll-smooth max-w-4xl mx-auto w-full" id="chat-container">
+<div class="flex justify-center my-2">
+<span class="text-xs text-gray-400 bg-gray-50 dark:bg-[#221910] px-4 py-1 rounded-full border border-gray-100 dark:border-[#3a2e25]">Today, 10:23 AM</span>
+</div>
+<div class="flex items-start gap-4 max-w-[85%] group">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 shrink-0 border border-gray-100 shadow-sm" data-alt="AI Avatar Illustration" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDux0butTrtYqnXwppFfw76u9U86HX1kS7-RtpoDX5dbDDZHuXUI-QsaoaDPEEPaXCmhjRvPi0_8XwXuMXdDLa1CQ2GHkA1x-aH0r_QsYpviMrb2ot-ir16p2woZKhxVBkBMt1HCsU9Qfirx9OUMGl4C4qqrZ139w5-reFqMjeCzi7-y5Q1_OX4ubf8RFOhQzNO3zuD1VU5iSPmbvbIuU8Kwpiv5nTpw3GOeWVg-dEOytoxU96dLwJ4xH_omYCHDolzpriLMDzsJsw");'></div>
+<div class="flex flex-col gap-1.5">
+<p class="text-gray-500 dark:text-gray-400 text-[11px] font-medium ml-1 uppercase tracking-wider">AI Interviewer</p>
+<div class="text-[15px] font-normal leading-relaxed rounded-2xl rounded-tl-none px-5 py-4 bg-[#f2f2f2] dark:bg-[#2c2016] text-[#181411] dark:text-gray-100">
+                        Hello! Let's start. Can you tell me a little about yourself and your background in web development?
+                    </div>
+</div>
+</div>
+<div class="flex items-start gap-4 max-w-[85%] self-end flex-row-reverse group">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 shrink-0 border border-gray-100 dark:border-[#3a2e25]" data-alt="User Avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDejiEt5-iutfCUNBmAYhn3GnwjI1Nfu4GLnrGxS2AhpFBeR_yhnHdZm8kMbeB7ZB4rmIPwaC0EruEOmpj6Sb7o5dzBMlX8K_lHG-M_o0l8qmsCUYILOyNkTKobdDzad-PCWJ2_3Ap2r9Qqe0icKYMrFexmiaLqc90v43g9bDbwu-rKk6eSaEY0e9pOC1vSmJHUkoztQFesiJP8MzHBQr-GQraDYMXoiBXFXjGFy69Wi0appyJyHkDi4QohwN_i1hbgwViLsntdpJk");'></div>
+<div class="flex flex-col gap-1.5 items-end">
+<p class="text-gray-500 dark:text-gray-400 text-[11px] font-medium mr-1 uppercase tracking-wider">You</p>
+<div class="text-[15px] font-normal leading-relaxed rounded-2xl rounded-tr-none px-6 py-4 bg-[#ec7f13] text-white shadow-sm selection:bg-white/30">
+                        Sure! I have 5 years of experience in React and modern JavaScript. I've worked on several e-commerce platforms and enjoy building responsive UIs.
+                    </div>
+</div>
+</div>
+<div class="flex items-start gap-4 max-w-[85%] group">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-10 w-10 shrink-0 border border-gray-100 shadow-sm" data-alt="AI Avatar Illustration" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD5R4eCD2zD1qPB9zR2ieLABDUE5IRbTb0BIpWKDe5NyrDI2x-m5hWkDFlBtU_g3hts96StySiUKamtlxGBurToWCFRJroHmdJFWBbdEVwMzIw2b83SBuCqqhVcV6VKuDkVALc17UTISHir4xOK3XFw4RyYHxLT-ZQJaNPm1DDmW86KE2Idyjq6lt1V40z_nAnVi45z6AMhadD6nTw39ClKIUSq8MEb5cpXbk9p5BY2yXhk1ksqMiPlx_i6s6-49N-PvOS0qfwDo60");'></div>
+<div class="flex flex-col gap-1.5">
+<p class="text-gray-500 dark:text-gray-400 text-[11px] font-medium ml-1 uppercase tracking-wider">AI Interviewer</p>
+<div class="text-[15px] font-normal leading-relaxed rounded-2xl rounded-tl-none px-5 py-4 bg-[#f2f2f2] dark:bg-[#2c2016] text-[#181411] dark:text-gray-100">
+                        Great. Let's dive deeper. Can you explain how closures work in JavaScript and give me a practical use case?
+                    </div>
+</div>
+</div>
+<div class="h-4"></div>
+</div>
+<div class="shrink-0 p-4 sm:p-8 bg-white dark:bg-[#1a120b] border-t border-[#f4f2f0] dark:border-[#3a2e25]">
+<div class="max-w-4xl mx-auto w-full">
+<div class="relative flex items-center gap-2 bg-[#f8f7f6] dark:bg-[#221910] rounded-2xl px-4 py-2 border border-gray-200 dark:border-[#3a2e25] focus-within:ring-2 focus-within:ring-primary focus-within:bg-white dark:focus-within:bg-[#1a120b] transition-all">
+<button aria-label="Microphone" class="p-2 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[22px]">mic</span>
+</button>
+<textarea class="flex-1 bg-transparent border-none p-2.5 text-[#181411] dark:text-white placeholder:text-gray-400 focus:ring-0 resize-none min-h-[44px] max-h-[120px] leading-relaxed text-[15px]" placeholder="Type your answer here..." rows="1"></textarea>
+<div class="flex items-center gap-2">
+<button aria-label="Attach File" class="p-2 text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-[22px]">attach_file</span>
+</button>
+<button aria-label="Send Message" class="h-10 w-10 flex items-center justify-center bg-[#ec7f13] hover:bg-primary-dark text-white rounded-xl shadow-sm transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</div>
+<p class="text-center text-[11px] text-gray-400 mt-4 select-none">
+                    AI can make mistakes. Consider checking important information.
+                </p>
+</div>
+</div>
+</main>
+
+</body></html>

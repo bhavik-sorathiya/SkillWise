@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SkillWise - Signup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#137fec",
+              "background-light": "#f6f7f8",
+              "background-dark": "#101922",
+              "text-main": "#0d141b",
+              "text-secondary": "#4c739a",
+              "border-light": "#cfdbe7",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>.radio-checked-bg {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuAvnMbm52arqoO9pu-ELHUNQPi1SbUU6PZj2hnBbRtrQ6Z7qDo7A2IMtgSClFWMAxFxIfANr3YejNV_lgfUA6CUTsjN1KgUvg07hDNmMeaRf2Vo7nF_ALTIgcNBBc-Ao0RvY94vQtvbrX0FSrKau9qfbqgaufMaoZq2T4LtL2iJjoVrnRFt3YnUMu7pUh5BHG4XOWDUWcb_t0OC4MYqbyCnBGKT0ByEsfXL1x53KlJH6Y_3SFmu1A_hiDr07qwrHPl4IEhenxOcfV0)
+    }</style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main font-display antialiased overflow-x-hidden min-h-screen flex flex-col">
+<header class="w-full border-b border-solid border-border-light bg-white dark:bg-background-dark dark:border-gray-800 px-4 py-3 lg:px-10">
+<div class="flex items-center justify-between max-w-[960px] mx-auto">
+<div class="flex items-center gap-4 text-text-main dark:text-white">
+<div class="size-8 text-orange-500">
+<svg class="w-full h-full" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z"></path>
+</svg>
+</div>
+<h2 class="text-text-main dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">SkillWise</h2>
+</div>
+</div>
+</header>
+<main class="flex-1 flex justify-center py-10 px-4 sm:px-6">
+<div class="w-full max-w-[560px] flex flex-col gap-6">
+<div class="flex flex-col gap-2 text-center sm:text-left p-2">
+<h1 class="text-text-main dark:text-white tracking-tight text-3xl sm:text-[32px] font-bold leading-tight">Create your account</h1>
+<p class="text-text-secondary dark:text-gray-400 text-base font-normal leading-normal">Join the platform to practice, interview, and hire top talent.</p>
+</div>
+<form action="#" class="flex flex-col gap-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 p-6 sm:p-8" method="POST">
+<div class="flex flex-col gap-4">
+<span class="text-text-main dark:text-white text-base font-semibold leading-normal">First, tell us who you are</span>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<label class="group cursor-pointer flex flex-col items-start gap-2 rounded-lg border border-solid border-border-light dark:border-gray-600 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 dark:has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm">
+<div class="flex items-center gap-3 w-full">
+<div class="flex items-center justify-center size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-primary">
+<span class="material-symbols-outlined text-[24px]">person</span>
+</div>
+<input checked="" class="h-5 w-5 border-2 border-border-light bg-transparent text-transparent checked:border-primary checked:hover:border-primary checked:bg-[image:--radio-dot-svg] checked:focus:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary radio-checked-bg ml-auto" name="role" type="radio"/>
+</div>
+<div class="flex flex-col mt-2">
+<p class="text-text-main dark:text-white text-base font-medium leading-normal">Interviewee</p>
+<p class="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal mt-1">I want to practice or get hired</p>
+</div>
+</label>
+<label class="group cursor-pointer flex flex-col items-start gap-2 rounded-lg border border-solid border-border-light dark:border-gray-600 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 dark:has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm">
+<div class="flex items-center gap-3 w-full">
+<div class="flex items-center justify-center size-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined text-[24px]">work_history</span>
+</div>
+<input class="h-5 w-5 border-2 border-border-light bg-transparent text-transparent checked:border-primary checked:hover:border-primary checked:bg-[image:--radio-dot-svg] checked:focus:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary radio-checked-bg ml-auto" name="role" type="radio"/>
+</div>
+<div class="flex flex-col mt-2">
+<p class="text-text-main dark:text-white text-base font-medium leading-normal">Interviewer</p>
+<p class="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal mt-1">I want to hire or conduct mocks</p>
+</div>
+</label>
+</div>
+</div>
+<div class="h-px bg-border-light dark:bg-gray-700 w-full"></div>
+<div class="flex flex-col gap-5">
+<label class="flex flex-col w-full">
+<span class="text-text-main dark:text-white text-sm font-medium leading-normal pb-2">Full Name</span>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-main dark:text-white dark:bg-gray-900 border border-border-light dark:border-gray-600 focus:outline-0 focus:ring-2 focus:ring-primary/20 focus:border-primary h-12 placeholder:text-text-secondary p-4 text-base font-normal leading-normal transition-all" placeholder="Jane Doe" required="" type="text"/>
+</label>
+<label class="flex flex-col w-full">
+<span class="text-text-main dark:text-white text-sm font-medium leading-normal pb-2">Email Address</span>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-main dark:text-white dark:bg-gray-900 border border-border-light dark:border-gray-600 focus:outline-0 focus:ring-2 focus:ring-primary/20 focus:border-primary h-12 placeholder:text-text-secondary p-4 text-base font-normal leading-normal transition-all" placeholder="jane@example.com" required="" type="email"/>
+</label>
+<label class="flex flex-col w-full relative">
+<div class="flex justify-between items-center pb-2">
+<span class="text-text-main dark:text-white text-sm font-medium leading-normal">Password</span>
+</div>
+<div class="relative">
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-text-main dark:text-white dark:bg-gray-900 border border-border-light dark:border-gray-600 focus:outline-0 focus:ring-2 focus:ring-primary/20 focus:border-primary h-12 placeholder:text-text-secondary p-4 text-base font-normal leading-normal transition-all pr-12" placeholder="Min 8 characters" required="" type="password"/>
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-main dark:hover:text-white transition-colors focus:outline-none" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility</span>
+</button>
+</div>
+</label>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-orange-500 text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-orange-600 transition-colors shadow-sm active:scale-[0.98]">
+<span class="truncate">Create Account</span>
+</button>
+<div class="flex items-center justify-center gap-1.5 pt-2">
+<p class="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">Already have an account?</p>
+<a class="text-primary text-sm font-medium leading-normal hover:underline hover:text-blue-700 dark:hover:text-blue-400 transition-colors" href="#">Log in</a>
+</div>
+<p class="text-center text-xs text-text-secondary dark:text-gray-500 mt-2">
+                    By creating an account, you agree to our <a class="underline hover:text-text-main dark:hover:text-gray-300" href="#">Terms of Service</a> and <a class="underline hover:text-text-main dark:hover:text-gray-300" href="#">Privacy Policy</a>.
+                </p>
+</form>
+</div>
+</main>
+</body></html>

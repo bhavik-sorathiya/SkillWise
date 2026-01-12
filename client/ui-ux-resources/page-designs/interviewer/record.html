@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interviewer Records &amp; Feedback Hub - SkillWise</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ec7f13",
+                        "background-light": "#f8f7f6",
+                        "background-dark": "#221910",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#181411] dark:text-gray-100 overflow-hidden">
+<div class="flex h-screen flex-col w-full">
+<header class="flex h-16 shrink-0 items-center justify-between border-b border-solid border-[#e6e0db] dark:border-[#3e342b] bg-white dark:bg-[#1a120b] px-6 lg:px-10 z-20">
+<div class="flex items-center gap-3">
+<div class="flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-3xl">school</span>
+</div>
+<h2 class="text-[#181411] dark:text-white text-xl font-bold tracking-tight">SkillWise</h2>
+</div>
+<div class="flex items-center gap-6">
+<a class="flex items-center gap-2 text-[#181411] dark:text-gray-200 text-sm font-medium hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">explore</span>
+<span>Opportunities</span>
+</a>
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+</button>
+<div class="flex items-center gap-2 cursor-pointer">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-9 border border-[#e6e0db] dark:border-[#3e342b]" data-alt="User profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCm75TUduJOQIwD3erOBvBFHsBNb8ESNtx5G_t4PZaDGxGFJ-k-nehmbTyeUaK8RfQq_cBD1Wf2PkIvjQi6W9jOG4LRSYuoQhqf-9M_eOctsv5WFMbNOiTVZ7ObcjyWc1eOJBe5ArcqzkeR_-DxXcNFXRorWcUU_TmxUDkjG9Tj8tZsnF_HTZUfKTRKkKEnzX_7UhmDjfR9JprLyCWTUuxghhQ3WtLOkY1xJmiLNqfJ42ys3MBZSUKhfq6_FJuTRuQUbWCT5n-uT_Y");'></div>
+<span class="material-symbols-outlined text-gray-400 text-xl">expand_more</span>
+</div>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<aside class="flex w-20 md:w-24 flex-col items-center border-r border-[#e6e0db] dark:border-[#3e342b] bg-white dark:bg-[#1a120b] py-6 gap-6 shrink-0 z-10">
+<a class="group flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors text-gray-400 hover:text-primary" href="#" title="Home">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">home</span>
+</div>
+<span class="text-[10px] font-medium">Home</span>
+</a>
+<a class="group flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors text-gray-400 hover:text-primary" href="#" title="Interviews">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">calendar_month</span>
+</div>
+<span class="text-[10px] font-medium">Interviews</span>
+</a>
+<a class="group flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors text-primary" href="#" title="Records">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+<span class="material-symbols-outlined fill-1">folder_open</span>
+</div>
+<span class="text-[10px] font-medium">Records</span>
+</a>
+<div class="mt-auto group flex flex-col items-center justify-center gap-1 cursor-pointer transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" title="Settings">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<span class="text-[10px] font-medium">Settings</span>
+</div>
+</aside>
+<main class="flex-1 overflow-y-auto flex flex-col scroll-smooth">
+<div class="flex-1 p-4 md:p-8 lg:p-10">
+<div class="mx-auto max-w-6xl flex flex-col gap-8">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-2xl md:text-3xl font-bold text-[#181411] dark:text-white">Interview Records &amp; Feedback Hub</h1>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Review your past evaluations and growth insights.</p>
+</div>
+<div class="flex items-center gap-2">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-2 bg-white dark:bg-[#1a120b] border border-[#e6e0db] dark:border-[#3e342b] rounded-lg text-sm focus:ring-primary focus:border-primary w-64" placeholder="Search records..." type="text"/>
+</div>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl border border-[#e6e0db] dark:border-[#3e342b] bg-white dark:bg-[#1a120b] shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left text-sm border-collapse">
+<thead class="bg-gray-50 dark:bg-[#2a221b] text-gray-500 dark:text-gray-400 font-medium border-b border-[#e6e0db] dark:border-[#3e342b]">
+<tr>
+<th class="px-6 py-4" scope="col">Company</th>
+<th class="px-6 py-4" scope="col">Job</th>
+<th class="px-6 py-4" scope="col">Date</th>
+<th class="px-6 py-4" scope="col">Verdict</th>
+<th class="px-6 py-4 text-right" scope="col">Details</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#e6e0db] dark:divide-[#3e342b]">
+<tr class="bg-orange-50/30 dark:bg-orange-900/5">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white dark:bg-gray-800 border border-[#e6e0db] dark:border-[#3e342b] text-[#181411] dark:text-white">
+<span class="material-symbols-outlined">apartment</span>
+</div>
+<span class="font-bold text-[#181411] dark:text-white">TechFlow Systems</span>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-[#181411] dark:text-gray-300">Staff Backend Engineer</td>
+<td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">Oct 28, 2023</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                                                Pass
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right">
+<span class="material-symbols-outlined text-primary">expand_less</span>
+</td>
+</tr>
+<tr class="bg-orange-50/20 dark:bg-orange-900/5">
+<td class="px-6 py-6" colspan="5">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<div class="space-y-4">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined text-xl">comment</span>
+<h4 class="text-sm uppercase tracking-wider">Company Feedback</h4>
+</div>
+<ul class="space-y-3">
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-500 text-lg mt-0.5">check_circle</span>
+<p class="text-sm text-gray-700 dark:text-gray-300"><strong class="font-semibold">Clear evaluation:</strong> The candidate provided structured answers for scalability questions.</p>
+</li>
+<li class="flex items-start gap-3">
+<span class="material-symbols-outlined text-green-500 text-lg mt-0.5">check_circle</span>
+<p class="text-sm text-gray-700 dark:text-gray-300"><strong class="font-semibold">Good communication:</strong> Articulated complex trade-offs effectively during the whiteboarding session.</p>
+</li>
+</ul>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-2 text-primary font-bold">
+<span class="material-symbols-outlined text-xl">tips_and_updates</span>
+<h4 class="text-sm uppercase tracking-wider">Interview Tips</h4>
+</div>
+<div class="bg-white dark:bg-[#221910] p-4 rounded-lg border border-orange-200 dark:border-orange-900/30">
+<p class="text-sm text-gray-700 dark:text-gray-300 italic">"Probe system design earlier in the session next time to allow for deeper dive into data consistency models."</p>
+</div>
+</div>
+</div>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50 dark:hover:bg-[#2a221b] transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[#181411] dark:text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<span class="font-medium text-[#181411] dark:text-white">Nexus Health</span>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-[#181411] dark:text-gray-300">UI Architecture Lead</td>
+<td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">Oct 24, 2023</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-700 dark:text-yellow-400">
+                                                Hold
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50 dark:hover:bg-[#2a221b] transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[#181411] dark:text-white">
+<span class="material-symbols-outlined">token</span>
+</div>
+<span class="font-medium text-[#181411] dark:text-white">FinEdge AI</span>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-[#181411] dark:text-gray-300">Data Engineer II</td>
+<td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">Oct 21, 2023</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
+                                                Pass
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</td>
+</tr>
+<tr class="group hover:bg-gray-50 dark:hover:bg-[#2a221b] transition-colors">
+<td class="px-6 py-4 whitespace-nowrap">
+<div class="flex items-center gap-3">
+<div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[#181411] dark:text-white">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<span class="font-medium text-[#181411] dark:text-white">Capital One</span>
+</div>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-[#181411] dark:text-gray-300">Senior Mobile Dev</td>
+<td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400">Oct 15, 2023</td>
+<td class="px-6 py-4 whitespace-nowrap">
+<span class="inline-flex items-center rounded-full bg-red-100 dark:bg-red-900/30 px-2.5 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                                                Fail
+                                            </span>
+</td>
+<td class="px-6 py-4 whitespace-nowrap text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+<footer class="mt-auto border-t border-[#e6e0db] dark:border-[#3e342b] bg-white dark:bg-[#1a120b] py-6 px-10">
+<div class="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
+<p class="text-sm text-gray-500">© 2023 SkillWise Inc. All rights reserved.</p>
+<div class="flex items-center gap-6">
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">About</a>
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">Help</a>
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">Privacy</a>
+<a class="text-sm font-medium text-gray-500 hover:text-primary transition-colors" href="#">Terms</a>
+</div>
+</div>
+</footer>
+</main>
+</div>
+</div>
+
+</body></html>
