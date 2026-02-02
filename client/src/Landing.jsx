@@ -1,4 +1,5 @@
 import React from 'react';
+import './Landing.css';
 
 const Landing = () => {
   return (
@@ -191,9 +192,9 @@ const Landing = () => {
                   <div className="w-2/3 bg-gray-900 rounded-lg p-4 font-mono text-xs text-green-400">
                     <p>&gt; Initializing environment...</p>
                     <p>&gt; Candidate joined session.</p>
-                    <p className="text-white mt-2">function solveProblem(input) {'{}'}</p>
-                    <p className="text-white ml-4">return input.filter(x =&gt; x &gt; 0);</p>
-                    <p className="text-white">{'{}'}</p>
+                    <p className="text-white mt-2">{'function solveProblem(input) {'}</p>
+                    <p className="text-white ml-4">{'  return input.filter(x => x > 0);'}</p>
+                    <p className="text-white">{'}'}</p>
                     <span className="animate-pulse">_</span>
                   </div>
                 </div>
