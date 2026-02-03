@@ -1,7 +1,7 @@
 import React from 'react';
 import './Landing.css';
 
-const Landing = () => {
+const Landing = ({ onNavigateToLogin }) => {
   return (
     <div className="bg-background-light dark:bg-background-dark text-gray-900 dark:text-white font-body transition-colors duration-300 overflow-x-hidden">
       {/* Navigation */}
@@ -28,10 +28,10 @@ const Landing = () => {
 
             {/* Auth & CTA */}
             <div className="flex items-center space-x-4">
-              <a href="#" className="hidden md:block text-sm font-medium text-gray-900 dark:text-white hover:text-primary">Sign in</a>
-              <a href="#" className="bg-primary hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-lg hover:shadow-primary/30">
+              <button onClick={onNavigateToLogin} className="hidden md:block text-sm font-medium text-gray-900 dark:text-white hover:text-primary transition-colors">Sign in</button>
+              <button onClick={onNavigateToLogin} className="bg-primary hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-lg hover:shadow-primary/30">
                 Get started
-              </a>
+              </button>
             </div>
           </div>
         </div>

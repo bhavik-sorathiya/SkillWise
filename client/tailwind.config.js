@@ -8,11 +8,16 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#FF6B00",
-        "background-light": "#F3F4F6",
-        "background-dark": "#111827",
-        "surface-light": "#FFFFFF",
-        "surface-dark": "#1F2937",
+        primary: "#f27f0d",
+        "primary-hover": "#d96f0a",
+        "background-light": "#f8f7f5",
+        "background-dark": "#221910",
+        "surface-light": "#ffffff",
+        "surface-dark": "#2d241b",
+        "border-light": "#e8dbce",
+        "border-dark": "#4a3b30",
+        "text-main": "#1c140d",
+        "text-secondary": "#9c7349",
       },
       fontFamily: {
         display: ["Outfit", "sans-serif"],
