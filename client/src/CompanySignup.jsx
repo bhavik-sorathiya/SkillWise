@@ -1,7 +1,12 @@
+// client/src/CompanySignup.jsx
+// Company onboarding form for recruiter/manager account creation.
+
 import React, { useState } from 'react';
 import { authAPI } from './services/api';
+import { useComingSoon } from './context/ComingSoonContext';
 
 const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
+  const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,7 +63,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen flex flex-col transition-colors duration-200">
-      {/* Header */}
       <header className="w-full bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -86,10 +90,8 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow flex justify-center py-10 px-4 sm:px-6">
         <div className="w-full max-w-4xl flex flex-col gap-8">
-          {/* Page Title */}
           <div className="text-center sm:text-left space-y-2">
             <h1 className="text-text-main dark:text-white text-3xl sm:text-4xl font-black tracking-tight">
               Create your Company Profile
@@ -99,12 +101,10 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
             </p>
           </div>
 
-          {/* Form */}
           <form 
             onSubmit={handleSubmit}
             className="bg-surface-light dark:bg-surface-dark shadow-sm border border-border-light dark:border-border-dark rounded-xl p-6 sm:p-10 space-y-10"
           >
-            {/* Error Message */}
             {error && (
               <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
                 <span className="material-icons-round text-xl">error</span>
@@ -112,7 +112,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
               </div>
             )}
 
-            {/* Company Information Section */}
             <div className="space-y-6">
               <div className="flex items-center gap-3 border-b border-border-light dark:border-border-dark pb-4">
                 <span className="material-icons-round text-primary text-3xl">domain</span>
@@ -120,7 +119,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Company Name */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Company Name</span>
                   <input
@@ -134,7 +132,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                   />
                 </label>
 
-                {/* Industry */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Industry / Domain</span>
                   <div className="relative">
@@ -155,7 +152,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                   </div>
                 </label>
 
-                {/* Company Size */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Company Size</span>
                   <div className="relative">
@@ -176,7 +172,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                   </div>
                 </label>
 
-                {/* Website */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Official Website</span>
                   <div className="relative">
@@ -193,14 +188,12 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                 </label>
               </div>
 
-              {/* Registered Address */}
               <div className="pt-4 space-y-4">
                 <h3 className="text-text-main dark:text-white text-lg font-semibold flex items-center gap-2">
                   <span className="material-icons-round text-text-secondary text-xl">location_on</span>
                   Registered Address
                 </h3>
                 <div className="space-y-4">
-                  {/* Address Line 1 */}
                   <label className="block space-y-2">
                     <span className="text-text-main dark:text-gray-200 font-medium text-sm">Address Line 1</span>
                     <input
@@ -213,7 +206,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                     />
                   </label>
 
-                  {/* Address Line 2 */}
                   <label className="block space-y-2">
                     <span className="text-text-main dark:text-gray-200 font-medium text-sm">
                       Address Line 2 <span className="text-text-secondary font-normal">(Optional)</span>
@@ -228,7 +220,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                     />
                   </label>
 
-                  {/* City & State */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label className="block space-y-2">
                       <span className="text-text-main dark:text-gray-200 font-medium text-sm">City</span>
@@ -254,7 +245,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                     </label>
                   </div>
 
-                  {/* Country & Postal Code */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <label className="block space-y-2">
                       <span className="text-text-main dark:text-gray-200 font-medium text-sm">Country</span>
@@ -292,7 +282,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
               </div>
             </div>
 
-            {/* Primary Manager Details Section */}
             <div className="space-y-6 pt-6">
               <div className="flex items-center gap-3 border-b border-border-light dark:border-border-dark pb-4">
                 <span className="material-icons-round text-primary text-3xl">badge</span>
@@ -300,7 +289,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Full Name */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Full Name</span>
                   <div className="relative">
@@ -316,7 +304,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                   </div>
                 </label>
 
-                {/* Work Email */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Work Email</span>
                   <div className="relative">
@@ -332,7 +319,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                   </div>
                 </label>
 
-                {/* Role */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Role / Designation</span>
                   <div className="relative">
@@ -348,7 +334,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
                   </div>
                 </label>
 
-                {/* Password */}
                 <label className="block space-y-2">
                   <span className="text-text-main dark:text-gray-200 font-medium">Password</span>
                   <div className="relative">
@@ -375,7 +360,6 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
               </div>
             </div>
 
-            {/* Submit Section */}
             <div className="pt-6 space-y-6">
               <div className="flex flex-col items-center gap-4">
                 <button
@@ -405,14 +389,32 @@ const CompanySignup = ({ onBackToHome, onNavigateToLogin }) => {
               </div>
               <p className="text-center text-xs text-text-secondary max-w-lg mx-auto leading-relaxed">
                 By clicking "Create Company Account", you agree to our{' '}
-                <a className="underline hover:text-primary" href="#">Terms of Service</a> and{' '}
-                <a className="underline hover:text-primary" href="#">Privacy Policy</a>.
+                <a
+                  className="underline hover:text-primary"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openComingSoon({ title: 'Terms of Service', message: 'Terms of Service are coming soon.' });
+                  }}
+                >
+                  Terms of Service
+                </a>{' '}
+                and{' '}
+                <a
+                  className="underline hover:text-primary"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    openComingSoon({ title: 'Privacy Policy', message: 'Privacy Policy is coming soon.' });
+                  }}
+                >
+                  Privacy Policy
+                </a>.
                 We may send you account related emails.
               </p>
             </div>
           </form>
 
-          {/* Trust Badges */}
           <div className="flex flex-wrap justify-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
             <div className="flex items-center gap-2">
               <span className="material-icons-round text-text-secondary">security</span>

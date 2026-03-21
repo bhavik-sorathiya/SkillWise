@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { authAPI } from './services/api';
+// client/src/Login.jsx
+// Login page for user authentication and session start.
 
-const Login = ({ onBackToHome, onNavigateToSignup }) => {
+import React, { useState, useEffect } from 'react';
+import { useAuth } from './context/AuthContext';
+import { useComingSoon } from './context/ComingSoonContext';
+
+const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavigateToCompanySignup }) => {
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -9,20 +15,36 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      onNavigateToDashboard?.();
+    }
+  }, [isAuthenticated, onNavigateToDashboard]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      const response = await authAPI.login({ email, password });
+      // Validate inputs
+      if (!email || !password) {
+        setError('Please enter both email and password');
+        setLoading(false);
+        return;
+      }
+
+      // Call login from Auth Context
+      const response = await login(email, password);
+      
       console.log('Login successful:', response);
       
-      // Show success message
-      alert('Login successful! Welcome back.');
-      
-      // Redirect or handle successful login
-      // onBackToHome(); // Uncomment when you have a dashboard
+      // Wait a tick to ensure state updates propagate
+      setTimeout(() => {
+        onNavigateToDashboard?.();
+      }, 0);
+
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {
@@ -32,10 +54,9 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
 
   return (
     <div className="relative flex min-h-screen flex-col overflow-hidden bg-background-light dark:bg-background-dark">
-      {/* Header */}
-      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-[#E7E5E4] dark:border-[#44403C] px-6 lg:px-10 py-4 bg-white dark:bg-[#1C1917]">
+      <header className="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-light dark:border-border-dark px-6 lg:px-10 py-4 bg-surface-light dark:bg-surface-dark">
         <div 
-          className="flex items-center gap-4 text-[#292524] dark:text-[#E7E5E4] cursor-pointer"
+          className="flex items-center gap-4 text-text-main dark:text-white cursor-pointer"
           onClick={onBackToHome}
         >
           <div className="size-8 text-primary flex items-center justify-center">
@@ -45,22 +66,19 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-grow flex flex-col items-center justify-center p-4 sm:px-6 lg:px-8">
         <div className="w-full max-w-[480px]">
-          <div className="bg-white dark:bg-[#292524] shadow-xl rounded-xl border border-[#E7E5E4] dark:border-[#44403C] overflow-hidden">
-            {/* Form Section */}
+          <div className="bg-surface-light dark:bg-surface-dark shadow-xl rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
             <div className="px-6 py-8 sm:p-10">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold leading-tight tracking-[-0.015em] text-[#292524] dark:text-[#E7E5E4]">
+                <h1 className="text-2xl font-bold leading-tight tracking-[-0.015em] text-text-main dark:text-white">
                   Welcome back
                 </h1>
-                <p className="mt-2 text-base font-normal leading-normal text-[#57534E] dark:text-[#A8A29E]">
+                <p className="mt-2 text-base font-normal leading-normal text-text-secondary dark:text-gray-400">
                   Please enter your details to sign in.
                 </p>
               </div>
 
-              {/* Error Message */}
               {error && (
                 <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-center gap-2">
@@ -71,21 +89,20 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Email Input */}
                 <div className="space-y-2">
                   <label 
-                    className="block text-base font-medium leading-normal text-[#292524] dark:text-[#D6D3D1]" 
+                    className="block text-base font-medium leading-normal text-text-main dark:text-white" 
                     htmlFor="email"
                   >
                     Email Address
                   </label>
                   <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#78716C] dark:text-[#A8A29E]">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary dark:text-gray-400">
                       <span className="material-icons-round text-[20px]">mail</span>
                     </div>
                     <input
                       autoComplete="email"
-                      className="block w-full pl-10 pr-3 py-3 border border-[#D6D3D1] dark:border-[#57534E] rounded-lg bg-[#FAFAF9] dark:bg-[#1C1917] text-[#292524] dark:text-[#E7E5E4] placeholder-[#A8A29E] dark:placeholder-[#78716C] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary sm:text-base transition-colors h-12"
+                      className="block w-full pl-10 pr-3 py-3 border border-border-light dark:border-border-dark rounded-lg bg-background-light dark:bg-background-dark text-text-main dark:text-white placeholder-text-secondary dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary sm:text-base transition-colors h-12"
                       id="email"
                       name="email"
                       placeholder="Enter your email"
@@ -97,21 +114,20 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                   </div>
                 </div>
 
-                {/* Password Input */}
                 <div className="space-y-2">
                   <label 
-                    className="block text-base font-medium leading-normal text-[#292524] dark:text-[#D6D3D1]" 
+                    className="block text-base font-medium leading-normal text-text-main dark:text-white" 
                     htmlFor="password"
                   >
                     Password
                   </label>
                   <div className="relative flex items-center">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#78716C] dark:text-[#A8A29E]">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-text-secondary dark:text-gray-400">
                       <span className="material-icons-round text-[20px]">lock</span>
                     </div>
                     <input
                       autoComplete="current-password"
-                      className="block w-full pl-10 pr-10 py-3 border border-[#D6D3D1] dark:border-[#57534E] rounded-lg bg-[#FAFAF9] dark:bg-[#1C1917] text-[#292524] dark:text-[#E7E5E4] placeholder-[#A8A29E] dark:placeholder-[#78716C] focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary sm:text-base transition-colors h-12"
+                      className="block w-full pl-10 pr-10 py-3 border border-border-light dark:border-border-dark rounded-lg bg-background-light dark:bg-background-dark text-text-main dark:text-white placeholder-text-secondary dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary sm:text-base transition-colors h-12"
                       id="password"
                       name="password"
                       placeholder="Enter your password"
@@ -121,7 +137,7 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <button
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#78716C] dark:text-[#A8A29E] hover:text-primary transition-colors cursor-pointer"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary dark:text-gray-400 hover:text-primary transition-colors cursor-pointer"
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                     >
@@ -132,11 +148,10 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                   </div>
                 </div>
 
-                {/* Remember Me & Forgot Password */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <input
-                      className="h-4 w-4 rounded border-[#D6D3D1] text-primary focus:ring-primary bg-[#FAFAF9] dark:bg-[#1C1917] dark:border-[#57534E] cursor-pointer"
+                      className="h-4 w-4 rounded border-border-light dark:border-border-dark text-primary focus:ring-primary bg-background-light dark:bg-background-dark cursor-pointer"
                       id="remember-me"
                       name="remember-me"
                       type="checkbox"
@@ -144,25 +159,25 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                       onChange={(e) => setRememberMe(e.target.checked)}
                     />
                     <label 
-                      className="ml-2 block text-sm text-[#57534E] dark:text-[#A8A29E] cursor-pointer" 
+                      className="ml-2 block text-sm text-text-secondary dark:text-gray-400 cursor-pointer" 
                       htmlFor="remember-me"
                     >
                       Remember me
                     </label>
                   </div>
                   <div className="text-sm">
-                    <a 
-                      className="font-medium text-primary hover:text-primary/80 transition-colors" 
-                      href="#"
+                    <button
+                      type="button"
+                      className="font-medium text-primary hover:text-primary/80 transition-colors"
+                      onClick={() => openComingSoon({ title: 'Password Reset', message: 'Password recovery is coming soon.' })}
                     >
                       Forgot password?
-                    </a>
+                    </button>
                   </div>
                 </div>
 
-                {/* Submit Button */}
                 <button
-                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-[#C2410C] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary h-12 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary h-12 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   type="submit"
                   disabled={loading}
                 >
@@ -180,14 +195,13 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                 </button>
               </form>
 
-              {/* Social Login Section */}
               <div className="mt-6">
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-[#E7E5E4] dark:border-[#44403C]"></div>
                   </div>
                   <div className="relative flex justify-center text-sm">
-                    <span className="px-2 bg-white dark:bg-[#292524] text-[#57534E] dark:text-[#A8A29E]">
+                      <span className="px-2 bg-surface-light dark:bg-surface-dark text-text-secondary dark:text-gray-400">
                       Or continue with
                     </span>
                   </div>
@@ -195,8 +209,9 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   <button
-                    className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-[#D6D3D1] dark:border-[#57534E] rounded-lg shadow-sm bg-white dark:bg-[#1C1917] text-sm font-medium text-[#57534E] dark:text-[#D6D3D1] hover:bg-[#F5F5F4] dark:hover:bg-[#292524] transition-colors"
+                      className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-border-light dark:border-border-dark rounded-lg shadow-sm bg-surface-light dark:bg-surface-dark text-sm font-medium text-text-secondary dark:text-gray-400 hover:bg-background-light dark:hover:bg-background-dark transition-colors"
                     type="button"
+                    onClick={() => openComingSoon({ title: 'Google Sign-In', message: 'Google login is coming soon.' })}
                   >
                     <svg 
                       aria-hidden="true" 
@@ -209,8 +224,9 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                     Google
                   </button>
                   <button
-                    className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-[#D6D3D1] dark:border-[#57534E] rounded-lg shadow-sm bg-white dark:bg-[#1C1917] text-sm font-medium text-[#57534E] dark:text-[#D6D3D1] hover:bg-[#F5F5F4] dark:hover:bg-[#292524] transition-colors"
+                      className="w-full inline-flex justify-center items-center py-2.5 px-4 border border-border-light dark:border-border-dark rounded-lg shadow-sm bg-surface-light dark:bg-surface-dark text-sm font-medium text-text-secondary dark:text-gray-400 hover:bg-background-light dark:hover:bg-background-dark transition-colors"
                     type="button"
+                    onClick={() => openComingSoon({ title: 'LinkedIn Sign-In', message: 'LinkedIn login is coming soon.' })}
                   >
                     <svg 
                       aria-hidden="true" 
@@ -229,7 +245,7 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
                 </div>
 
                 <div className="mt-8 text-center">
-                  <span className="text-sm text-[#57534E] dark:text-[#A8A29E]">
+                    <span className="text-sm text-text-secondary dark:text-gray-400">
                     Don't have an account?
                   </span>
                   <button 
@@ -243,12 +259,18 @@ const Login = ({ onBackToHome, onNavigateToSignup }) => {
               </div>
             </div>
 
-            {/* Footer */}
-            <div className="px-6 py-4 bg-[#F5F5F4] dark:bg-[#0C0A09] border-t border-[#E7E5E4] dark:border-[#44403C] flex flex-col items-center justify-center gap-2">
-              <p className="text-sm text-[#57534E] dark:text-[#A8A29E] block sm:hidden">
-                New here? <a className="font-bold text-primary hover:underline" href="#">Create a company account</a>
+              <div className="px-6 py-4 bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-2">
+                <p className="text-sm text-text-secondary dark:text-gray-400 block sm:hidden">
+                New here?{' '}
+                <button
+                  type="button"
+                  className="font-bold text-primary hover:underline"
+                  onClick={onNavigateToCompanySignup}
+                >
+                  Create a company account
+                </button>
               </p>
-              <div className="flex items-center text-xs text-[#78716C] dark:text-[#78716C] gap-1">
+              <div className="flex items-center text-xs text-text-secondary dark:text-gray-400 gap-1">
                 <span className="material-icons-round text-[14px]">lock</span>
                 <span>Secure login • Privacy protected</span>
               </div>

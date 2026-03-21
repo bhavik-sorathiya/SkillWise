@@ -1,51 +1,118 @@
-# SkillWise 🚀
+# SkillWise
 
-**SkillWise** is a full-stack web application built using the **MERN stack**, currently leveraging **Node.js** for the backend and **React (Vite)** for the frontend.
+SkillWise is a full-stack web application: a React (Vite) frontend and a Node.js + Express backend with MySQL and Socket.IO for real-time mock interviews & resume analysis.
 
----
+This README covers quick setup, run commands, required environment variables, documentation links and a short troubleshooting section.
 
-## 📁 Project Structure
-```yml copy code
-SkillWise/  
-├── client/ # React frontend (powered by Vite)  
-├── server/ # Node.js & Express backend  
-├── package.json  
-└── other configuration & automation scripts  
-```
+## Project layout
 
----
+- `client/` – React + Vite frontend
+- `server/` – Express backend, Socket.IO, AI integration
+- `docs/` – Canonical project documentation (architecture, API, deployment, etc.)
 
-## 🚀 Getting Started
+## Prerequisites
 
-Follow the steps below to set up the project locally on your machine.
+- Node.js 18+ and npm
+- MySQL 8+ (or a compatible managed MySQL instance)
 
-## 1️⃣ Clone the Repository
+## Quick Setup (root)
 
-```bash
-git clone https://github.com/bhavik-sorathiya/SkillWise.git
-cd SkillWise
-```
-## 2️⃣ One-Time Setup
-
-Instead of installing dependencies separately in each folder, run the following command from the **root directory** to install dependencies for the **root**, **client**, and **server**:
+Install dependencies for the workspace (client + server):
 
 ```bash
 npm run setup
 ```
-## 3️⃣ Development Mode/Run the Application
-To start both the React frontend and the Node.js backend simultaneously with a single command, run:
+
+Start frontend and backend concurrently (development):
+
 ```bash
 npm run dev
 ```
-### Local URLs
-- Frontend: `http://localhost:5173/`
-- Backend: `http://localhost:5000/`
----
-## 🛠️ Available Scripts
 
-| Command           | Description                                                   |
-|-------------------|---------------------------------------------------------------|
-| `npm run setup`   | Installs dependencies for root, client, and server folders    |
-| `npm run dev`     | Runs both frontend and backend concurrently                   |
-| `npm run client`  | Runs only the React frontend [First open client folder in terminal]                                  |
-| `npm run server`  | Runs only the Node.js backend (with auto-restart) [First open server folder in terminal]             |
+Run only frontend:
+
+```bash
+npm run client
+```
+
+Run only backend:
+
+```bash
+npm run server
+```
+
+Build production frontend:
+
+```bash
+cd client
+npm run build
+```
+
+## Environment variables
+
+Backend (`server/.env`):
+
+- `PORT` (default `3000`)
+- `DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`
+- `JWT_SECRET`
+- `GEMINI_API_KEY` or `GEMINI_API_KEY_1` (required for AI features)
+- `GEMINI_API_KEY_2` (optional fallback)
+- `RESUME_ANALYSIS_TIMEOUT` (ms, optional)
+- `NODE_ENV` (`development|production`)
+
+Frontend (`client/.env`):
+
+- `VITE_API_URL` (e.g. `http://localhost:3000/api`)
+- `VITE_SOCKET_URL` (e.g. `http://localhost:3000`)
+
+## Documentation
+
+The `docs/` folder contains the project's canonical documentation. Quick links and short descriptions:
+
+- [docs/getting-started.md](docs/getting-started.md) — Step-by-step setup, development and production run instructions.
+- [docs/architecture.md](docs/architecture.md) — High-level system architecture, components, and data flow diagrams.
+- [docs/backend.md](docs/backend.md) — Backend structure, controllers, routes, middleware and important implementation notes.
+- [docs/api.md](docs/api.md) — API contract and endpoint reference used by the frontend and third-party clients.
+- [docs/database.md](docs/database.md) — Database schema, table descriptions, and sample queries used by the project.
+- [docs/deployment.md](docs/deployment.md) — Deployment guides for staging and production, environment considerations and commands.
+- [docs/tech-stack.md](docs/tech-stack.md) — Libraries, frameworks, build tooling, and runtime versions used across the project.
+- [docs/decisions.md](docs/decisions.md) — Key architectural and implementation decisions, tradeoffs and alternatives considered.
+- [docs/README.md](docs/README.md) — Overview index for the `docs/` directory with quick navigation.
+
+Open any of the files above for more detailed guidance. If you want, I can expand any single doc into a fuller how-to or add examples (database seed scripts, deployment CI, etc.).
+
+## Troubleshooting
+
+- If the client build fails with Tailwind/PostCSS errors (recent Tailwind v4 changes), try installing client deps with legacy peer-deps:
+
+```bash
+cd client
+npm install --legacy-peer-deps
+```
+
+- If problems persist, pin `tailwindcss` to a v3 compatible release:
+
+```bash
+npm install tailwindcss@^3 --save-dev --legacy-peer-deps
+```
+
+- Backend requires `GEMINI_API_KEY` for resume analysis; the app starts without the key but analysis features will be disabled.
+
+## Useful commands
+
+- Install only server deps:
+
+```bash
+npm ci --prefix server
+```
+
+- Install only client deps (use legacy peer deps if needed):
+
+```bash
+npm install --prefix client --legacy-peer-deps
+```
+
+## Next steps
+
+- Read `docs/getting-started.md` and `docs/architecture.md` for a deeper walkthrough.
+- Want me to: run the setup now, or pin `tailwindcss` to v3 and rebuild the client? Reply which action you prefer and I'll proceed.

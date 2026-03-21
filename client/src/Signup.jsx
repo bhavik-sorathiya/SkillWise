@@ -1,7 +1,13 @@
+// client/src/Signup.jsx
+// User registration page for interviewee/interviewer accounts.
+
 import React, { useState } from 'react';
-import { authAPI } from './services/api';
+import { useAuth } from './context/AuthContext';
+import { useComingSoon } from './context/ComingSoonContext';
 
 const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) => {
+  const { signup } = useAuth();
+  const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,10 +24,18 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
     setLoading(true);
 
     try {
-      const response = await authAPI.signup(formData);
+      // Validate inputs
+      if (!formData.fullName || !formData.email || !formData.password) {
+        setError('Please fill in all fields');
+        setLoading(false);
+        return;
+      }
+
+      // Call signup from Auth Context
+      const response = await signup(formData.fullName, formData.email, formData.password);
       console.log('Signup successful:', response);
       
-      // Show success message
+      // Show success message and navigate to login
       alert('Account created successfully! Please login.');
       
       // Navigate to login
@@ -43,7 +57,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
 
   return (
     <div className="bg-background-light dark:bg-background-dark text-text-main font-display antialiased overflow-x-hidden min-h-screen flex flex-col">
-      {/* Header */}
       <header className="w-full border-b border-solid border-border-light bg-white dark:bg-background-dark dark:border-gray-800 px-4 py-3 lg:px-10">
         <div className="flex items-center justify-between max-w-[960px] mx-auto">
           <div 
@@ -60,10 +73,8 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 flex justify-center py-10 px-4 sm:px-6">
         <div className="w-full max-w-[560px] flex flex-col gap-6">
-          {/* Page Title */}
           <div className="flex flex-col gap-2 text-center sm:text-left p-2">
             <h1 className="text-text-main dark:text-white tracking-tight text-3xl sm:text-[32px] font-bold leading-tight">
               Create your account
@@ -73,7 +84,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
             </p>
           </div>
 
-          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <div className="flex items-center gap-2">
@@ -83,18 +93,15 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
             </div>
           )}
 
-          {/* Form */}
           <form 
             onSubmit={handleSubmit}
             className="flex flex-col gap-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 p-6 sm:p-8"
           >
-            {/* Role Selection */}
             <div className="flex flex-col gap-4">
               <span className="text-text-main dark:text-white text-base font-semibold leading-normal">
                 First, tell us who you are
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Interviewee Option */}
                 <label className="group cursor-pointer flex flex-col items-start gap-2 rounded-lg border border-solid border-border-light dark:border-gray-600 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 dark:has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm">
                   <div className="flex items-center gap-3 w-full">
                     <div className="flex items-center justify-center size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-primary">
@@ -119,7 +126,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
                   </div>
                 </label>
 
-                {/* Interviewer Option */}
                 <label className="group cursor-pointer flex flex-col items-start gap-2 rounded-lg border border-solid border-border-light dark:border-gray-600 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 dark:has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm">
                   <div className="flex items-center gap-3 w-full">
                     <div className="flex items-center justify-center size-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
@@ -146,12 +152,9 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
               </div>
             </div>
 
-            {/* Divider */}
             <div className="h-px bg-border-light dark:bg-gray-700 w-full"></div>
 
-            {/* Form Fields */}
             <div className="flex flex-col gap-5">
-              {/* Full Name */}
               <label className="flex flex-col w-full">
                 <span className="text-text-main dark:text-white text-sm font-medium leading-normal pb-2">
                   Full Name
@@ -167,7 +170,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
                 />
               </label>
 
-              {/* Email Address */}
               <label className="flex flex-col w-full">
                 <span className="text-text-main dark:text-white text-sm font-medium leading-normal pb-2">
                   Email Address
@@ -183,7 +185,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
                 />
               </label>
 
-              {/* Password */}
               <label className="flex flex-col w-full relative">
                 <div className="flex justify-between items-center pb-2">
                   <span className="text-text-main dark:text-white text-sm font-medium leading-normal">
@@ -213,7 +214,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
               </label>
             </div>
 
-            {/* Submit Button */}
             <button
               className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-orange-500 text-white text-base font-bold leading-normal tracking-[0.015em] hover:bg-orange-600 transition-colors shadow-sm active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
               type="submit"
@@ -232,7 +232,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
               )}
             </button>
 
-            {/* Login Link */}
             <div className="flex items-center justify-center gap-1.5 pt-2">
               <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">
                 Already have an account?
@@ -246,19 +245,31 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
               </button>
             </div>
 
-            {/* Terms */}
             <p className="text-center text-xs text-text-secondary dark:text-gray-500 mt-2">
               By creating an account, you agree to our{' '}
-              <a className="underline hover:text-text-main dark:hover:text-gray-300" href="#">
+              <a
+                className="underline hover:text-text-main dark:hover:text-gray-300"
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openComingSoon({ title: 'Terms of Service', message: 'Terms of Service are coming soon.' });
+                }}
+              >
                 Terms of Service
               </a>{' '}
               and{' '}
-              <a className="underline hover:text-text-main dark:hover:text-gray-300" href="#">
+              <a
+                className="underline hover:text-text-main dark:hover:text-gray-300"
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openComingSoon({ title: 'Privacy Policy', message: 'Privacy Policy is coming soon.' });
+                }}
+              >
                 Privacy Policy
               </a>.
             </p>
 
-            {/* Company Signup Link */}
             <div className="mt-6 pt-6 border-t border-border-light dark:border-gray-700">
               <p className="text-center text-sm text-text-secondary dark:text-gray-400">
                 Want to hire talent?{' '}

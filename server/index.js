@@ -1,28 +1,79 @@
 // server/index.js
-// Make sure you have installed express, cors, and dotenv
-// npm install express cors dotenv
+// Application entry point: configures middleware/routes, initializes Gemini, and starts HTTP server.
 
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const http = require('http');
+const socketIo = require('socket.io');
 const authRoutes = require('./src/routes/authRoutes');
+const intervieweeDashboardRoutes = require('./src/routes/intervieweeDashboardRoutes');
+const resumeRoutes = require('./src/routes/resumeRoutes');
+const skillsRoutes = require('./src/routes/skillsRoutes');
+const interviewHistoryRoutes = require('./src/routes/interviewHistoryRoutes');
+const { initializeGemini } = require('./src/utils/geminiService');
+const { initializeInterviewSocket } = require('./src/handlers/interviewHandler');
+const { globalErrorHandler } = require('./src/utils/errorHandler');
 
 const app = express();
+const server = http.createServer(app);
+const io = socketIo(server, {
+  cors: {
+    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    credentials: true
+  }
+});
 
-// Middleware
-app.use(cors());
+// Global middleware for CORS and JSON/form request parsing.
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// API route registration by bounded context.
 app.use('/api/auth', authRoutes);
+app.use('/api/interviewee', intervieweeDashboardRoutes);
+app.use('/api/resumes', resumeRoutes);
+app.use('/api/skills', skillsRoutes);
+app.use('/api/interviews', interviewHistoryRoutes);
 
-// Home route
+// Health/home route for quick API availability checks.
 app.get('/', (req, res) => {
     res.send('Welcome to SkillWise API');
 });
 
+// 404 handler - catch all undefined routes
+app.use((req, res, next) => {
+  const error = new Error(`Route not found: ${req.method} ${req.originalUrl}`);
+  error.statusCode = 404;
+  next(error);
+});
+
+// Global error handler - MUST be last middleware
+app.use(globalErrorHandler);
+
+// Initialize interview Socket.IO handlers
+initializeInterviewSocket(io);
+
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// Startup pipeline: initialize AI dependencies first, then bind server port.
+(async () => {
+  try {
+    // Initialize Gemini AI for resume analysis
+    const geminiInitialized = await initializeGemini();
+    if (!geminiInitialized) {
+      console.warn('⚠️  Gemini AI initialization failed - resume analysis features will be unavailable');
+    }
+
+    server.listen(PORT, () => {
+      console.log(`✓ Server is running on port ${PORT}`);
+      console.log(`✓ Socket.IO initialized`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+})();
