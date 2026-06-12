@@ -1,7 +1,7 @@
 // client/src/ResumeAndSkills.jsx
 // Dedicated resume analysis workspace with upload, results, and skill actions.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import MobileSidebarBackdrop from './components/MobileSidebarBackdrop';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
@@ -14,7 +14,8 @@ import AddSkillModal from './components/AddSkillModal';
 import TargetRoleModal from './components/TargetRoleModal';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
-import { resumeAPI, skillsAPI, logout as logoutAPI } from './services/api';
+import { useError } from './context/ErrorContext';
+import { resumeAPI, logout as logoutAPI } from './services/api';
 import { DataSyncService } from './utils/cacheSync';
 import './ResumeAndSkills.css';
 
@@ -22,11 +23,13 @@ import './ResumeAndSkills.css';
 const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToHome, onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews, onLogout }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const { openComingSoon } = useComingSoon();
+  const { addError } = useError();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isAddSkillModalOpen, setIsAddSkillModalOpen] = useState(false);
   const [isTargetRoleModalOpen, setIsTargetRoleModalOpen] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
+  const uploadMessageTimerRef = useRef(null);
   
   const [resumesList, setResumesList] = useState([]);
   const [selectedResumeId, setSelectedResumeId] = useState(null);
@@ -39,8 +42,8 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
   const [loadingResumes, setLoadingResumes] = useState(true);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
   const [loadingUpload, setLoadingUpload] = useState(false);
+  const [uploadStatusMessage, setUploadStatusMessage] = useState('');
   const [error, setError] = useState(null);
-  const [uploadError, setUploadError] = useState(null);
 
   // Initial load: fetch user's uploaded resumes and auto-select the latest/first.
   useEffect(() => {
@@ -56,13 +59,16 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
         }
 
         const result = await resumeAPI.getResumesList();
-        
-        if (result.success && result.data.resumes.length > 0) {
-          setResumesList(result.data.resumes);
-          // Select first resume by default
-          setSelectedResumeId(result.data.resumes[0].id);
+
+        if (result.success) {
+          const resumes = result.data?.resumes || [];
+          setResumesList(resumes);
+          // Auto-select the first resume if available
+          if (resumes.length > 0) {
+            setSelectedResumeId(resumes[0].id);
+          }
         } else {
-          throw new Error('No resumes found');
+          throw new Error(result.message || 'Failed to load resumes');
         }
       } catch (err) {
         console.error('Error fetching resumes list:', err);
@@ -70,7 +76,10 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
         if (err.message.includes('Session expired')) {
           onNavigateToLogin();
         }
-        setError(err.message);
+        // Only treat as error if it's NOT just "no resumes"
+        if (!err.message.includes('No resumes')) {
+          setError(err.message);
+        }
       } finally {
         setLoadingResumes(false);
       }
@@ -151,19 +160,17 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
     if (!file) return;
 
     try {
-      setUploadError(null);
-
       // Check authentication
       if (!token) {
-        setUploadError('Authentication required. Please login first.');
         onNavigateToLogin();
+        addError('Authentication required. Please login first.', 'warning');
         return;
       }
 
       // Validate file type on client
       const allowedMimes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedMimes.includes(file.type)) {
-        setUploadError(`Invalid file type: ${file.type}. Only DOCX (Word) files are allowed.`);
+        addError(`Invalid file type: ${file.type}. Only DOCX (Word) files are allowed.`, 'warning');
         event.target.value = '';
         return;
       }
@@ -171,7 +178,7 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
       // Validate file size on client (3MB max)
       const maxSize = 3 * 1024 * 1024;
       if (file.size > maxSize) {
-        setUploadError(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word file.`);
+        addError(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word file.`, 'warning');
         event.target.value = '';
         return;
       }
@@ -184,7 +191,7 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
       event.target.value = '';
     } catch (err) {
       console.error('Error in handleResumeUpload:', err);
-      setUploadError(`Upload failed: ${err.message}`);
+      addError(`Upload failed: ${err.message}`, 'error');
     }
   };
 
@@ -194,16 +201,24 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
 
     try {
       setLoadingUpload(true);
-      setUploadError(null);
+      setUploadStatusMessage('Uploading your resume...');
       setIsTargetRoleModalOpen(false);
+
+      if (uploadMessageTimerRef.current) {
+        window.clearTimeout(uploadMessageTimerRef.current);
+      }
+      uploadMessageTimerRef.current = window.setTimeout(() => {
+        setUploadStatusMessage('Processing and analyzing your resume...');
+      }, 1600);
 
       console.log('Uploading file with target role:', {
         file: pendingFile.name,
         ...roleData
       });
 
-      // Use resumeAPI to upload - pass ONLY targetRole
+      // Use resumeAPI to upload - pass title + targetRole (both required by new schema)
       const result = await resumeAPI.uploadResume(pendingFile, {
+        title: roleData.title,
         targetRole: roleData.targetRole
       });
 
@@ -212,9 +227,19 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
       if (result.success && result.data) {
         // Add new resume to list and select it
         setResumesList(prev => [...prev, result.data]);
-        setSelectedResumeId(result.data.id);
+        if (result.data.analysisMetadata?.success) {
+          setSelectedResumeId(result.data.id);
+        }
         setError(null);
         console.log('Resume uploaded and saved successfully:', result.data);
+
+        if (result.data.analysisMetadata?.success) {
+          addError('Resume analyzed successfully.', 'success');
+        } else if (result.data.analysisMetadata?.attempted) {
+          addError('Resume uploaded, but analysis failed. Please try again later.', 'warning');
+        } else {
+          addError('Resume uploaded successfully.', 'success');
+        }
       } else {
         throw new Error(result.message || 'Upload failed');
       }
@@ -223,14 +248,19 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
       
       // Handle token expiry errors
       if (err.message.includes('Session expired') || err.message.includes('Unauthorized')) {
-        setUploadError('Session expired. Please login again.');
+        addError('Session expired. Please login again.', 'warning');
         onNavigateToLogin();
       } else {
-        setUploadError(`Upload failed: ${err.message}`);
+        addError(`Upload failed: ${err.message}`, 'error');
       }
     } finally {
+      if (uploadMessageTimerRef.current) {
+        window.clearTimeout(uploadMessageTimerRef.current);
+        uploadMessageTimerRef.current = null;
+      }
       setLoadingUpload(false);
       setPendingFile(null);
+      setUploadStatusMessage('');
     }
   };
 
@@ -255,25 +285,17 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
     { key: 'resume', icon: 'description', label: 'Resume', isActive: true },
     { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview' },
     { key: 'interviews', icon: 'videocam', label: 'Interviews' },
+    { key: 'profile', icon: 'person', label: 'Profile' },
+    { key: 'settings', icon: 'settings', label: 'Settings' },
   ];
 
   const handleSidebarNavigate = (key) => {
-    switch (key) {
-      case 'home':
-        onNavigateToHome?.();
-        break;
-      case 'resume':
-        onNavigateToResume?.();
-        break;
-      case 'mock-interview':
-        onNavigateToMockInterview?.();
-        break;
-      case 'interviews':
-        onNavigateToInterviews?.();
-        break;
-      default:
-        break;
-    }
+    const map = {
+      home: onNavigateToHome, resume: onNavigateToResume,
+      'mock-interview': onNavigateToMockInterview, interviews: onNavigateToInterviews,
+      profile: onNavigateToProfile, settings: onNavigateToSettings,
+    };
+    map[key]?.();
   };
 
   const handleLogout = async () => {
@@ -293,7 +315,7 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
   };
 
   const userProfile = {
-    name: user?.name || 'User',
+    name: user?.full_name || user?.name || 'User',
     headerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w',
   };
 
@@ -307,16 +329,6 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
     setSkills([...skills, newSkill]);
     // Invalidate cache so next fetch gets updated data
     DataSyncService.invalidateCache('user_skills');
-  };
-
-  const handleDeleteSkill = async (skillName) => {
-    try {
-      await skillsAPI.deleteSkill(skillName);
-      setSkills(skills.filter(skill => (skill.skill_name || skill.name) !== skillName));
-    } catch (error) {
-      console.error('Error deleting skill:', error);
-      openComingSoon({ title: 'Error', message: `Failed to delete skill: ${error.message}` });
-    }
   };
 
   // Loading state
@@ -382,7 +394,7 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
               selectedResumeId={selectedResumeId}
             />
 
-            <SkillsSection skills={skills} onAddSkillClick={() => setIsAddSkillModalOpen(true)} onDeleteSkill={handleDeleteSkill} />
+            <SkillsSection skills={skills} onAddSkillClick={() => setIsAddSkillModalOpen(true)} />
 
             <AddSkillModal
               isOpen={isAddSkillModalOpen}
@@ -399,6 +411,25 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
               onConfirm={handleTargetRoleSubmit}
               isLoading={loadingUpload}
             />
+
+            {loadingUpload && (
+              <div className="fixed inset-0 z-[80] bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+                <div className="w-full max-w-md rounded-3xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-2xl p-6 md:p-8 text-center">
+                  <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-3xl animate-pulse">cloud_sync</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-text-main dark:text-white">Processing resume</h3>
+                  <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
+                    {uploadStatusMessage || 'Uploading and analyzing your resume...'}
+                  </p>
+                  <div className="mt-6 flex items-center justify-center gap-2 text-xs font-semibold text-primary uppercase tracking-wider">
+                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce"></span>
+                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.15s]"></span>
+                    <span className="h-2 w-2 rounded-full bg-primary animate-bounce [animation-delay:0.3s]"></span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {currentAnalysis && (
               <>

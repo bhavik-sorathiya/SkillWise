@@ -5,44 +5,106 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const http = require('http');
+const fs = require('fs');
+const path = require('path');
 const socketIo = require('socket.io');
 const authRoutes = require('./src/routes/authRoutes');
 const intervieweeDashboardRoutes = require('./src/routes/intervieweeDashboardRoutes');
 const resumeRoutes = require('./src/routes/resumeRoutes');
 const skillsRoutes = require('./src/routes/skillsRoutes');
 const interviewHistoryRoutes = require('./src/routes/interviewHistoryRoutes');
+const profileRoutes = require('./src/routes/profileRoutes');
 const { initializeGemini } = require('./src/utils/geminiService');
 const { initializeInterviewSocket } = require('./src/handlers/interviewHandler');
 const { globalErrorHandler } = require('./src/utils/errorHandler');
 
 const app = express();
 const server = http.createServer(app);
+const isProduction = process.env.NODE_ENV === 'production';
+const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
+
+const parseOrigins = (value) => {
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+};
+
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:4173',
+  'http://localhost:3000',
+  ...parseOrigins(process.env.CLIENT_URLS),
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error(`CORS blocked for origin: ${origin}`));
+  },
+  credentials: true
+};
+
 const io = socketIo(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000'],
+    origin: allowedOrigins.length > 0 ? allowedOrigins : ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true
   }
 });
 
 // Global middleware for CORS and JSON/form request parsing.
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true
-}));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve uploaded resume files when the runtime supports persistent local storage.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // API route registration by bounded context.
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
 app.use('/api/interviewee', intervieweeDashboardRoutes);
 app.use('/api/resumes', resumeRoutes);
 app.use('/api/skills', skillsRoutes);
 app.use('/api/interviews', interviewHistoryRoutes);
 
-// Health/home route for quick API availability checks.
-app.get('/', (req, res) => {
-    res.send('Welcome to SkillWise API');
+// Health endpoint for load balancers and deployment probes.
+app.get('/health', (req, res) => {
+  res.status(200).json({ success: true, status: 'ok' });
 });
+
+// In production, serve the built client if it exists so the app can run as one deployable unit.
+if (isProduction && fs.existsSync(clientDistPath)) {
+  app.use(express.static(clientDistPath));
+
+  app.get(/^(?!\/api).*/, (req, res, next) => {
+    if (req.method !== 'GET') {
+      next();
+      return;
+    }
+
+    res.sendFile(path.join(clientDistPath, 'index.html'));
+  });
+} else {
+  // Development home route for quick API availability checks.
+  app.get('/', (req, res) => {
+    res.send('Welcome to SkillWise API');
+  });
+}
 
 // 404 handler - catch all undefined routes
 app.use((req, res, next) => {
@@ -57,7 +119,7 @@ app.use(globalErrorHandler);
 // Initialize interview Socket.IO handlers
 initializeInterviewSocket(io);
 
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 // Startup pipeline: initialize AI dependencies first, then bind server port.
 (async () => {

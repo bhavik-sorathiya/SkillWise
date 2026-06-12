@@ -5,8 +5,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 
-const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavigateToCompanySignup }) => {
-  const { login, isAuthenticated, loading: authLoading } = useAuth();
+const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavigateToOnboarding }) => {
+  const { login, isAuthenticated } = useAuth();
   const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -40,9 +40,17 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
       
       console.log('Login successful:', response);
       
-      // Wait a tick to ensure state updates propagate
+      // Check if user needs to complete onboarding
+      const profileCompleted = response?.user?.profile_completed;
+      
       setTimeout(() => {
-        onNavigateToDashboard?.();
+        if (!profileCompleted && onNavigateToOnboarding) {
+          // New user — redirect to onboarding
+          onNavigateToOnboarding();
+        } else {
+          // Returning user with complete profile — go to dashboard
+          onNavigateToDashboard?.();
+        }
       }, 0);
 
     } catch (err) {
@@ -260,16 +268,6 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
             </div>
 
               <div className="px-6 py-4 bg-background-light dark:bg-background-dark border-t border-border-light dark:border-border-dark flex flex-col items-center justify-center gap-2">
-                <p className="text-sm text-text-secondary dark:text-gray-400 block sm:hidden">
-                New here?{' '}
-                <button
-                  type="button"
-                  className="font-bold text-primary hover:underline"
-                  onClick={onNavigateToCompanySignup}
-                >
-                  Create a company account
-                </button>
-              </p>
               <div className="flex items-center text-xs text-text-secondary dark:text-gray-400 gap-1">
                 <span className="material-icons-round text-[14px]">lock</span>
                 <span>Secure login • Privacy protected</span>

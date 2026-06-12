@@ -6,13 +6,21 @@ Current setup is designed for local/dev first, and can be deployed as:
 - Backend Node server (Express + Socket.IO)
 - MySQL database service
 
+Recommended deployment approach:
+- Deploy the frontend and backend separately on platforms that suit each runtime.
+- Let the backend own API, auth, uploads, and Socket.IO.
+- If you want a single-host demo, the backend can also serve `client/dist` in production after the frontend build.
+
 ## Environment Variables
 Backend (`server/.env`):
 - `PORT` (default `3000`)
+- `CLIENT_URL` or `CLIENT_URLS`
 - `DB_HOST`
+- `DB_PORT`
 - `DB_USER`
 - `DB_PASSWORD`
 - `DB_DATABASE`
+- `DB_SSL` (`true|false`)
 - `JWT_SECRET`
 - `GEMINI_API_KEY` or `GEMINI_API_KEY_1`
 - `GEMINI_API_KEY_2` (optional fallback)
@@ -20,8 +28,10 @@ Backend (`server/.env`):
 - `NODE_ENV` (`development|production`)
 
 Frontend (`client/.env`):
-- `VITE_API_URL` (default `http://localhost:3000/api`)
-- `VITE_SOCKET_URL` (default `http://localhost:3000`)
+- `VITE_API_URL` (default `/api` in production, `http://localhost:3000/api` in development)
+- `VITE_SOCKET_URL` (default same-origin in production, `http://localhost:3000` in development)
+- `VITE_DEV_BACKEND_URL` (optional dev proxy target)
+- `VITE_DEV_PORT` (optional dev server port)
 
 ## Build Steps
 ### Frontend
@@ -38,7 +48,7 @@ cd server
 npm install
 npm run start
 ```
-For production, prefer process manager (PM2/systemd/container).
+For production, use `npm run start` behind a process manager (PM2/systemd/container).
 
 ## Local Combined Run
 From repo root:
@@ -59,6 +69,8 @@ npm run dev
 - Frontend: Vercel/Netlify/static host
 - Backend: Render/Railway/VM/container
 - DB: Managed MySQL (PlanetScale/RDS/etc.)
+
+This split is the recommended default because it keeps the frontend CDN-friendly while the backend owns the API, Socket.IO, and auth state.
 
 ## Common Deployment Pitfalls
 - Socket CORS mismatch between frontend URL and backend config.

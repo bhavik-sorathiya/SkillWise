@@ -1,7 +1,7 @@
 // client/src/MockInterviewChat.jsx
 // Chat-based mock interview workspace with real-time socket.io integration.
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useError } from './context/ErrorContext';
 import { logout as logoutAPI, API_BASE_URL } from './services/api';
@@ -38,12 +38,17 @@ const MockInterviewChat = ({
   const [modalLoading, setModalLoading] = useState(true);
   const [interviewActive, setInterviewActive] = useState(false);
   const [sessionId, setSessionId] = useState(null);
+  const [showLeaveWarning, setShowLeaveWarning] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState(null);
+  const [isFinalizingInterview, setIsFinalizingInterview] = useState(false);
+  const [finalizingMessage, setFinalizingMessage] = useState('Analyzing the interview...');
+  const finalizingTimerRef = useRef(null);
 
   const chatEndRef = useRef(null);
 
   const userProfile = useMemo(
     () => ({
-      name: user?.name || 'User',
+      name: user?.full_name || user?.name || 'User',
       headerAvatar:
         'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w'
     }),
@@ -54,8 +59,87 @@ const MockInterviewChat = ({
     { key: 'home', icon: 'home', label: 'Home' },
     { key: 'resume', icon: 'description', label: 'Resume' },
     { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview', isActive: true },
-    { key: 'interviews', icon: 'videocam', label: 'Interviews' }
+    { key: 'interviews', icon: 'videocam', label: 'Interviews' },
+    { key: 'profile', icon: 'person', label: 'Profile' },
+    { key: 'settings', icon: 'settings', label: 'Settings' },
   ];
+
+  const clearFinalizingTimer = useCallback(() => {
+    if (finalizingTimerRef.current) {
+      window.clearTimeout(finalizingTimerRef.current);
+      finalizingTimerRef.current = null;
+    }
+  }, []);
+
+  const navigateByKey = useCallback((key) => {
+    switch (key) {
+      case 'home': onNavigateToHome?.(); break;
+      case 'resume': onNavigateToResume?.(); break;
+      case 'mock-interview': onNavigateToMockInterview?.(); break;
+      case 'interviews': onNavigateToInterviews?.(); break;
+      case 'profile': onNavigateToProfile?.(); break;
+      case 'settings': onNavigateToSettings?.(); break;
+      case 'landing': onNavigateToLanding?.(); break;
+      case 'login':
+        onNavigateToLogin?.();
+        break;
+      default:
+        break;
+    }
+  }, [onNavigateToHome, onNavigateToInterviews, onNavigateToLanding, onNavigateToLogin, onNavigateToMockInterview, onNavigateToResume]);
+
+  const queueNavigation = useCallback((navigateFn) => {
+    if (interviewActive && !isFinalizingInterview) {
+      setPendingNavigation(() => navigateFn);
+      setShowLeaveWarning(true);
+      return;
+    }
+
+    navigateFn?.();
+  }, [interviewActive, isFinalizingInterview]);
+
+  const beginFinalizingInterview = useCallback((message = 'Analyzing the interview...') => {
+    clearFinalizingTimer();
+    setIsFinalizingInterview(true);
+    setFinalizingMessage(message);
+  }, [clearFinalizingTimer]);
+
+  const endInterviewAndNavigate = useCallback((navigateFn) => {
+    beginFinalizingInterview('Analyzing the interview...');
+
+    if (!sessionId) {
+      finalizingTimerRef.current = window.setTimeout(() => {
+        setIsFinalizingInterview(false);
+        navigateFn?.();
+      }, 1800);
+      return;
+    }
+
+    try {
+      socketService.endInterview(sessionId);
+      finalizingTimerRef.current = window.setTimeout(() => {
+        setIsFinalizingInterview(false);
+        navigateFn?.();
+      }, 1800);
+    } catch (error) {
+      console.error('[Mock Interview] Error ending session:', error);
+      setIsFinalizingInterview(false);
+      setLoadingMessage('');
+      addError('Failed to end the interview session.', 'error');
+    }
+  }, [addError, beginFinalizingInterview, sessionId]);
+
+  const confirmLeaveInterview = useCallback(() => {
+    const nextNavigation = pendingNavigation;
+    setShowLeaveWarning(false);
+    setPendingNavigation(null);
+    endInterviewAndNavigate(nextNavigation);
+  }, [endInterviewAndNavigate, pendingNavigation]);
+
+  const cancelLeaveInterview = useCallback(() => {
+    setShowLeaveWarning(false);
+    setPendingNavigation(null);
+  }, []);
 
   // Fetch available resumes on mount
   useEffect(() => {
@@ -130,15 +214,16 @@ const MockInterviewChat = ({
       setInterviewActive(false);
       setIsAiTyping(false);
       setLoadingMessage('');
-      addError(
-        `Interview complete! View your detailed analysis in the interview history.`,
-        'success',
-        4000
-      );
-      // Redirect to interview history page after 2 seconds
+      clearFinalizingTimer();
+      setIsFinalizingInterview(false);
+      addError('Interview complete! View your detailed analysis in the interview history.', 'success', 4000);
+
+      const nextNavigation = pendingNavigation || (() => onNavigateToInterviews?.());
+      setPendingNavigation(null);
+
       setTimeout(() => {
-        onNavigateToInterviews?.();
-      }, 2000);
+        nextNavigation?.();
+      }, 1200);
     });
 
     // Listen for loading events
@@ -156,11 +241,10 @@ const MockInterviewChat = ({
       const sid = data?.sessionId || sessionId;
       const evaluatingDelay = Number(data?.evaluatingInMs) || 3500;
 
-      addError('Interview complete. We are evaluating your final result...', 'info', 4000);
-      setIsAiTyping(true);
-      setLoadingMessage('Evaluating final interview result...');
+      addError('Interview complete. We are analyzing your final result...', 'info', 4000);
+      beginFinalizingInterview('Analyzing the interview...');
 
-      setTimeout(() => {
+      finalizingTimerRef.current = window.setTimeout(() => {
         if (sid) {
           socketService.endInterview(sid);
         }
@@ -183,7 +267,18 @@ const MockInterviewChat = ({
       offInterviewClosing();
       offError();
     };
-  }, [token, addError, sessionId]);
+  }, [beginFinalizingInterview, clearFinalizingTimer, onNavigateToInterviews, pendingNavigation, token, addError, sessionId]);
+
+  useEffect(() => {
+    const handleBeforeUnload = (event) => {
+      if (!interviewActive) return;
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [interviewActive]);
 
   // Validates setup inputs, connects socket, then emits interview start event.
   const handleStartInterview = async () => {
@@ -254,17 +349,7 @@ const MockInterviewChat = ({
 
   // Ends the active session explicitly and navigates user back to dashboard.
   const handleEndSession = async () => {
-    try {
-      setIsAiTyping(true);
-      setLoadingMessage('Ending interview...');
-      socketService.endInterview(sessionId);
-      setInterviewActive(false);
-      onNavigateToHome?.();
-    } catch (error) {
-      console.error('[Mock Interview] Error ending session:', error);
-      setIsAiTyping(false);
-      setLoadingMessage('');
-    }
+    endInterviewAndNavigate(() => onNavigateToInterviews?.());
   };
 
   // Performs backend logout best-effort, then clears local auth state regardless of API outcome.
@@ -283,30 +368,34 @@ const MockInterviewChat = ({
 
   // Centralized sidebar key router to keep navigation mapping in one place.
   const handleSidebarNavigate = (key) => {
-    switch (key) {
-      case 'home':
-        onNavigateToHome?.();
-        break;
-      case 'resume':
-        onNavigateToResume?.();
-        break;
-      case 'mock-interview':
-        onNavigateToMockInterview?.();
-        break;
-      case 'interviews':
-        onNavigateToInterviews?.();
-        break;
-      default:
-        break;
-    }
+    queueNavigation(() => navigateByKey(key));
   };
+
+  const handleNavigateToLanding = () => queueNavigation(() => onNavigateToLanding?.());
+  const handleNavigateToHome = () => queueNavigation(() => onNavigateToHome?.());
 
   // Resume Selection Modal
   if (showResumeModal) {
     return (
       <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
         <div className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl shadow-2xl max-w-lg w-full p-8">
-          <h1 className="text-3xl font-bold text-text-main dark:text-white mb-2">Start Mock Interview</h1>
+          <div className="flex items-center gap-3 mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (window.history.length > 1) {
+                  window.history.back();
+                } else {
+                  onNavigateToHome?.();
+                }
+              }}
+              className="size-10 rounded-full border border-border-light dark:border-border-dark text-text-main dark:text-white hover:border-primary hover:text-primary transition-colors flex items-center justify-center"
+              aria-label="Go back"
+            >
+              <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+            </button>
+            <h1 className="text-3xl font-bold text-text-main dark:text-white">Start Mock Interview</h1>
+          </div>
           <p className="text-gray-600 dark:text-gray-400 mb-8">Select your resume and target role to begin</p>
 
           {modalLoading ? (
@@ -334,15 +423,28 @@ const MockInterviewChat = ({
                   {resumes.map(resume => (
                     <div
                       key={resume.id}
-                      onClick={() => setSelectedResume(resume)}
+                      onClick={() => {
+                        setSelectedResume(resume);
+                        // Pre-fill targetRole from the selected resume
+                        if (resume.target_role && !targetRole) {
+                          setTargetRole(resume.target_role);
+                        }
+                      }}
                       className={`p-4 border-2 rounded-lg cursor-pointer transition ${
                         selectedResume?.id === resume.id
                           ? 'border-primary bg-primary/10 dark:bg-primary/20'
                           : 'border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50'
                       }`}
                     >
-                      <p className="font-semibold text-text-main dark:text-white">{resume.name}</p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                      <p className="font-semibold text-text-main dark:text-white">
+                        {resume.title || resume.name}
+                      </p>
+                      {resume.target_role && (
+                        <p className="text-xs text-primary/80 dark:text-primary/60 font-medium mt-0.5">
+                          → {resume.target_role}
+                        </p>
+                      )}
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                         Uploaded {
                           resume.uploadedDate ||
                           (resume.uploadedAt || resume.uploaded_at
@@ -395,8 +497,8 @@ const MockInterviewChat = ({
           isProfileMenuOpen={isProfileMenuOpen}
           onProfileMenuToggle={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
           onNavigateToLogin={onNavigateToLogin}
-          onNavigateToLanding={onNavigateToLanding}
-          onNavigateToHome={onNavigateToHome}
+          onNavigateToLanding={handleNavigateToLanding}
+          onNavigateToHome={handleNavigateToHome}
           onLogout={handleLogout}
           userProfile={userProfile}
         />
@@ -534,6 +636,48 @@ const MockInterviewChat = ({
           <Footer />
         </main>
       </div>
+
+      {showLeaveWarning && (
+        <div className="fixed inset-0 z-[90] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-2xl p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-4 text-amber-600 dark:text-amber-400">
+              <span className="material-symbols-outlined text-3xl">warning</span>
+              <h3 className="text-xl font-bold text-text-main dark:text-white">Leave interview?</h3>
+            </div>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              By moving to another page, this interview will be terminated automatically.
+            </p>
+            <div className="mt-6 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={cancelLeaveInterview}
+                className="flex-1 rounded-xl border border-border-light dark:border-border-dark px-4 py-3 text-sm font-semibold text-text-main dark:text-white hover:border-primary hover:text-primary transition-colors"
+              >
+                Stay in the interview
+              </button>
+              <button
+                type="button"
+                onClick={confirmLeaveInterview}
+                className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+              >
+                Exit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isFinalizingInterview && (
+        <div className="fixed inset-0 z-[95] bg-black/55 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-3xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark shadow-2xl p-6 md:p-8 text-center">
+            <div className="mx-auto mb-4 h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="material-symbols-outlined text-primary text-3xl animate-spin">progress_activity</span>
+            </div>
+            <h3 className="text-xl font-bold text-text-main dark:text-white">Processing interview</h3>
+            <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">{finalizingMessage}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

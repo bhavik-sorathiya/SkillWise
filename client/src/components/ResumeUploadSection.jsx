@@ -1,14 +1,14 @@
 // client/src/components/ResumeUploadSection.jsx
 // Resume list and upload-dropzone section with slot and selection handling.
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { useComingSoon } from '../context/ComingSoonContext';
 
 /**
  * ResumeUploadSection
  * Renders uploaded resume cards, selection/delete actions, and upload slot availability.
  * @param {Object} props
- * @param {Array<{id:number,name:string,uploadedDate:string,size?:string,type?:string}>} props.uploadedResumes
+ * @param {Array<{id:number,title:string,target_role?:string,uploadedDate:string,size?:string}>} props.uploadedResumes
  * @param {number} props.MAX_RESUMES
  * @param {(event: React.ChangeEvent<HTMLInputElement>) => void} props.onResumeUpload
  * @param {(resumeId:number) => void} props.onDeleteResume
@@ -24,7 +24,15 @@ const ResumeUploadSection = ({
   selectedResumeId
 }) => {
   const { openComingSoon } = useComingSoon();
+  const fileInputRef = useRef(null);
   const resumeCount = uploadedResumes.length;
+
+  const handleBrowseClick = (event) => {
+    event.preventDefault();
+    if (resumeCount < MAX_RESUMES) {
+      fileInputRef.current?.click();
+    }
+  };
 
   return (
     <section>
@@ -62,11 +70,13 @@ const ResumeUploadSection = ({
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-gray-900 dark:text-white font-medium truncate">{resume.name}</p>
+                <p className="text-gray-900 dark:text-white font-medium truncate">{resume.title || resume.name}</p>
+                {resume.target_role && (
+                  <p className="text-xs text-primary/80 font-medium truncate mt-0.5">→ {resume.target_role}</p>
+                )}
                 <div className="flex items-center gap-2 mt-0.5">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Uploaded {resume.uploadedDate}</p>
-                  <span className="text-gray-300">•</span>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">{resume.size}</p>
+                  {resume.size && <><span className="text-gray-300">•</span><p className="text-xs text-gray-500 dark:text-gray-400">{resume.size}</p></>}
                 </div>
               </div>
               <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -110,6 +120,7 @@ const ResumeUploadSection = ({
           }`}>
             <div className="absolute inset-0 bg-[radial-gradient(#ec7f13_1px,transparent_1px)] [background-size:16px_16px] opacity-[0.03] pointer-events-none"></div>
             <input
+              ref={fileInputRef}
               type="file"
               accept=".docx"
               onChange={onResumeUpload}
@@ -130,12 +141,7 @@ const ResumeUploadSection = ({
             </p>
             <button 
               disabled={resumeCount >= MAX_RESUMES}
-              onClick={(e) => {
-                e.preventDefault();
-                if (resumeCount < MAX_RESUMES) {
-                  e.currentTarget.previousElementSibling?.previousElementSibling?.previousElementSibling?.click();
-                }
-              }}
+              onClick={handleBrowseClick}
               className="bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed relative z-20 pointer-events-auto"
             >
               Browse Files

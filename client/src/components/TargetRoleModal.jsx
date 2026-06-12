@@ -1,32 +1,40 @@
 // client/src/components/TargetRoleModal.jsx
-// Modal to capture target job role before triggering AI resume analysis.
+// Modal to capture resume title and target job role before triggering AI resume analysis.
 
 import React, { useState } from 'react';
 
-// Collects a single role input used to contextualize AI resume analysis.
+// Collects title + role to contextualize AI resume analysis.
 const TargetRoleModal = ({ isOpen, onClose, onConfirm, isLoading = false }) => {
+  const [title, setTitle] = useState('');
   const [targetRole, setTargetRole] = useState('');
 
-  // Validate and return normalized role data to parent upload flow.
+  // Validate and return normalized data to parent upload flow.
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    if (!title.trim()) {
+      alert('Please enter a resume title');
+      return;
+    }
+
     if (!targetRole.trim()) {
       alert('Please enter a target role');
       return;
     }
 
     onConfirm({
+      title: title.trim(),
       targetRole: targetRole.trim()
     });
 
     // Reset form
+    setTitle('');
     setTargetRole('');
   };
 
   // Close with local form reset so stale input is not retained.
   const handleClose = () => {
-    // Reset form
+    setTitle('');
     setTargetRole('');
     onClose();
   };
@@ -38,7 +46,7 @@ const TargetRoleModal = ({ isOpen, onClose, onConfirm, isLoading = false }) => {
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl max-w-md w-full">
         <div className="bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Target Job Role
+            Upload Resume
           </h3>
           <button
             type="button"
@@ -51,6 +59,26 @@ const TargetRoleModal = ({ isOpen, onClose, onConfirm, isLoading = false }) => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Resume Title */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Resume Title *
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Digital Marketing Resume, SWE Resume 2025"
+              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-800 dark:text-white transition-colors"
+              disabled={isLoading}
+              required
+            />
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              A descriptive name you'll use to identify this resume.
+            </p>
+          </div>
+
+          {/* Target Job Role */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Target Job Role *
@@ -84,7 +112,7 @@ const TargetRoleModal = ({ isOpen, onClose, onConfirm, isLoading = false }) => {
             </button>
             <button
               type="submit"
-              disabled={isLoading || !targetRole.trim()}
+              disabled={isLoading || !title.trim() || !targetRole.trim()}
               className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
@@ -103,4 +131,4 @@ const TargetRoleModal = ({ isOpen, onClose, onConfirm, isLoading = false }) => {
   );
 };
 
-export default TargetRoleModal;
+export default TargetRoleModal;

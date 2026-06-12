@@ -74,7 +74,13 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Invalid server response');
       }
 
-      // Store token and user data
+      // Normalize: support both full_name and name fields from backend
+      // New schema uses full_name; keep name as alias for component compatibility
+      if (userData.full_name && !userData.name) {
+        userData.name = userData.full_name;
+      }
+
+      // Store token and user data (includes profile_completed)
       localStorage.setItem('authToken', newToken);
       localStorage.setItem('user', JSON.stringify(userData));
 
@@ -84,7 +90,7 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
       setLoading(false);
 
-      console.log('[Auth] Login successful, isAuthenticated set to true');
+      console.log('[Auth] Login successful, profile_completed:', userData.profile_completed);
       return { user: userData, token: newToken };
     } catch (err) {
       console.error('[Auth] Login error:', err.message);
@@ -112,7 +118,7 @@ export const AuthProvider = ({ children }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name, email, password })
+        body: JSON.stringify({ full_name: name, name, email, password })
       });
 
       if (!response.ok) {
@@ -150,6 +156,19 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
+   * Update user data in context (used after profile/name edits)
+   * @param {Object} partialUser - Fields to merge into current user
+   */
+  const updateUserInContext = (partialUser) => {
+    setUser(prev => {
+      const updated = { ...prev, ...partialUser };
+      localStorage.setItem('user', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+
+  /**
    * Get current auth token for API requests
    * @returns {string|null} JWT token
    */
@@ -179,7 +198,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     getToken,
     getAuthHeader,
-    clearAuth
+    clearAuth,
+    updateUserInContext
   };
 
   return (

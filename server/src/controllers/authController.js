@@ -1,18 +1,23 @@
 /**
  * Authentication Controller
  * Handles user signup and login with security best practices
+ * Updated for skillwise_dev schema: full_name, password_hash columns
  */
 
 const User = require('../models/userModel');
+const UserProfile = require('../models/userProfileModel');
 const { AppError, validateRequest } = require('../utils/errorHandler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
-  const { name, email, password } = req.body;
+  const { full_name, email, password } = req.body;
+
+  // Support both full_name and name from frontend for backward compat
+  const userName = full_name || req.body.name;
 
   // Validate required fields
-  validateRequest(req.body, ['name', 'email', 'password']);
+  validateRequest({ full_name: userName, email, password }, ['full_name', 'email', 'password']);
 
   // Email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,6 +28,11 @@ const signup = async (req, res) => {
   // Password strength validation
   if (password.length < 6) {
     throw new AppError('Password must be at least 6 characters long', 400);
+  }
+
+  // Full name validation
+  if (!userName || userName.trim().length < 2) {
+    throw new AppError('Please provide a valid full name (at least 2 characters)', 400);
   }
 
   // Check if user already exists
@@ -36,10 +46,19 @@ const signup = async (req, res) => {
 
   // Create the user
   try {
-    const userId = await User.create(name, email, hashedPassword);
-    
+    const userId = await User.create(userName.trim(), email, hashedPassword);
+
     if (!userId) {
       throw new AppError('Failed to create user account', 500);
+    }
+
+    // Create empty profile row for the new user (profile_completed = false)
+    try {
+      await UserProfile.createEmptyProfile(userId);
+    } catch (profileError) {
+      // Non-fatal: user is created, profile row creation failed
+      // Log but don't fail the registration
+      console.error('Warning: Failed to create empty profile for user:', userId, profileError.message);
     }
 
     res.status(201).json({
@@ -68,15 +87,29 @@ const login = async (req, res) => {
     throw new AppError('Invalid email or password', 401);
   }
 
-  // Check password
-  const isPasswordCorrect = await bcrypt.compare(password, user.password);
+  // Check password against password_hash column
+  const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
   if (!isPasswordCorrect) {
     throw new AppError('Invalid email or password', 401);
   }
 
-  // Create JWT token
+  // Fetch profile to include profile_completed in response
+  let profileCompleted = false;
+  try {
+    const profile = await UserProfile.getProfileByUserId(user.id);
+    profileCompleted = profile?.profile_completed || false;
+  } catch (profileError) {
+    // Non-fatal: if profile doesn't exist yet, treat as incomplete
+    console.warn('Could not fetch profile for login response:', profileError.message);
+  }
+
+  // Create JWT token — includes full_name in payload
   const token = jwt.sign(
-    { id: user.id, email: user.email },
+    {
+      id: user.id,
+      email: user.email,
+      full_name: user.full_name
+    },
     process.env.JWT_SECRET || 'your_jwt_secret',
     { expiresIn: '24h' }
   );
@@ -84,8 +117,9 @@ const login = async (req, res) => {
   // Return user data WITHOUT password
   const userData = {
     id: user.id,
-    name: user.name,
+    full_name: user.full_name,
     email: user.email,
+    profile_completed: profileCompleted,
     created_at: user.created_at
   };
 
@@ -98,9 +132,88 @@ const login = async (req, res) => {
 };
 
 /**
+ * PATCH /api/auth/update-name
+ * Update the authenticated user's full_name in the users table.
+ * @body { full_name: string }
+ */
+const updateName = async (req, res) => {
+  const userId = req.user.id;
+  const { full_name } = req.body;
+
+  if (!full_name || full_name.trim().length < 2) {
+    throw new AppError('Full name must be at least 2 characters', 400);
+  }
+  if (full_name.trim().length > 100) {
+    throw new AppError('Full name must be 100 characters or less', 400);
+  }
+
+  const db = require('../config/db');
+  const [result] = await db.execute(
+    'UPDATE users SET full_name = ? WHERE id = ?',
+    [full_name.trim(), userId]
+  );
+
+  if (result.affectedRows === 0) {
+    throw new AppError('User not found', 404);
+  }
+
+  res.status(200).json({
+    success: true,
+    message: 'Name updated successfully',
+    full_name: full_name.trim()
+  });
+};
+
+/**
+ * POST /api/auth/change-password
+ * Verify current password then update to a new bcrypt hash.
+ * @body { current_password: string, new_password: string }
+ */
+const changePassword = async (req, res) => {
+  const userId = req.user.id;
+  const { current_password, new_password } = req.body;
+
+  if (!current_password || !new_password) {
+    throw new AppError('Both current_password and new_password are required', 400);
+  }
+  if (new_password.length < 6) {
+    throw new AppError('New password must be at least 6 characters', 400);
+  }
+  if (current_password === new_password) {
+    throw new AppError('New password must be different from the current password', 400);
+  }
+
+  // Fetch current hash
+  const [rows] = await User.findById(userId);
+  const userRow = Array.isArray(rows) ? rows[0] : rows;
+
+  if (!userRow) {
+    throw new AppError('User not found', 404);
+  }
+
+  // Verify current password
+  const isMatch = await bcrypt.compare(current_password, userRow.password_hash);
+  if (!isMatch) {
+    throw new AppError('Current password is incorrect', 400);
+  }
+
+  // Hash and save new password
+  const newHash = await bcrypt.hash(new_password, 12);
+  const db = require('../config/db');
+  await db.execute(
+    'UPDATE users SET password_hash = ? WHERE id = ?',
+    [newHash, userId]
+  );
+
+  res.status(200).json({
+    success: true,
+    message: 'Password changed successfully'
+  });
+};
+
+/**
  * Logout user
- * Endpoint for clean logout (mainly for frontend notification)
- * JWT is stateless, so token is cleared on frontend
+ * JWT is stateless, so token is cleared on frontend.
  * @route POST /api/auth/logout
  */
 const logout = async (req, res) => {
@@ -112,4 +225,4 @@ const logout = async (req, res) => {
   });
 };
 
-module.exports = { signup, login, logout };
+module.exports = { signup, login, logout, updateName, changePassword };

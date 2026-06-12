@@ -2,8 +2,17 @@
 // Central API client: auth-aware request helpers plus feature-specific service modules.
 import { DataSyncService } from '../utils/cacheSync';
 import { isTokenValid } from '../utils/tokenUtils';
+import { clearAllCache } from '../utils/cacheSync';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+const getDefaultApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
+
+  return import.meta.env.DEV ? 'http://localhost:3000/api' : '/api';
+};
+
+export const API_BASE_URL = getDefaultApiBaseUrl();
 
 /**
  * Check token validity before making requests
@@ -20,7 +29,6 @@ const validateTokenBeforeRequest = () => {
     sessionStorage.removeItem('authContext');
     
     // Clear caches
-    const { clearAllCache } = require('../utils/cacheSync');
     clearAllCache?.();
     
     throw new Error('Session expired. Please login again.');
@@ -48,25 +56,21 @@ const apiRequest = async (endpoint, options = {}) => {
     config.headers['Authorization'] = `Bearer ${token}`;
   }
 
-  try {
-    const response = await fetch(url, config);
-    const data = await response.json();
+  const response = await fetch(url, config);
+  const data = await response.json();
 
-    if (response.status === 401) {
-      // Unauthorized - clear auth and redirect
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      throw new Error('Session expired. Please login again.');
-    }
-
-    if (!response.ok) {
-      throw new Error(data.message || 'Something went wrong');
-    }
-
-    return data;
-  } catch (error) {
-    throw error;
+  if (response.status === 401) {
+    // Unauthorized - clear auth and redirect
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
+    throw new Error('Session expired. Please login again.');
   }
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Something went wrong');
+  }
+
+  return data;
 };
 
 // GET-aware wrapper that integrates cache-first and background sync strategies.
@@ -135,14 +139,6 @@ export const authAPI = {
     }
 
     return response;
-  },
-
-  // Company signup (you can extend this when backend is ready)
-  companySignup: async (companyData) => {
-    return apiRequest('/auth/company-signup', {
-      method: 'POST',
-      body: JSON.stringify(companyData),
-    });
   },
 
   // Get current user
@@ -308,6 +304,11 @@ export const resumeAPI = {
     const formData = new FormData();
     formData.append('file', file);
 
+    // Add title (new required field for display name)
+    if (options.title) {
+      formData.append('title', options.title);
+    }
+
     // Add target role if provided
     if (options.targetRole) {
       formData.append('targetRole', options.targetRole);
@@ -324,22 +325,18 @@ export const resumeAPI = {
       body: formData
     };
 
-    try {
-      const response = await fetch(url, config);
-      const data = await response.json();
+    const response = await fetch(url, config);
+    const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Upload failed');
-      }
-
-      // Invalidate resumes cache after upload
-      const { clearCache } = await import('../utils/cacheSync');
-      clearCache('user_resumes');
-
-      return data;
-    } catch (error) {
-      throw error;
+    if (!response.ok) {
+      throw new Error(data.message || 'Upload failed');
     }
+
+    // Invalidate resumes cache after upload
+    const { clearCache } = await import('../utils/cacheSync');
+    clearCache('user_resumes');
+
+    return data;
   },
 
   /**

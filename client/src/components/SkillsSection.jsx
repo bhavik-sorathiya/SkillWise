@@ -10,7 +10,7 @@ import React from 'react';
  * @param {Function} onAddSkillClick - Callback when "Add Skill" button is clicked
  * @param {Function} onDeleteSkill - Callback when skill delete button is clicked
  */
-const SkillsSection = ({ skills = [], onAddSkillClick = () => {}, onDeleteSkill = () => {} }) => {
+const SkillsSection = ({ skills = [], onAddSkillClick = () => {} }) => {
   // Handle null/undefined skills
   const skillsList = Array.isArray(skills) ? skills : [];
 
@@ -43,16 +43,6 @@ const SkillsSection = ({ skills = [], onAddSkillClick = () => {}, onDeleteSkill 
               <span className="text-xs opacity-0 group-hover:opacity-100 transition-opacity">
                 {skill.proficiency_level || skill.proficiency}
               </span>
-              {onDeleteSkill && (
-                <button
-                  onClick={() => onDeleteSkill(skill.skill_name || skill.name)}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity ml-1 p-0.5 hover:bg-red-100 dark:hover:bg-red-950 rounded text-gray-400 hover:text-red-500"
-                  type="button"
-                  aria-label="Delete skill"
-                >
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              )}
             </div>
           ))}
           <button

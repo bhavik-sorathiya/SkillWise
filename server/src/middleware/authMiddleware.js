@@ -55,7 +55,8 @@ const verifyToken = (req, res, next) => {
     // Attach user information to request object
     req.user = {
       id: decoded.id,
-      email: decoded.email
+      email: decoded.email,
+      full_name: decoded.full_name || null
     };
 
     // Proceed to next middleware

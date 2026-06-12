@@ -3,6 +3,8 @@
 
 import React from 'react';
 
+const isDevelopment = import.meta.env.DEV;
+
 class ErrorBoundary extends React.Component {
   // Initializes boundary state used for fallback rendering and debug counters.
   constructor(props) {
@@ -65,7 +67,7 @@ class ErrorBoundary extends React.Component {
               We encountered an unexpected error. Please try again or contact support if the problem persists.
             </p>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {isDevelopment && this.state.error && (
               <div className="bg-gray-100 rounded-lg p-4 mb-6 max-h-40 overflow-y-auto">
                 <p className="font-mono text-xs text-gray-800 whitespace-pre-wrap">
                   {this.state.error.toString()}
@@ -89,7 +91,7 @@ class ErrorBoundary extends React.Component {
               </button>
             </div>
 
-            {process.env.NODE_ENV === 'development' && (
+            {isDevelopment && (
               <p className="text-xs text-gray-500 text-center mt-4">
                 Error #: {this.state.errorCount}
               </p>

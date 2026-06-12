@@ -50,20 +50,6 @@ const TopBar = ({
       </div>
 
       <div className="flex items-center gap-4 md:gap-6">
-        <a
-          className="hidden sm:flex items-center gap-2 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-primary transition-colors"
-          href="#"
-          onClick={(e) => {
-            e.preventDefault();
-            openComingSoon({ title: 'Opportunities', message: 'Opportunities are coming soon.' });
-          }}
-        >
-          <span className="material-symbols-outlined text-[20px]">explore</span>
-          Opportunities
-        </a>
-
-        <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
-
         <button
           className="relative p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           onClick={() => openComingSoon({ title: 'Notifications', message: 'Notifications are coming soon.' })}

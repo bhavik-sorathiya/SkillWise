@@ -42,13 +42,15 @@ const listInterviewsHandler = async (req, res) => {
   }
 
   const orderByClause = sortBy === 'score'
-    ? `COALESCE(ir.overall_score, 0) ${sortOrder}, COALESCE(s.ended_at, s.started_at) DESC`
+    ? `COALESCE(ir.overall_score, 0) ${sortOrder}, COALESCE(s.ended_at, s.started_at) ${sortOrder}`
     : `COALESCE(s.ended_at, s.started_at) ${sortOrder}`;
 
   const query = `
       SELECT 
         s.id,
         s.role AS target_role,
+        s.resume_id,
+        ur.title AS resume_title,
         COALESCE(ir.overall_score, 0) AS overall_score,
         ir.verdict,
         s.total_questions,
@@ -56,6 +58,7 @@ const listInterviewsHandler = async (req, res) => {
         COALESCE(s.ended_at, s.started_at) AS created_at
       FROM interview_sessions s
       LEFT JOIN interview_results ir ON ir.session_id = s.id
+      LEFT JOIN user_resumes ur ON ur.id = s.resume_id
       WHERE s.user_id = ?
       ORDER BY ${orderByClause}
       LIMIT ? OFFSET ?
@@ -71,6 +74,8 @@ const listInterviewsHandler = async (req, res) => {
   const formattedInterviews = interviews.map(interview => ({
     session_id: interview.id,
     role: interview.target_role,
+    resume_id: interview.resume_id,
+    resume_title: interview.resume_title || null,
     score: interview.overall_score,
     verdict: interview.verdict,
     questions_asked: interview.total_questions,

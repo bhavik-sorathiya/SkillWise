@@ -6,7 +6,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const { getResumesList, uploadResume, getResumeAnalysis } = require('../controllers/resumeController');
+const { getResumesList, uploadResume, getResumeAnalysis, deleteResume } = require('../controllers/resumeController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { catchAsync } = require('../utils/errorHandler');
 
@@ -85,5 +85,8 @@ router.post('/upload', verifyToken, (req, res, next) => {
 
 // GET /api/resumes/analysis/:resumeId - Return analysis JSON for selected resume.
 router.get('/analysis/:resumeId', verifyToken, catchAsync(getResumeAnalysis));
+
+// DELETE /api/resumes/:resumeId - Soft-delete resume (sets status='deleted').
+router.delete('/:resumeId', verifyToken, catchAsync(deleteResume));
 
 module.exports = router;

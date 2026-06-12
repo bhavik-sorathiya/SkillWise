@@ -1,9 +1,10 @@
 // client/src/components/InterviewHistory.jsx
 // Interview history workspace with sortable sessions, detail modal, and full analysis drill-down.
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
+import { API_BASE_URL } from '../services/api';
 import InterviewAnalysisPage from './InterviewAnalysisPage';
 
 /**
@@ -18,24 +19,22 @@ export default function InterviewHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
   const [detailData, setDetailData] = useState(null);
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [viewingAnalysis, setViewingAnalysis] = useState(false);
-
-  // Only fetch when auth is ready and token is available
-  useEffect(() => {
-    if (!authLoading && token && isAuthenticated) {
-      fetchInterviews();
-    } else if (!authLoading && (!token || !isAuthenticated)) {
-      setLoading(false);
-      setError('Not authenticated');
-    }
-  }, [sortBy, sortOrder, token, isAuthenticated, authLoading]);
+  const sortOrderLabels = sortBy === 'score'
+    ? {
+        desc: 'Highest First',
+        asc: 'Lowest First'
+      }
+    : {
+        desc: 'Newest First',
+        asc: 'Oldest First'
+      };
 
   // Loads paginated interview sessions for the authenticated user.
-  const fetchInterviews = async () => {
+  const fetchInterviews = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -48,7 +47,7 @@ export default function InterviewHistory() {
       });
 
       const response = await fetch(
-        `http://localhost:3000/api/interviews?${params.toString()}`,
+        `${API_BASE_URL}/interviews?${params.toString()}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -72,16 +71,25 @@ export default function InterviewHistory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [addError, sortBy, sortOrder, token]);
+
+  // Only fetch when auth is ready and token is available
+  useEffect(() => {
+    if (!authLoading && token && isAuthenticated) {
+      fetchInterviews();
+    } else if (!authLoading && (!token || !isAuthenticated)) {
+      setLoading(false);
+      setError('Not authenticated');
+    }
+  }, [authLoading, fetchInterviews, isAuthenticated, token]);
 
   // Loads a single session with question-level evaluation and stored AI analysis JSON.
   const fetchSessionDetail = async (sessionId) => {
     try {
-      setDetailLoading(true);
       setDetailData(null);
 
       const response = await fetch(
-        `http://localhost:3000/api/interviews/session/${sessionId}`,
+        `${API_BASE_URL}/interviews/session/${sessionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -102,7 +110,7 @@ export default function InterviewHistory() {
       setError(errorMessage);
       addError(errorMessage, 'error');
     } finally {
-      setDetailLoading(false);
+      // no-op
     }
   };
 
@@ -115,13 +123,6 @@ export default function InterviewHistory() {
   const handleCloseDetail = () => {
     setSelectedSession(null);
     setDetailData(null);
-  };
-
-  const getVerdictColor = (verdict) => {
-    if (!verdict) return 'gray';
-    if (verdict.includes('YES')) return 'green';
-    if (verdict.includes('MAYBE') || verdict.includes('LEANING')) return 'yellow';
-    return 'red';
   };
 
   // Detail Modal
@@ -255,7 +256,10 @@ export default function InterviewHistory() {
             <label className="text-sm font-semibold text-text-main dark:text-white block mb-2">Sort By</label>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
+              onChange={(e) => {
+                setSortBy(e.target.value);
+                setSortOrder('desc');
+              }}
               className="w-full px-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-main dark:text-white"
             >
               <option value="date">Date</option>
@@ -269,8 +273,8 @@ export default function InterviewHistory() {
               onChange={(e) => setSortOrder(e.target.value)}
               className="w-full px-4 py-2 bg-background-light dark:bg-background-dark border border-border-light dark:border-border-dark rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-text-main dark:text-white"
             >
-              <option value="desc">Newest First</option>
-              <option value="asc">Oldest First</option>
+              <option value="desc">{sortOrderLabels.desc}</option>
+              <option value="asc">{sortOrderLabels.asc}</option>
             </select>
           </div>
         </div>

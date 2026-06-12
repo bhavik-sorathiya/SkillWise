@@ -85,6 +85,8 @@ INSERT INTO user_profiles (user_id, profile_data) VALUES
   }'
 );
 
+select * from user_profiles;
+
 CREATE TABLE IF NOT EXISTS user_resumes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -125,6 +127,11 @@ VALUES
   '/uploads/resumes/3_heer_resume_1.docx',
   'docx'
 );
+
+select * from users;
+select * from user_resumes;
+delete from user_resumes where id = 6;
+ALTER TABLE user_resumes AUTO_INCREMENT = 6;
 
 CREATE TABLE IF NOT EXISTS resume_analysis (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -497,12 +504,20 @@ VALUES
 SELECT *
 FROM user_resumes;
 
-ALTER TABLE user_resumes AUTO_INCREMENT = 5;
+ALTER TABLE user_resumes AUTO_INCREMENT = 1;
 
 select * from resume_analysis;
 
-delete from user_resumes where id = 5;
+select * from interview_sessions;
+delete from interview_sessions where id = 3;
+ALTER TABLE interview_sessions AUTO_INCREMENT = 1;
 
+select * from interview_messages;
+delete from interview_messages where session_id = 2 or session_id = 3;
+ALTER TABLE interview_messages AUTO_INCREMENT = 1;
+
+
+select * from interview_question_evaluations;
 
 CREATE TABLE interview_sessions (
   id INT AUTO_INCREMENT PRIMARY KEY,

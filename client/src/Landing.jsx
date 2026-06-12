@@ -5,7 +5,7 @@ import React from 'react';
 import { useComingSoon } from './context/ComingSoonContext';
 import './Landing.css';
 
-const Landing = ({ onNavigateToLogin, onNavigateToDashboard, onNavigateToResume, onNavigateToSignup, onNavigateToCompanySignup }) => {
+const Landing = ({ onNavigateToLogin, onNavigateToDashboard, onNavigateToResume, onNavigateToSignup }) => {
   const { openComingSoon } = useComingSoon();
 
   const handleComingSoon = (event, title, message) => {
@@ -107,8 +107,8 @@ const Landing = ({ onNavigateToLogin, onNavigateToDashboard, onNavigateToResume,
           </p>
 
           <div className="mt-10 relative z-30 inline-block group">
-            <button onClick={onNavigateToCompanySignup} className="relative bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-10 py-5 rounded-xl font-bold text-lg shadow-2xl transition-transform transform group-hover:-translate-y-1 overflow-hidden w-64">
-              <span className="relative z-10">Start interviewing</span>
+            <button onClick={onNavigateToSignup} className="relative bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-10 py-5 rounded-xl font-bold text-lg shadow-2xl transition-transform transform group-hover:-translate-y-1 overflow-hidden w-64">
+              <span className="relative z-10">Get started</span>
               <div className="absolute -bottom-4 -right-4 w-10 h-10 bg-primary rotate-45 transform group-hover:scale-150 transition-transform duration-500"></div>
             </button>
           </div>

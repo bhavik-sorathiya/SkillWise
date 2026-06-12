@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 
-const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) => {
+const Signup = ({ onBackToHome, onNavigateToLogin }) => {
   const { signup } = useAuth();
   const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
@@ -270,18 +270,6 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToCompanySignup }) 
               </a>.
             </p>
 
-            <div className="mt-6 pt-6 border-t border-border-light dark:border-gray-700">
-              <p className="text-center text-sm text-text-secondary dark:text-gray-400">
-                Want to hire talent?{' '}
-                <button 
-                  className="font-bold text-primary hover:underline" 
-                  onClick={onNavigateToCompanySignup}
-                  type="button"
-                >
-                  Create a company account
-                </button>
-              </p>
-            </div>
           </form>
         </div>
       </main>

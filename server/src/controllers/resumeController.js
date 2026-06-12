@@ -88,7 +88,7 @@ const getFileType = (fileName, fileType) => {
 };
 
 // GET /api/resumes/list
-// Build lightweight resume cards metadata for dashboard listing.
+// Build lightweight resume cards metadata for listing.
 const getResumesList = async (req, res) => {
   const userId = req.user?.id;
 
@@ -104,9 +104,14 @@ const getResumesList = async (req, res) => {
 
     return {
       id: resume.id,
-      name: resume.file_name,
+      // title is the user-facing display name; never expose raw file_name as primary
+      title: resume.title || resume.file_name,
+      name: resume.title || resume.file_name, // backward-compat alias for frontend
+      target_role: resume.target_role || null,
+      file_name: resume.file_name, // internal identity — NOT shown in UI
+      status: resume.status || 'active',
       uploadedDate: formatRelativeDate(resume.uploaded_at),
-      type: getFileType(resume.file_name, resume.file_type),
+      uploaded_at: uploadedAt ? uploadedAt.toISOString() : null,
       uploadedAt: uploadedAt ? uploadedAt.toISOString() : null,
       isPrimary: index === 0
     };
@@ -313,7 +318,9 @@ const uploadResume = async (req, res) => {
     }
 
     // Generate new filename: userId_username_resume_resumeCount.docx
-    const userName = userInfo.name.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+    // Use full_name (new schema column) — fallback to email prefix for safety
+    const rawName = userInfo.full_name || userInfo.email?.split('@')[0] || 'user';
+    const userName = rawName.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
     const uploadsDir = path.join(__dirname, '../../uploads/resumes');
     let resumeCount = currentCount + 1;
     let newFileName = `${userId}_${userName}_resume_${resumeCount}.docx`;
@@ -329,14 +336,19 @@ const uploadResume = async (req, res) => {
     fs.renameSync(req.file.path, newFilePath);
     finalFilePath = newFilePath;
 
-    // Save resume record to database
+    // Extract title and targetRole from request body
+    const resumeTitle = req.body.title || req.body.targetRole || `Resume ${resumeCount}`;
+    const resumeTargetRole = req.body.targetRole || req.body.target_role || 'Not Specified';
+
+    // Save resume record to database with new schema fields
     console.log('[6] Creating resume record in database...');
-    const fileType = getFileType(newFileName, req.file.mimetype);
     const resumeId = await UserResume.createResume(
       userId,
+      resumeTitle,
+      resumeTargetRole,
       newFileName,
       newFilePath,
-      fileType
+      req.file.size || 0
     );
     console.log(`[7] Resume created with ID: ${resumeId}`);
 
@@ -425,9 +437,13 @@ const uploadResume = async (req, res) => {
     console.log('[16] Building final response...');
     const newResume = {
       id: resumeId,
-      name: newFileName,
+      title: resumeTitle,
+      name: resumeTitle, // backward-compat alias
+      target_role: resumeTargetRole,
+      file_name: newFileName,
+      status: 'active',
       uploadedDate: formatRelativeDate(new Date()),
-      type: fileType,
+      uploaded_at: new Date().toISOString(),
       uploadedAt: new Date().toISOString(),
       isPrimary: currentCount === 0
     };
@@ -614,8 +630,40 @@ const transformImprovementPriority = (priorityItems) => {
   }));
 };
 
+/**
+ * DELETE /api/resumes/:resumeId
+ * Soft-delete a resume: sets status='deleted' instead of hard delete
+ * Preserves data integrity and analysis history
+ */
+const deleteResume = async (req, res) => {
+  const { resumeId } = req.params;
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new AppError('Unauthorized: User information not found in token', 401);
+  }
+
+  if (!resumeId || isNaN(parseInt(resumeId, 10))) {
+    throw new AppError('Invalid resume ID', 400);
+  }
+
+  const deleted = await UserResume.softDeleteResume(parseInt(resumeId, 10), userId);
+
+  if (!deleted) {
+    throw new AppError('Resume not found or you do not have access to delete it', 404);
+  }
+
+  console.log(`[Delete Resume] Resume ${resumeId} soft-deleted for user ${userId}`);
+
+  res.status(200).json({
+    success: true,
+    message: 'Resume deleted successfully'
+  });
+};
+
 module.exports = {
   getResumesList,
   uploadResume,
-  getResumeAnalysis
+  getResumeAnalysis,
+  deleteResume
 };

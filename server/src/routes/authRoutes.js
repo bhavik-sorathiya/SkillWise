@@ -1,6 +1,6 @@
 // server/src/routes/authRoutes.js
 const express = require('express');
-const { signup, login, logout } = require('../controllers/authController');
+const { signup, login, logout, updateName, changePassword } = require('../controllers/authController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { catchAsync } = require('../utils/errorHandler');
 
@@ -12,5 +12,7 @@ router.post('/login', catchAsync(login));
 
 // Protected routes
 router.post('/logout', verifyToken, catchAsync(logout));
+router.patch('/update-name', verifyToken, catchAsync(updateName));
+router.post('/change-password', verifyToken, catchAsync(changePassword));
 
 module.exports = router;
