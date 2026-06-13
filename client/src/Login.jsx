@@ -6,7 +6,7 @@ import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 
 const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavigateToOnboarding }) => {
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -18,9 +18,14 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
   // Redirect to dashboard if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      if (user?.profile_completed === false) {
+        onNavigateToOnboarding?.();
+        return;
+      }
+
       onNavigateToDashboard?.();
     }
-  }, [isAuthenticated, onNavigateToDashboard]);
+  }, [isAuthenticated, user, onNavigateToDashboard, onNavigateToOnboarding]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,16 +47,6 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
       
       // Check if user needs to complete onboarding
       const profileCompleted = response?.user?.profile_completed;
-      
-      setTimeout(() => {
-        if (!profileCompleted && onNavigateToOnboarding) {
-          // New user — redirect to onboarding
-          onNavigateToOnboarding();
-        } else {
-          // Returning user with complete profile — go to dashboard
-          onNavigateToDashboard?.();
-        }
-      }, 0);
 
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');

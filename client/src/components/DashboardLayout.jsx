@@ -23,6 +23,8 @@ const DashboardLayout = ({
   onNavigateToLogin = () => {},
   onNavigateToLanding = () => {},
   onNavigateToHome = () => {},
+  onNavigateToProfile = () => {},
+  onNavigateToSettings = () => {},
   onLogout = () => {},
   userProfile = {},
   footerLinks = {},
@@ -35,7 +37,12 @@ const DashboardLayout = ({
       />
 
       {sidebarItems.length > 0 && (
-        <Sidebar items={sidebarItems} isOpen={isSidebarOpen} onNavigate={onSidebarNavigate} />
+        <Sidebar
+          items={sidebarItems}
+          isOpen={isSidebarOpen}
+          onNavigate={onSidebarNavigate}
+          onNavigateToSettings={onNavigateToSettings}
+        />
       )}
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
@@ -46,6 +53,8 @@ const DashboardLayout = ({
           onNavigateToLogin={onNavigateToLogin}
           onNavigateToLanding={onNavigateToLanding}
           onNavigateToHome={onNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToSettings={onNavigateToSettings}
           onLogout={onLogout}
           userProfile={userProfile}
         />
@@ -58,6 +67,7 @@ const DashboardLayout = ({
             onHelp={footerLinks.onHelp}
             onPrivacy={footerLinks.onPrivacy}
             onTerms={footerLinks.onTerms}
+            onPricing={footerLinks.onPricing}
           />
         </main>
       </div>

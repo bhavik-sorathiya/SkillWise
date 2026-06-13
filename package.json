@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/bhavik-sorathiya/SkillWise#readme",
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^10.0.3"
   },
   "dependencies": {
     "mammoth": "^1.11.0"

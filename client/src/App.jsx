@@ -13,10 +13,16 @@ import InterviewHistory from './components/InterviewHistory'
 import ProfilePage from './ProfilePage'
 import SettingsPage from './SettingsPage'
 import DashboardLayout from './components/DashboardLayout'
+import KnowDeveloperPage from './components/KnowDeveloperPage'
+import HelpCenterPage from './components/HelpCenterPage'
+import TermsPolicyPage from './components/TermsPolicyPage'
+import PricingPage from './components/PricingPage'
+import ProfileCompletionModal from './components/ProfileCompletionModal'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ErrorProvider } from './context/ErrorContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ComingSoonProvider } from './context/ComingSoonContext'
+import { getUserAvatar } from './utils/avatar'
 import './App.css'
 
 // Top-level client router/state container for page-level navigation.
@@ -31,6 +37,10 @@ const PAGE_TO_PATH = {
   'interview-history': '/interview-history',
   'profile': '/profile',
   'settings': '/settings',
+  'know-developer': '/know-developer',
+  'help-center': '/help-center',
+  'terms-policy': '/terms-policy',
+  'pricing': '/pricing',
 };
 
 const PATH_TO_PAGE = {
@@ -44,9 +54,14 @@ const PATH_TO_PAGE = {
   '/interview-history': 'interview-history',
   '/profile': 'profile',
   '/settings': 'settings',
+  '/know-developer': 'know-developer',
+  '/help-center': 'help-center',
+  '/terms-policy': 'terms-policy',
+  '/pricing': 'pricing',
 };
 
 const PROTECTED_PAGES = ['onboarding', 'interviewee-dashboard', 'resume-skills', 'mock-interview-chat', 'interview-history', 'profile', 'settings'];
+const COMPLETION_GATED_PAGES = ['interviewee-dashboard', 'resume-skills', 'mock-interview-chat', 'interview-history', 'settings'];
 
 const normalizePath = (pathname = '/') => {
   if (!pathname) return '/';
@@ -66,11 +81,11 @@ function AppContent() {
   const [currentPage, setCurrentPage] = useState(() => getPageFromPath(window.location.pathname));
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const needsProfileCompletion = isAuthenticated && user?.profile_completed !== true;
 
   const dashboardUserProfile = useMemo(() => ({
     name: user?.full_name || user?.name || 'User',
-    headerAvatar:
-      'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w'
+    headerAvatar: getUserAvatar(user?.gender)
   }), [user]);
 
   /**
@@ -107,6 +122,12 @@ function AppContent() {
   const handleInterviewHistoryLogout = () => {
     logout();
     navigateToPage('landing', { replace: true });
+  };
+
+  const openOnboarding = () => {
+    setIsSidebarOpen(false);
+    setIsProfileMenuOpen(false);
+    navigateToPage('onboarding');
   };
 
   useEffect(() => {
@@ -151,7 +172,12 @@ function AppContent() {
           onNavigateToOnboarding={() => navigateToPage('onboarding')}
         />
       case 'signup':
-        return <Signup onBackToHome={() => navigateToPage('landing')} onNavigateToLogin={() => navigateToPage('login')} />
+        return <Signup 
+          onBackToHome={() => navigateToPage('landing')} 
+          onNavigateToLogin={() => navigateToPage('login')} 
+          onNavigateToOnboarding={() => navigateToPage('onboarding')}
+          onNavigateToDashboard={() => navigateToPage('interviewee-dashboard')}
+        />
       case 'onboarding':
         return <Onboarding
           onComplete={() => navigateToPage('interviewee-dashboard')}
@@ -168,6 +194,10 @@ function AppContent() {
           onNavigateToProfile={() => navigateToPage('profile')}
           onNavigateToSettings={() => navigateToPage('settings')}
           onLogout={() => navigateToPage('landing')}
+          onNavigateToDeveloper={() => navigateToPage('know-developer')}
+          onNavigateToHelp={() => navigateToPage('help-center')}
+          onNavigateToTerms={() => navigateToPage('terms-policy')}
+          onNavigateToPricing={() => navigateToPage('pricing')}
         />
       case 'resume-skills':
         return <ResumeAndSkills 
@@ -180,6 +210,10 @@ function AppContent() {
           onNavigateToProfile={() => navigateToPage('profile')}
           onNavigateToSettings={() => navigateToPage('settings')}
           onLogout={() => navigateToPage('landing')}
+          onNavigateToDeveloper={() => navigateToPage('know-developer')}
+          onNavigateToHelp={() => navigateToPage('help-center')}
+          onNavigateToTerms={() => navigateToPage('terms-policy')}
+          onNavigateToPricing={() => navigateToPage('pricing')}
         />
       case 'mock-interview-chat':
         return <MockInterviewChat
@@ -192,6 +226,10 @@ function AppContent() {
           onNavigateToProfile={() => navigateToPage('profile')}
           onNavigateToSettings={() => navigateToPage('settings')}
           onLogout={() => navigateToPage('landing')}
+          onNavigateToDeveloper={() => navigateToPage('know-developer')}
+          onNavigateToHelp={() => navigateToPage('help-center')}
+          onNavigateToTerms={() => navigateToPage('terms-policy')}
+          onNavigateToPricing={() => navigateToPage('pricing')}
         />
       case 'profile':
         return <ProfilePage
@@ -204,6 +242,10 @@ function AppContent() {
           onNavigateToProfile={() => navigateToPage('profile')}
           onNavigateToSettings={() => navigateToPage('settings')}
           onLogout={() => navigateToPage('landing')}
+          onNavigateToDeveloper={() => navigateToPage('know-developer')}
+          onNavigateToHelp={() => navigateToPage('help-center')}
+          onNavigateToTerms={() => navigateToPage('terms-policy')}
+          onNavigateToPricing={() => navigateToPage('pricing')}
         />
       case 'settings':
         return <SettingsPage
@@ -216,6 +258,10 @@ function AppContent() {
           onNavigateToProfile={() => navigateToPage('profile')}
           onNavigateToSettings={() => navigateToPage('settings')}
           onLogout={() => navigateToPage('landing')}
+          onNavigateToDeveloper={() => navigateToPage('know-developer')}
+          onNavigateToHelp={() => navigateToPage('help-center')}
+          onNavigateToTerms={() => navigateToPage('terms-policy')}
+          onNavigateToPricing={() => navigateToPage('pricing')}
         />
       case 'interview-history':
         return (
@@ -225,8 +271,6 @@ function AppContent() {
               { key: 'resume', icon: 'description', label: 'Resume' },
               { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview' },
               { key: 'interviews', icon: 'videocam', label: 'Interviews', isActive: true },
-              { key: 'profile', icon: 'person', label: 'Profile' },
-              { key: 'settings', icon: 'settings', label: 'Settings' },
             ]}
             isSidebarOpen={isSidebarOpen}
             onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -237,12 +281,29 @@ function AppContent() {
             onNavigateToLogin={() => navigateToPage('login')}
             onNavigateToLanding={() => navigateToPage('landing')}
             onNavigateToHome={() => navigateToPage('interviewee-dashboard')}
+            onNavigateToProfile={() => navigateToPage('profile')}
+            onNavigateToSettings={() => navigateToPage('settings')}
             onLogout={handleInterviewHistoryLogout}
             userProfile={dashboardUserProfile}
+            footerLinks={{
+              onAbout: () => navigateToPage('know-developer'),
+              onHelp: () => navigateToPage('help-center'),
+              onPrivacy: () => navigateToPage('terms-policy'),
+              onTerms: () => navigateToPage('terms-policy'),
+              onPricing: () => navigateToPage('pricing'),
+            }}
           >
             <InterviewHistory />
           </DashboardLayout>
         )
+      case 'know-developer':
+        return <KnowDeveloperPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} />
+      case 'help-center':
+        return <HelpCenterPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} />
+      case 'terms-policy':
+        return <TermsPolicyPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} />
+      case 'pricing':
+        return <PricingPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} onGetStarted={() => navigateToPage('signup')} />
       case 'landing':
       default:
         return <Landing 
@@ -250,11 +311,23 @@ function AppContent() {
           onNavigateToDashboard={() => navigateToPage('interviewee-dashboard')} 
           onNavigateToResume={() => navigateToPage('resume-skills')}
           onNavigateToSignup={() => navigateToPage('signup')}
+          onNavigateToDeveloper={() => navigateToPage('know-developer')}
+          onNavigateToHelp={() => navigateToPage('help-center')}
+          onNavigateToTerms={() => navigateToPage('terms-policy')}
+          onNavigateToPricing={() => navigateToPage('pricing')}
         />
     }
   }
 
-  return renderPage()
+  const renderedPage = renderPage();
+  const showProfileCompletionGate = needsProfileCompletion && COMPLETION_GATED_PAGES.includes(currentPage);
+
+  return (
+    <>
+      {renderedPage}
+      <ProfileCompletionModal isOpen={showProfileCompletionGate} onContinue={openOnboarding} />
+    </>
+  )
 }
 
 function App() {

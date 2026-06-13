@@ -31,9 +31,19 @@ const SUGGESTED_ROLES = [
 ];
 
 const TOTAL_STEPS = 5;
+const MAX_ROLES = 3;
+
+const DEMO_PROFILE = {
+  preferred_roles: ['Frontend Developer', 'UI Engineer'],
+  gender: 'non_binary',
+  experience_level: 'Junior',
+  years_of_experience: '2',
+  education: 'Bachelor of Engineering in Computer Science',
+  bio: 'I like building polished user experiences and learning from real interview feedback.',
+};
 
 const Onboarding = ({ onComplete, onNavigateToLogin }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUserInContext } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -48,11 +58,20 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
     bio: ''
   });
 
+  const applyDemoProfile = () => {
+    setError('');
+    setForm(prev => ({
+      ...prev,
+      ...DEMO_PROFILE,
+      roleInput: '',
+    }));
+  };
+
   // ── Step 1: Preferred Roles ────────────────────────────────────────────────
   const addRole = (role) => {
     const trimmed = role.trim();
     if (!trimmed) return;
-    if (form.preferred_roles.length >= 3) return;
+    if (form.preferred_roles.length >= MAX_ROLES) return;
     if (form.preferred_roles.includes(trimmed)) return;
     setForm(f => ({ ...f, preferred_roles: [...f.preferred_roles, trimmed], roleInput: '' }));
   };
@@ -65,6 +84,30 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
+
+    if (form.preferred_roles.length === 0) {
+      setError('Please choose at least one preferred role');
+      setLoading(false);
+      return;
+    }
+
+    if (!form.gender) {
+      setError('Please select a gender option');
+      setLoading(false);
+      return;
+    }
+
+    if (!form.experience_level) {
+      setError('Please select your experience level');
+      setLoading(false);
+      return;
+    }
+
+    if (form.years_of_experience && (Number.isNaN(Number(form.years_of_experience)) || Number(form.years_of_experience) < 0 || Number(form.years_of_experience) > 60)) {
+      setError('Years of experience must be between 0 and 60');
+      setLoading(false);
+      return;
+    }
 
     try {
       const token = localStorage.getItem('authToken');
@@ -89,7 +132,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
 
       if (!profileRes.ok) {
         const err = await profileRes.json();
-        throw new Error(err.message || 'Failed to save profile');
+        throw new Error(err.error || err.message || 'Failed to save profile');
       }
 
       // PATCH /api/profile/complete — mark onboarding done
@@ -100,13 +143,15 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
 
       if (!completeRes.ok) {
         const err = await completeRes.json();
-        throw new Error(err.message || 'Failed to complete onboarding');
+        throw new Error(err.error || err.message || 'Failed to complete onboarding');
       }
 
-      // Update local user object to reflect profile_completed = true
+      // Update local user object to reflect profile_completed = true and gender
       const stored = JSON.parse(localStorage.getItem('user') || '{}');
       stored.profile_completed = true;
+      stored.gender = form.gender;
       localStorage.setItem('user', JSON.stringify(stored));
+      updateUserInContext?.({ profile_completed: true, gender: form.gender });
 
       onComplete();
     } catch (err) {
@@ -118,13 +163,37 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
 
   const canProceed = () => {
     if (step === 1) return form.preferred_roles.length > 0;
-    if (step === 2) return true; // gender optional
+    if (step === 2) return !!form.gender;
     if (step === 3) return !!form.experience_level;
     if (step === 4) return true; // education optional
     return true; // bio optional
   };
 
   const handleNext = () => {
+    setError('');
+
+    if (step === 1 && form.preferred_roles.length === 0) {
+      setError('Pick at least one role to continue');
+      return;
+    }
+
+    if (step === 2 && !form.gender) {
+      setError('Please choose one option to continue');
+      return;
+    }
+
+    if (step === 3) {
+      if (!form.experience_level) {
+        setError('Please select an experience level');
+        return;
+      }
+
+      if (form.years_of_experience && (Number.isNaN(Number(form.years_of_experience)) || Number(form.years_of_experience) < 0 || Number(form.years_of_experience) > 60)) {
+        setError('Years of experience must be between 0 and 60');
+        return;
+      }
+    }
+
     if (step < TOTAL_STEPS) setStep(s => s + 1);
     else handleSubmit();
   };
@@ -132,33 +201,55 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
   const progressPct = Math.round((step / TOTAL_STEPS) * 100);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-background-light dark:bg-background-dark text-text-main dark:text-white flex flex-col items-center justify-center p-4 transition-colors duration-300">
+      {loading && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-3xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark p-6 text-center shadow-2xl">
+            <div className="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span className="material-symbols-outlined text-3xl animate-pulse">cloud_sync</span>
+            </div>
+            <h2 className="text-lg font-bold text-text-main dark:text-white">Saving your profile</h2>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+              Please wait while we store your onboarding details and prepare your dashboard.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Header */}
-      <div className="w-full max-w-2xl mb-8 flex items-center justify-between">
+      <div className="w-full max-w-2xl mb-8 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 text-orange-400">
+          <div className="w-8 h-8 text-primary">
             <svg fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 3L1 9L12 15L21 10.09V17H23V9M5 13.18V17.18L12 21L19 17.18V13.18L12 17L5 13.18Z"/>
             </svg>
           </div>
-          <span className="text-white font-bold text-xl">SkillWise</span>
+          <span className="font-bold text-xl text-text-main dark:text-white">SkillWise</span>
         </div>
-        <button
-          onClick={() => { logout(); onNavigateToLogin?.(); }}
-          className="text-slate-400 hover:text-white text-sm transition-colors"
-        >
-          Log out
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={applyDemoProfile}
+            className="rounded-xl border border-border-light dark:border-border-dark bg-surface-light dark:bg-surface-dark px-4 py-2 text-sm font-medium text-text-main dark:text-white hover:border-primary/40 hover:text-primary transition-colors"
+          >
+            Use demo details
+          </button>
+          <button
+            onClick={() => { logout(); onNavigateToLogin?.(); }}
+            className="text-sm text-gray-500 hover:text-text-main dark:text-gray-400 dark:hover:text-white transition-colors"
+          >
+            Log out
+          </button>
+        </div>
       </div>
 
       {/* Card */}
-      <div className="w-full max-w-2xl bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="w-full max-w-2xl bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-3xl overflow-hidden shadow-2xl">
 
         {/* Progress bar */}
-        <div className="h-1 bg-white/10">
+        <div className="h-1 bg-border-light dark:bg-border-dark">
           <div
-            className="h-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-primary to-primary-hover transition-all duration-500 ease-out"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -166,21 +257,21 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
         <div className="p-8 sm:p-10">
           {/* Step indicator */}
           <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs font-medium text-orange-400 bg-orange-400/10 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
               Step {step} of {TOTAL_STEPS}
             </span>
           </div>
 
           {/* Welcome message */}
           <div className="mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-main dark:text-white mb-2">
               {step === 1 && `Welcome, ${user?.full_name || user?.name || 'there'}! 👋`}
               {step === 2 && 'Tell us a bit about yourself'}
               {step === 3 && "What's your experience level?"}
               {step === 4 && 'Your educational background'}
               {step === 5 && 'Almost done!'}
             </h1>
-            <p className="text-slate-400">
+            <p className="text-gray-600 dark:text-gray-400">
               {step === 1 && "Which roles are you targeting? We'll tailor your experience."}
               {step === 2 && 'This helps us personalize your dashboard.'}
               {step === 3 && 'Help us understand where you are in your career.'}
@@ -190,7 +281,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
           </div>
 
           {error && (
-            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-300 text-sm">
               {error}
             </div>
           )}
@@ -205,14 +296,14 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                   onChange={e => setForm(f => ({ ...f, roleInput: e.target.value }))}
                   onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addRole(form.roleInput); } }}
                   placeholder="Type a role and press Enter..."
-                  className="flex-1 bg-white/10 text-white placeholder-slate-400 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-400/50 focus:ring-1 focus:ring-orange-400/30"
-                  disabled={form.preferred_roles.length >= 3}
+                  className="flex-1 bg-background-light dark:bg-background-dark text-text-main dark:text-white placeholder-gray-400 border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  disabled={form.preferred_roles.length >= MAX_ROLES}
                 />
                 <button
                   type="button"
                   onClick={() => addRole(form.roleInput)}
-                  disabled={!form.roleInput.trim() || form.preferred_roles.length >= 3}
-                  className="px-4 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
+                  disabled={!form.roleInput.trim() || form.preferred_roles.length >= MAX_ROLES}
+                  className="px-4 py-3 bg-primary text-white rounded-xl hover:bg-primary-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed font-medium"
                 >
                   Add
                 </button>
@@ -224,10 +315,10 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                   {form.preferred_roles.map(role => (
                     <span
                       key={role}
-                      className="flex items-center gap-2 bg-orange-500/20 text-orange-300 border border-orange-500/30 px-3 py-1.5 rounded-full text-sm font-medium"
+                      className="flex items-center gap-2 bg-primary/10 text-primary border border-primary/20 px-3 py-1.5 rounded-full text-sm font-medium"
                     >
                       {role}
-                      <button onClick={() => removeRole(role)} className="text-orange-400 hover:text-white transition-colors">
+                      <button onClick={() => removeRole(role)} className="text-primary hover:text-primary-hover transition-colors">
                         <span className="material-icons-round text-sm">close</span>
                       </button>
                     </span>
@@ -235,21 +326,21 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                 </div>
               )}
 
-              <p className="text-slate-500 text-xs">
-                {3 - form.preferred_roles.length} more role{form.preferred_roles.length !== 2 ? 's' : ''} allowed
+              <p className="text-gray-500 dark:text-gray-400 text-xs">
+                {MAX_ROLES - form.preferred_roles.length} more role{form.preferred_roles.length !== MAX_ROLES - 1 ? 's' : ''} allowed
               </p>
 
               {/* Suggestions */}
               <div>
-                <p className="text-slate-400 text-xs mb-2 uppercase tracking-wider">Suggestions</p>
+                <p className="text-gray-500 dark:text-gray-400 text-xs mb-2 uppercase tracking-wider">Suggestions</p>
                 <div className="flex flex-wrap gap-2">
                   {SUGGESTED_ROLES.filter(r => !form.preferred_roles.includes(r)).slice(0, 10).map(role => (
                     <button
                       key={role}
                       type="button"
                       onClick={() => addRole(role)}
-                      disabled={form.preferred_roles.length >= 3}
-                      className="text-sm text-slate-300 bg-white/5 hover:bg-orange-500/20 hover:text-orange-300 border border-white/10 hover:border-orange-500/30 px-3 py-1.5 rounded-full transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      disabled={form.preferred_roles.length >= MAX_ROLES}
+                      className="text-sm text-text-secondary dark:text-gray-300 bg-background-light dark:bg-background-dark hover:bg-primary/10 hover:text-primary border border-border-light dark:border-border-dark hover:border-primary/30 px-3 py-1.5 rounded-full transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       + {role}
                     </button>
@@ -269,8 +360,8 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                   onClick={() => setForm(f => ({ ...f, gender: opt.value }))}
                   className={`flex items-center gap-3 p-4 rounded-xl border transition-all text-left ${
                     form.gender === opt.value
-                      ? 'bg-orange-500/20 border-orange-400 text-orange-300'
-                      : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20'
+                      ? 'bg-primary/10 border-primary text-primary'
+                      : 'bg-background-light dark:bg-background-dark border-border-light dark:border-border-dark text-text-main dark:text-white hover:border-primary/30'
                   }`}
                 >
                   <span className="material-icons-round text-[22px]">{opt.icon}</span>
@@ -291,19 +382,19 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                     onClick={() => setForm(f => ({ ...f, experience_level: lvl.value }))}
                     className={`flex flex-col p-4 rounded-xl border transition-all text-left ${
                       form.experience_level === lvl.value
-                        ? 'bg-orange-500/20 border-orange-400'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                        ? 'bg-primary/10 border-primary'
+                        : 'bg-background-light dark:bg-background-dark border-border-light dark:border-border-dark hover:border-primary/30'
                     }`}
                   >
-                    <span className={`font-semibold ${form.experience_level === lvl.value ? 'text-orange-300' : 'text-white'}`}>
+                    <span className={`font-semibold ${form.experience_level === lvl.value ? 'text-primary' : 'text-text-main dark:text-white'}`}>
                       {lvl.label}
                     </span>
-                    <span className="text-xs text-slate-400 mt-0.5">{lvl.desc}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{lvl.desc}</span>
                   </button>
                 ))}
               </div>
               <div>
-                <label className="block text-slate-300 text-sm font-medium mb-2">Years of experience (optional)</label>
+                <label className="block text-sm font-medium mb-2 text-text-main dark:text-white">Years of experience <span className="text-gray-500 dark:text-gray-400">(optional)</span></label>
                 <input
                   type="number"
                   min="0"
@@ -311,7 +402,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                   value={form.years_of_experience}
                   onChange={e => setForm(f => ({ ...f, years_of_experience: e.target.value }))}
                   placeholder="e.g. 5"
-                  className="w-full bg-white/10 text-white placeholder-slate-400 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-400/50 focus:ring-1 focus:ring-orange-400/30"
+                  className="w-full bg-background-light dark:bg-background-dark text-text-main dark:text-white placeholder-gray-400 border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>
@@ -325,9 +416,9 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                 value={form.education}
                 onChange={e => setForm(f => ({ ...f, education: e.target.value }))}
                 placeholder="e.g. Bachelor of Engineering in Computer Science"
-                className="w-full bg-white/10 text-white placeholder-slate-400 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-400/50 focus:ring-1 focus:ring-orange-400/30"
+                className="w-full bg-background-light dark:bg-background-dark text-text-main dark:text-white placeholder-gray-400 border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
-              <p className="text-slate-500 text-xs">You can skip this step if you prefer</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs">You can skip this step if you prefer</p>
             </div>
           )}
 
@@ -339,9 +430,9 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
                 onChange={e => setForm(f => ({ ...f, bio: e.target.value }))}
                 placeholder="Tell us a little about yourself, your goals, or what you're looking for..."
                 rows={5}
-                className="w-full bg-white/10 text-white placeholder-slate-400 border border-white/20 rounded-xl px-4 py-3 focus:outline-none focus:border-orange-400/50 focus:ring-1 focus:ring-orange-400/30 resize-none"
+                className="w-full bg-background-light dark:bg-background-dark text-text-main dark:text-white placeholder-gray-400 border border-border-light dark:border-border-dark rounded-xl px-4 py-3 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 resize-none"
               />
-              <p className="text-slate-500 text-xs">Optional — you can always update this later</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs">Optional — you can always update this later</p>
             </div>
           )}
 
@@ -351,7 +442,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
               <button
                 type="button"
                 onClick={() => setStep(s => s - 1)}
-                className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-medium"
+                className="flex items-center gap-2 text-gray-500 hover:text-text-main dark:text-gray-400 dark:hover:text-white transition-colors font-medium"
               >
                 <span className="material-icons-round text-[18px]">arrow_back</span>
                 Back
@@ -362,7 +453,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
               type="button"
               onClick={handleNext}
               disabled={!canProceed() || loading}
-              className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="flex items-center gap-2 px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
             >
               {loading ? (
                 <>
@@ -388,7 +479,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
           <div
             key={i}
             className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              i + 1 === step ? 'bg-orange-400 w-6' : i + 1 < step ? 'bg-orange-400/40' : 'bg-white/20'
+              i + 1 === step ? 'bg-primary w-6' : i + 1 < step ? 'bg-primary/40' : 'bg-border-light dark:bg-border-dark'
             }`}
           />
         ))}

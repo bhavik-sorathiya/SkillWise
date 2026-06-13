@@ -67,7 +67,7 @@ const apiRequest = async (endpoint, options = {}) => {
   }
 
   if (!response.ok) {
-    throw new Error(data.message || 'Something went wrong');
+    throw new Error(data.error || data.message || 'Something went wrong');
   }
 
   return data;
@@ -329,7 +329,7 @@ export const resumeAPI = {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.message || 'Upload failed');
+      throw new Error(data.error || data.message || 'Upload failed');
     }
 
     // Invalidate resumes cache after upload

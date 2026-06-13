@@ -60,22 +60,40 @@ const updateProfile = async (req, res) => {
 
   // Validate gender if provided
   const validGenders = ['male', 'female', 'non_binary', 'prefer_not_to_say'];
-  if (gender && !validGenders.includes(gender)) {
-    throw new AppError(`Invalid gender value. Must be one of: ${validGenders.join(', ')}`, 400);
+  if (gender !== undefined) {
+    if (gender === null || gender === '') {
+      throw new AppError('Gender is required', 400);
+    }
+    if (!validGenders.includes(gender)) {
+      throw new AppError(`Invalid gender value. Must be one of: ${validGenders.join(', ')}`, 400);
+    }
   }
 
   // Validate preferred_roles if provided
   if (preferred_roles !== undefined) {
-    if (!Array.isArray(preferred_roles)) {
+    if (preferred_roles === null || !Array.isArray(preferred_roles)) {
       throw new AppError('preferred_roles must be an array', 400);
+    }
+    if (preferred_roles.length === 0) {
+      throw new AppError('At least one preferred role is required', 400);
     }
     if (preferred_roles.length > 3) {
       throw new AppError('You can select a maximum of 3 preferred roles', 400);
     }
   }
 
+  // Validate experience_level if provided
+  if (experience_level !== undefined) {
+    if (experience_level === null || experience_level === '') {
+      throw new AppError('Experience level is required', 400);
+    }
+  }
+
   // Validate years_of_experience if provided
   if (years_of_experience !== undefined) {
+    if (years_of_experience === null || years_of_experience === '') {
+      throw new AppError('Years of experience is required', 400);
+    }
     const years = Number(years_of_experience);
     if (isNaN(years) || years < 0 || years > 60) {
       throw new AppError('years_of_experience must be a number between 0 and 60', 400);

@@ -16,11 +16,17 @@ import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 import { useError } from './context/ErrorContext';
 import { resumeAPI, logout as logoutAPI } from './services/api';
-import { DataSyncService } from './utils/cacheSync';
+import { getUserAvatar } from './utils/avatar';
+import Footer from './components/Footer';
 import './ResumeAndSkills.css';
 
 // Primary interviewee workspace for resume upload, AI analysis, and skill updates.
-const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToHome, onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews, onLogout }) => {
+const ResumeAndSkills = ({ 
+  onNavigateToLogin, onNavigateToLanding, onNavigateToHome, 
+  onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews, 
+  onNavigateToProfile, onNavigateToSettings, onLogout,
+  onNavigateToDeveloper, onNavigateToHelp, onNavigateToTerms
+}) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const { openComingSoon } = useComingSoon();
   const { addError } = useError();
@@ -285,15 +291,12 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
     { key: 'resume', icon: 'description', label: 'Resume', isActive: true },
     { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview' },
     { key: 'interviews', icon: 'videocam', label: 'Interviews' },
-    { key: 'profile', icon: 'person', label: 'Profile' },
-    { key: 'settings', icon: 'settings', label: 'Settings' },
   ];
 
   const handleSidebarNavigate = (key) => {
     const map = {
       home: onNavigateToHome, resume: onNavigateToResume,
       'mock-interview': onNavigateToMockInterview, interviews: onNavigateToInterviews,
-      profile: onNavigateToProfile, settings: onNavigateToSettings,
     };
     map[key]?.();
   };
@@ -316,7 +319,7 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
 
   const userProfile = {
     name: user?.full_name || user?.name || 'User',
-    headerAvatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w',
+    headerAvatar: getUserAvatar(user?.gender),
   };
 
   const handleComingSoon = (event, title, message) => {
@@ -369,7 +372,12 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
         onClose={() => setIsSidebarOpen(false)}
       />
 
-      <Sidebar items={sidebarItems} isOpen={isSidebarOpen} onNavigate={handleSidebarNavigate} />
+      <Sidebar
+        items={sidebarItems}
+        isOpen={isSidebarOpen}
+        onNavigate={handleSidebarNavigate}
+        onNavigateToSettings={onNavigateToSettings}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <TopBar
@@ -379,6 +387,8 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
           onNavigateToLogin={onNavigateToLogin}
           onNavigateToLanding={onNavigateToLanding}
           onNavigateToHome={onNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
           userProfile={userProfile}
         />
@@ -453,39 +463,12 @@ const ResumeAndSkills = ({ onNavigateToLogin, onNavigateToLanding, onNavigateToH
             )}
           </div>
 
-          <footer className="max-w-6xl mx-auto mt-20 pt-8 border-t border-border-light dark:border-border-dark flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <p>© 2026 SkillWise Inc.</p>
-            <div className="flex gap-6">
-              <a
-                className="hover:text-primary transition-colors"
-                href="#"
-                onClick={(e) => handleComingSoon(e, 'About', 'About page is coming soon.')}
-              >
-                About
-              </a>
-              <a
-                className="hover:text-primary transition-colors"
-                href="#"
-                onClick={(e) => handleComingSoon(e, 'Help Center', 'Help Center is coming soon.')}
-              >
-                Help Center
-              </a>
-              <a
-                className="hover:text-primary transition-colors"
-                href="#"
-                onClick={(e) => handleComingSoon(e, 'Privacy', 'Privacy details are coming soon.')}
-              >
-                Privacy
-              </a>
-              <a
-                className="hover:text-primary transition-colors"
-                href="#"
-                onClick={(e) => handleComingSoon(e, 'Terms', 'Terms are coming soon.')}
-              >
-                Terms
-              </a>
-            </div>
-          </footer>
+          <Footer
+            onAbout={onNavigateToDeveloper}
+            onHelp={onNavigateToHelp}
+            onTerms={onNavigateToTerms}
+            onPrivacy={onNavigateToTerms}
+          />
         </main>
       </div>
     </div>

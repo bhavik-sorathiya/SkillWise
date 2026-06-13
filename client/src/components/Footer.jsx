@@ -4,7 +4,7 @@
 import React from 'react';
 import { useComingSoon } from '../context/ComingSoonContext';
 
-const Footer = ({ onAbout, onHelp, onPrivacy, onTerms }) => {
+const Footer = ({ onAbout, onHelp, onPrivacy, onTerms, onPricing }) => {
   const { openComingSoon } = useComingSoon();
 
   const handleComingSoon = (e, title, message) => {
@@ -17,16 +17,16 @@ const Footer = ({ onAbout, onHelp, onPrivacy, onTerms }) => {
       <p>© 2026 SkillWise Inc. All rights reserved.</p>
       <div className="flex gap-6">
         <a
-          className="hover:text-primary transition-colors cursor-pointer"
+          className="hover:text-primary transition-colors cursor-pointer font-medium"
           onClick={(e) => {
             e.preventDefault();
-            onAbout ? onAbout() : handleComingSoon(e, 'About', 'About page is coming soon.');
+            onAbout ? onAbout() : handleComingSoon(e, 'Know Developer', 'Know Developer page is coming soon.');
           }}
         >
-          About
+          Know Developer
         </a>
         <a
-          className="hover:text-primary transition-colors cursor-pointer"
+          className="hover:text-primary transition-colors cursor-pointer font-medium"
           onClick={(e) => {
             e.preventDefault();
             onHelp ? onHelp() : handleComingSoon(e, 'Help Center', 'Help Center is coming soon.');
@@ -35,22 +35,22 @@ const Footer = ({ onAbout, onHelp, onPrivacy, onTerms }) => {
           Help Center
         </a>
         <a
-          className="hover:text-primary transition-colors cursor-pointer"
+          className="hover:text-primary transition-colors cursor-pointer font-medium"
           onClick={(e) => {
             e.preventDefault();
-            onPrivacy ? onPrivacy() : handleComingSoon(e, 'Privacy', 'Privacy details are coming soon.');
+            onTerms ? onTerms() : (onPrivacy ? onPrivacy() : handleComingSoon(e, 'Terms & Policy', 'Terms page is coming soon.'));
           }}
         >
-          Privacy
+          Terms & Policy
         </a>
         <a
-          className="hover:text-primary transition-colors cursor-pointer"
+          className="hover:text-primary transition-colors cursor-pointer font-medium"
           onClick={(e) => {
             e.preventDefault();
-            onTerms ? onTerms() : handleComingSoon(e, 'Terms', 'Terms are coming soon.');
+            onPricing ? onPricing() : handleComingSoon(e, 'Pricing', 'Pricing page is coming soon.');
           }}
         >
-          Terms
+          Pricing
         </a>
       </div>
     </footer>

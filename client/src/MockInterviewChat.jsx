@@ -10,6 +10,7 @@ import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 import Footer from './components/Footer';
 import MobileSidebarBackdrop from './components/MobileSidebarBackdrop';
+import { getUserAvatar } from './utils/avatar';
 
 const MockInterviewChat = ({
   onNavigateToLogin,
@@ -18,7 +19,12 @@ const MockInterviewChat = ({
   onNavigateToResume,
   onNavigateToMockInterview,
   onNavigateToInterviews,
-  onLogout
+  onNavigateToProfile,
+  onNavigateToSettings,
+  onLogout,
+  onNavigateToDeveloper,
+  onNavigateToHelp,
+  onNavigateToTerms
 }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const { addError } = useError();
@@ -49,8 +55,7 @@ const MockInterviewChat = ({
   const userProfile = useMemo(
     () => ({
       name: user?.full_name || user?.name || 'User',
-      headerAvatar:
-        'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w'
+      headerAvatar: getUserAvatar(user?.gender)
     }),
     [user]
   );
@@ -60,8 +65,6 @@ const MockInterviewChat = ({
     { key: 'resume', icon: 'description', label: 'Resume' },
     { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview', isActive: true },
     { key: 'interviews', icon: 'videocam', label: 'Interviews' },
-    { key: 'profile', icon: 'person', label: 'Profile' },
-    { key: 'settings', icon: 'settings', label: 'Settings' },
   ];
 
   const clearFinalizingTimer = useCallback(() => {
@@ -77,8 +80,6 @@ const MockInterviewChat = ({
       case 'resume': onNavigateToResume?.(); break;
       case 'mock-interview': onNavigateToMockInterview?.(); break;
       case 'interviews': onNavigateToInterviews?.(); break;
-      case 'profile': onNavigateToProfile?.(); break;
-      case 'settings': onNavigateToSettings?.(); break;
       case 'landing': onNavigateToLanding?.(); break;
       case 'login':
         onNavigateToLogin?.();
@@ -394,9 +395,9 @@ const MockInterviewChat = ({
             >
               <span className="material-symbols-outlined text-[20px]">arrow_back</span>
             </button>
-            <h1 className="text-3xl font-bold text-text-main dark:text-white">Start Mock Interview</h1>
+            <h1 className="text-3xl font-bold text-text-main dark:text-white">Start Text-Based Mock Interview</h1>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mb-8">Select your resume and target role to begin</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-8">Select your resume and target role to begin your interactive text-based chat simulation.</p>
 
           {modalLoading ? (
             <div className="flex justify-center items-center h-40">
@@ -476,7 +477,7 @@ const MockInterviewChat = ({
                 disabled={!selectedResume || !targetRole.trim()}
                 className="w-full px-6 py-3 bg-primary hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold rounded-lg transition"
               >
-                Start Interview
+                Start Text Interview
               </button>
             </>
           )}
@@ -489,7 +490,12 @@ const MockInterviewChat = ({
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-body text-text-main dark:text-white transition-colors duration-300 flex overflow-hidden">
       <MobileSidebarBackdrop isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <Sidebar items={sidebarItems} isOpen={isSidebarOpen} onNavigate={handleSidebarNavigate} />
+      <Sidebar
+        items={sidebarItems}
+        isOpen={isSidebarOpen}
+        onNavigate={handleSidebarNavigate}
+        onNavigateToSettings={onNavigateToSettings}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden relative">
         <TopBar
@@ -499,6 +505,8 @@ const MockInterviewChat = ({
           onNavigateToLogin={onNavigateToLogin}
           onNavigateToLanding={handleNavigateToLanding}
           onNavigateToHome={handleNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
           userProfile={userProfile}
         />
@@ -518,8 +526,8 @@ const MockInterviewChat = ({
                     <p className="text-xs font-medium">Role: {targetRole || 'Loading...'}</p>
                   </div>
                   <div className="flex h-7 items-center justify-center gap-x-1.5 rounded-full bg-primary/10 px-3 border border-primary/20">
-                    <span className="material-symbols-outlined text-primary text-[16px]">videocam</span>
-                    <p className="text-primary text-xs font-medium">Mode: Live Interview</p>
+                    <span className="material-symbols-outlined text-primary text-[16px]">chat</span>
+                    <p className="text-primary text-xs font-medium">Mode: Text Chat</p>
                   </div>
                 </div>
 
@@ -536,7 +544,7 @@ const MockInterviewChat = ({
 
             <section className="flex-1 min-h-0 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl flex flex-col overflow-hidden">
               <div className="px-4 md:px-6 py-3 border-b border-border-light dark:border-border-dark text-center">
-                <span className="text-xs text-gray-500 dark:text-gray-400">AI Mock Interview - Real Time</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">AI Text-Based Interview - Real Time</span>
               </div>
 
               <div className="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-5">
@@ -633,7 +641,12 @@ const MockInterviewChat = ({
             </section>
           </div>
 
-          <Footer />
+          <Footer 
+            onAbout={onNavigateToDeveloper}
+            onHelp={onNavigateToHelp}
+            onTerms={onNavigateToTerms}
+            onPrivacy={onNavigateToTerms}
+          />
         </main>
       </div>
 

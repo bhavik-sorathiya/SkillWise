@@ -11,11 +11,17 @@ const TopBar = ({
   onNavigateToLogin,
   onNavigateToLanding,
   onNavigateToHome,
+  onNavigateToProfile,
+  onNavigateToSettings,
   onLogout,
   userProfile,
 }) => {
   const { openComingSoon } = useComingSoon();
   const handleNavigateToLanding = onNavigateToLanding || onNavigateToHome;
+  const handleNavigate = (navigateFn) => {
+    onProfileMenuToggle?.();
+    navigateFn?.();
+  };
   // Centralize logout behavior for both explicit handler and fallback navigation.
   const handleLogout = () => {
     // Close profile menu
@@ -50,14 +56,6 @@ const TopBar = ({
       </div>
 
       <div className="flex items-center gap-4 md:gap-6">
-        <button
-          className="relative p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-          onClick={() => openComingSoon({ title: 'Notifications', message: 'Notifications are coming soon.' })}
-        >
-          <span className="material-symbols-outlined text-[24px]">notifications</span>
-          <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-surface-light dark:border-surface-dark"></span>
-        </button>
-
         <div className="relative">
           <button
             onClick={onProfileMenuToggle}
@@ -74,7 +72,7 @@ const TopBar = ({
             <div className="absolute right-0 top-full mt-2 w-56 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl shadow-lg py-2 z-50">
               <button
                 type="button"
-                onClick={() => openComingSoon({ title: 'View Profile', message: 'Profile page is coming soon.' })}
+                onClick={() => handleNavigate(onNavigateToProfile)}
                 className="w-full px-4 py-3 border-b border-border-light dark:border-border-dark hover:bg-background-light dark:hover:bg-background-dark transition-colors text-left"
               >
                 <p className="text-sm font-semibold text-text-main dark:text-white">{userProfile?.name || 'User'}</p>
@@ -82,7 +80,7 @@ const TopBar = ({
               </button>
               <button
                 className="w-full px-4 py-2 text-left text-sm text-text-main dark:text-white hover:bg-background-light dark:hover:bg-background-dark transition-colors flex items-center gap-3"
-                onClick={() => openComingSoon({ title: 'Settings', message: 'Settings are coming soon.' })}
+                onClick={() => handleNavigate(onNavigateToSettings)}
               >
                 <span className="material-symbols-outlined text-[20px]">settings</span>
                 Settings

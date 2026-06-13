@@ -1,12 +1,12 @@
 // client/src/Signup.jsx
 // User registration page for interviewee/interviewer accounts.
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 
-const Signup = ({ onBackToHome, onNavigateToLogin }) => {
-  const { signup } = useAuth();
+const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToOnboarding, onNavigateToDashboard }) => {
+  const { signup, login, isAuthenticated, user } = useAuth();
   const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -18,28 +18,53 @@ const Signup = ({ onBackToHome, onNavigateToLogin }) => {
     password: ''
   });
 
+  // Redirect to dashboard/onboarding if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (user?.profile_completed === false) {
+        onNavigateToOnboarding?.();
+        return;
+      }
+      onNavigateToDashboard?.();
+    }
+  }, [isAuthenticated, user, onNavigateToDashboard, onNavigateToOnboarding]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      // Validate inputs
-      if (!formData.fullName || !formData.email || !formData.password) {
+      if (!formData.fullName.trim() || !formData.email.trim() || !formData.password) {
         setError('Please fill in all fields');
         setLoading(false);
         return;
       }
 
+      if (formData.fullName.trim().length < 2) {
+        setError('Full name must be at least 2 characters');
+        setLoading(false);
+        return;
+      }
+
+      if (!/^\S+@\S+\.\S+$/.test(formData.email.trim())) {
+        setError('Please enter a valid email address');
+        setLoading(false);
+        return;
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+      if (!passwordRegex.test(formData.password)) {
+        setError('Password must be at least 6 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+        setLoading(false);
+        return;
+      }
+
       // Call signup from Auth Context
-      const response = await signup(formData.fullName, formData.email, formData.password);
+      const response = await signup(formData.fullName.trim(), formData.email.trim(), formData.password);
       console.log('Signup successful:', response);
-      
-      // Show success message and navigate to login
-      alert('Account created successfully! Please login.');
-      
-      // Navigate to login
-      onNavigateToLogin();
+
+      await login(formData.email.trim(), formData.password);
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
@@ -80,7 +105,7 @@ const Signup = ({ onBackToHome, onNavigateToLogin }) => {
               Create your account
             </h1>
             <p className="text-text-secondary dark:text-gray-400 text-base font-normal leading-normal">
-              Join the platform to practice, interview, and hire top talent.
+              Join the platform to practice text-based mock interviews and level up your skills.
             </p>
           </div>
 
@@ -95,64 +120,8 @@ const Signup = ({ onBackToHome, onNavigateToLogin }) => {
 
           <form 
             onSubmit={handleSubmit}
-            className="flex flex-col gap-8 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 p-6 sm:p-8"
+            className="flex flex-col gap-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-border-light dark:border-gray-700 p-6 sm:p-8"
           >
-            <div className="flex flex-col gap-4">
-              <span className="text-text-main dark:text-white text-base font-semibold leading-normal">
-                First, tell us who you are
-              </span>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <label className="group cursor-pointer flex flex-col items-start gap-2 rounded-lg border border-solid border-border-light dark:border-gray-600 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 dark:has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm">
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="flex items-center justify-center size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-primary">
-                      <span className="material-icons-round text-[24px]">person</span>
-                    </div>
-                    <input
-                      checked={formData.role === 'interviewee'}
-                      className="h-5 w-5 border-2 border-border-light bg-transparent text-primary checked:border-primary checked:hover:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary ml-auto cursor-pointer"
-                      name="role"
-                      type="radio"
-                      value="interviewee"
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col mt-2">
-                    <p className="text-text-main dark:text-white text-base font-medium leading-normal">
-                      Interviewee
-                    </p>
-                    <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal mt-1">
-                      I want to practice or get hired
-                    </p>
-                  </div>
-                </label>
-
-                <label className="group cursor-pointer flex flex-col items-start gap-2 rounded-lg border border-solid border-border-light dark:border-gray-600 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-all has-[:checked]:border-primary has-[:checked]:bg-primary/5 dark:has-[:checked]:bg-primary/10 has-[:checked]:shadow-sm">
-                  <div className="flex items-center gap-3 w-full">
-                    <div className="flex items-center justify-center size-10 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-                      <span className="material-icons-round text-[24px]">work_history</span>
-                    </div>
-                    <input
-                      checked={formData.role === 'interviewer'}
-                      className="h-5 w-5 border-2 border-border-light bg-transparent text-primary checked:border-primary checked:hover:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary ml-auto cursor-pointer"
-                      name="role"
-                      type="radio"
-                      value="interviewer"
-                      onChange={handleInputChange}
-                    />
-                  </div>
-                  <div className="flex flex-col mt-2">
-                    <p className="text-text-main dark:text-white text-base font-medium leading-normal">
-                      Interviewer
-                    </p>
-                    <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal mt-1">
-                      I want to hire or conduct mocks
-                    </p>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <div className="h-px bg-border-light dark:bg-gray-700 w-full"></div>
 
             <div className="flex flex-col gap-5">
               <label className="flex flex-col w-full">

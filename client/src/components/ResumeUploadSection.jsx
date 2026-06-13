@@ -79,17 +79,7 @@ const ResumeUploadSection = ({
                   {resume.size && <><span className="text-gray-300">•</span><p className="text-xs text-gray-500 dark:text-gray-400">{resume.size}</p></>}
                 </div>
               </div>
-              <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openComingSoon({ title: 'Resume Preview', message: 'Resume preview is coming soon.' });
-                  }}
-                  className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" 
-                  title="View"
-                >
-                  <span className="material-symbols-outlined text-[20px]">visibility</span>
-                </button>
+              <div className="flex items-center gap-2 shrink-0">
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();

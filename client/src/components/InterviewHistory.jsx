@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { useError } from '../context/ErrorContext';
 import { API_BASE_URL } from '../services/api';
 import InterviewAnalysisPage from './InterviewAnalysisPage';
+import QuestionAnalysisPage from './QuestionAnalysisPage';
 
 /**
  * Interview History Component
@@ -23,6 +24,7 @@ export default function InterviewHistory() {
   const [sortBy, setSortBy] = useState('date');
   const [sortOrder, setSortOrder] = useState('desc');
   const [viewingAnalysis, setViewingAnalysis] = useState(false);
+  const [viewingQuestionAnalysis, setViewingQuestionAnalysis] = useState(false);
   const sortOrderLabels = sortBy === 'score'
     ? {
         desc: 'Highest First',
@@ -146,6 +148,23 @@ export default function InterviewHistory() {
       );
     }
 
+    // If viewing question-wise analysis, show the dedicated page
+    if (viewingQuestionAnalysis) {
+      return (
+        <QuestionAnalysisPage
+          interview={{
+            role: detailData.role,
+            date: detailData.date,
+            stats: detailData.stats,
+            score: detailData.score,
+            verdict: detailData.verdict,
+            questions: detailData.questions
+          }}
+          onBack={() => setViewingQuestionAnalysis(false)}
+        />
+      );
+    }
+
     // Otherwise show summary modal
     return (
       <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -189,10 +208,19 @@ export default function InterviewHistory() {
 
             {/* Performance Stats */}
             <div className="bg-background-light dark:bg-background-dark p-6 rounded-2xl border border-border-light dark:border-border-dark">
-              <h3 className="font-bold text-text-main dark:text-white mb-4 flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">assessment</span>
-                Performance Summary
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-bold text-text-main dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">assessment</span>
+                  Performance Summary
+                </h3>
+                <button
+                  onClick={() => setViewingQuestionAnalysis(true)}
+                  className="px-3 py-1.5 bg-primary hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition flex items-center gap-1.5 shadow-sm"
+                >
+                  <span className="material-symbols-outlined text-sm">quiz</span>
+                  Question Wise Analysis
+                </button>
+              </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 bg-surface-light dark:bg-surface-dark rounded-xl">
                   <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">Questions</p>

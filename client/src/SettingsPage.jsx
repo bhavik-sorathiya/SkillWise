@@ -7,6 +7,7 @@ import { API_BASE_URL } from './services/api';
 import MobileSidebarBackdrop from './components/MobileSidebarBackdrop';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
+import { getUserAvatar } from './utils/avatar';
 
 const SettingsPage = ({
   onNavigateToLogin, onNavigateToLanding, onNavigateToHome,
@@ -29,15 +30,12 @@ const SettingsPage = ({
     { key: 'resume',         icon: 'description', label: 'Resume' },
     { key: 'mock-interview', icon: 'smart_toy',   label: 'Mock Interview' },
     { key: 'interviews',     icon: 'videocam',    label: 'Interviews' },
-    { key: 'profile',        icon: 'person',      label: 'Profile' },
-    { key: 'settings',       icon: 'settings',    label: 'Settings', isActive: true },
   ];
 
   const handleSidebarNavigate = (key) => {
     const map = {
       home: onNavigateToHome, resume: onNavigateToResume,
       'mock-interview': onNavigateToMockInterview, interviews: onNavigateToInterviews,
-      profile: onNavigateToProfile, settings: onNavigateToSettings,
     };
     map[key]?.();
   };
@@ -55,11 +53,16 @@ const SettingsPage = ({
     if (!pwForm.current_password || !pwForm.new_password || !pwForm.confirm_password) {
       setPwError('All fields are required'); return;
     }
-    if (pwForm.new_password.length < 6) {
-      setPwError('New password must be at least 6 characters'); return;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+    if (!passwordRegex.test(pwForm.new_password)) {
+      setPwError('New password must be at least 6 characters and contain at least one uppercase letter, one lowercase letter, one number, and one special character.');
+      return;
     }
     if (pwForm.new_password !== pwForm.confirm_password) {
       setPwError('New passwords do not match'); return;
+    }
+    if (pwForm.current_password === pwForm.new_password) {
+      setPwError('New password must be different from current password'); return;
     }
 
     setPwSaving(true);
@@ -70,7 +73,7 @@ const SettingsPage = ({
         body: JSON.stringify({ current_password: pwForm.current_password, new_password: pwForm.new_password })
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to change password');
+      if (!res.ok) throw new Error(data.error || data.message || 'Failed to change password');
       setPwSuccess('Password changed successfully!');
       setPwForm({ current_password: '', new_password: '', confirm_password: '' });
       setTimeout(() => setPwSuccess(''), 4000);
@@ -81,7 +84,7 @@ const SettingsPage = ({
     }
   };
 
-  const headerAvatar = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w';
+  const headerAvatar = getUserAvatar(user?.gender);
   const displayName = user?.full_name || user?.name || 'User';
   const userProfile = { name: displayName, headerAvatar };
 
@@ -103,28 +106,17 @@ const SettingsPage = ({
   };
   const strength = getPasswordStrength(pwForm.new_password);
 
-  const PasswordInput = ({ id, value, onChange, placeholder, showKey, label }) => (
-    <div>
-      <label htmlFor={id} className={labelCls}>{label}</label>
-      <div className="relative">
-        <input id={id} type={pwVisible[showKey] ? 'text' : 'password'}
-          value={value} onChange={onChange} placeholder={placeholder}
-          className={inputCls} autoComplete={showKey === 'current' ? 'current-password' : 'new-password'} />
-        <button type="button" tabIndex={-1}
-          onClick={() => setPwVisible(v => ({ ...v, [showKey]: !v[showKey] }))}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
-          <span className="material-symbols-outlined text-sm" style={{ fontSize: 18 }}>
-            {pwVisible[showKey] ? 'visibility_off' : 'visibility'}
-          </span>
-        </button>
-      </div>
-    </div>
-  );
+  // Removed nested PasswordInput component definition
 
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-body text-text-main dark:text-white flex overflow-hidden">
       <MobileSidebarBackdrop isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <Sidebar items={sidebarItems} isOpen={isSidebarOpen} onNavigate={handleSidebarNavigate} />
+      <Sidebar
+        items={sidebarItems}
+        isOpen={isSidebarOpen}
+        onNavigate={handleSidebarNavigate}
+        onNavigateToSettings={onNavigateToSettings}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <TopBar
@@ -134,6 +126,8 @@ const SettingsPage = ({
           onNavigateToLogin={onNavigateToLogin}
           onNavigateToLanding={onNavigateToLanding}
           onNavigateToHome={onNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
           userProfile={userProfile}
         />
@@ -201,13 +195,41 @@ const SettingsPage = ({
                 )}
 
                 <form onSubmit={handleChangePassword} className="space-y-4">
-                  <PasswordInput id="current_password" showKey="current" label="Current Password"
-                    value={pwForm.current_password} placeholder="Enter current password"
-                    onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))} />
+                  <div>
+                    <label htmlFor="current_password" className={labelCls}>Current Password</label>
+                    <div className="relative">
+                      <input id="current_password" type={pwVisible.current ? 'text' : 'password'}
+                        value={pwForm.current_password}
+                        onChange={e => setPwForm(f => ({ ...f, current_password: e.target.value }))}
+                        placeholder="Enter current password"
+                        className={inputCls} autoComplete="current-password" />
+                      <button type="button" tabIndex={-1}
+                        onClick={() => setPwVisible(v => ({ ...v, current: !v.current }))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined text-sm" style={{ fontSize: 18 }}>
+                          {pwVisible.current ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
 
-                  <PasswordInput id="new_password" showKey="new" label="New Password"
-                    value={pwForm.new_password} placeholder="Enter new password (min 6 chars)"
-                    onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))} />
+                  <div>
+                    <label htmlFor="new_password" className={labelCls}>New Password</label>
+                    <div className="relative">
+                      <input id="new_password" type={pwVisible.new ? 'text' : 'password'}
+                        value={pwForm.new_password}
+                        onChange={e => setPwForm(f => ({ ...f, new_password: e.target.value }))}
+                        placeholder="Enter new password (min 6 chars)"
+                        className={inputCls} autoComplete="new-password" />
+                      <button type="button" tabIndex={-1}
+                        onClick={() => setPwVisible(v => ({ ...v, new: !v.new }))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined text-sm" style={{ fontSize: 18 }}>
+                          {pwVisible.new ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Strength meter */}
                   {pwForm.new_password && (
@@ -223,9 +245,23 @@ const SettingsPage = ({
                     </div>
                   )}
 
-                  <PasswordInput id="confirm_password" showKey="confirm" label="Confirm New Password"
-                    value={pwForm.confirm_password} placeholder="Re-enter new password"
-                    onChange={e => setPwForm(f => ({ ...f, confirm_password: e.target.value }))} />
+                  <div>
+                    <label htmlFor="confirm_password" className={labelCls}>Confirm New Password</label>
+                    <div className="relative">
+                      <input id="confirm_password" type={pwVisible.confirm ? 'text' : 'password'}
+                        value={pwForm.confirm_password}
+                        onChange={e => setPwForm(f => ({ ...f, confirm_password: e.target.value }))}
+                        placeholder="Re-enter new password"
+                        className={inputCls} autoComplete="new-password" />
+                      <button type="button" tabIndex={-1}
+                        onClick={() => setPwVisible(v => ({ ...v, confirm: !v.confirm }))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition-colors">
+                        <span className="material-symbols-outlined text-sm" style={{ fontSize: 18 }}>
+                          {pwVisible.confirm ? 'visibility_off' : 'visibility'}
+                        </span>
+                      </button>
+                    </div>
+                  </div>
 
                   {/* Match indicator */}
                   {pwForm.confirm_password && (

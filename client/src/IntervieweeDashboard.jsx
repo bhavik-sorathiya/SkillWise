@@ -8,7 +8,8 @@ import TopBar from './components/TopBar';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 import { API_BASE_URL } from './services/api';
-import './IntervieweeDashboard.css';
+import { getUserAvatar } from './utils/avatar';
+import Footer from './components/Footer';
 
 const PROFICIENCY_STYLE = {
   expert:       'bg-primary/15 text-primary border-primary/30',
@@ -20,7 +21,8 @@ const PROFICIENCY_STYLE = {
 const IntervieweeDashboard = ({
   onNavigateToLogin, onNavigateToLanding, onNavigateToHome,
   onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews,
-  onNavigateToProfile, onNavigateToSettings, onLogout
+  onNavigateToProfile, onNavigateToSettings, onLogout,
+  onNavigateToDeveloper, onNavigateToHelp, onNavigateToTerms, onNavigateToPricing
 }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const { openComingSoon } = useComingSoon();
@@ -79,8 +81,6 @@ const IntervieweeDashboard = ({
     { key: 'resume', icon: 'description', label: 'Resume' },
     { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview' },
     { key: 'interviews', icon: 'videocam', label: 'Interviews' },
-    { key: 'profile', icon: 'person', label: 'Profile' },
-    { key: 'settings', icon: 'settings', label: 'Settings' },
   ];
 
   const handleSidebarNavigate = (key) => {
@@ -129,8 +129,8 @@ const IntervieweeDashboard = ({
   const skills       = dashboardData?.skills       || [];
 
   const displayName = userData.full_name || user?.full_name || user?.name || 'User';
-  const headerAvatar = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w';
-  const heroAvatar   = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAmQ6dM8c8L0mc96FrXf3QWAEU8NS2oI82kLLKHkLeRpEJxHZUluhI6wVR5CnYwLYr6Cs6RNFna4Q6v6F05Mu6twWRvEdFBP6XyaUxpammSts4smMnQfoX5Ue33AD_1NkHd9nwPUPhETrwsGHMrD1B5QXEjIvkc8CseGIe59wLGDnnsc_YA3Pp3AUhvcK0Veg_HK8DOP8SjsaX2jlvrkuINK7KMadcKk4_xgdSh9pw4yl_cfTOxUL0lzkaedEqBKn67W-IT4YCdEpo';
+  const headerAvatar = getUserAvatar(profile.gender || user?.gender);
+  const heroAvatar   = getUserAvatar(profile.gender || user?.gender);
 
   const MAX_RESUMES     = resumeStats.max_allowed || 3;
   const activeResumeCount = resumeStats.active_count || 0;
@@ -163,7 +163,12 @@ const IntervieweeDashboard = ({
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-body text-text-main dark:text-white transition-colors duration-300 flex overflow-hidden">
       <MobileSidebarBackdrop isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <Sidebar items={sidebarItems} isOpen={isSidebarOpen} onNavigate={handleSidebarNavigate} />
+      <Sidebar
+        items={sidebarItems}
+        isOpen={isSidebarOpen}
+        onNavigate={handleSidebarNavigate}
+        onNavigateToSettings={onNavigateToSettings}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <TopBar
@@ -173,6 +178,8 @@ const IntervieweeDashboard = ({
           onNavigateToLogin={onNavigateToLogin}
           onNavigateToLanding={onNavigateToLanding}
           onNavigateToHome={onNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
           userProfile={userProfile}
         />
@@ -307,7 +314,7 @@ const IntervieweeDashboard = ({
                   </div>
                   <div>
                     <h4 className="text-base font-bold text-text-main dark:text-white">Interview Performance</h4>
-                    <p className="text-xs text-text-secondary dark:text-gray-400">Your mock interview stats</p>
+                    <p className="text-xs text-text-secondary dark:text-gray-400">Your text-based mock interview stats</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 mb-4">
@@ -345,7 +352,7 @@ const IntervieweeDashboard = ({
                   <button onClick={() => onNavigateToMockInterview?.()}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl text-sm font-semibold transition-all duration-300 hover:-translate-y-0.5 shadow-sm hover:shadow-primary/30">
                     <span className="material-symbols-outlined text-base">smart_toy</span>
-                    Start Interview
+                    Start Text Interview
                   </button>
                   <button onClick={() => onNavigateToInterviews?.()}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 border border-border-light dark:border-border-dark hover:bg-surface-light dark:hover:bg-surface-dark text-text-main dark:text-white rounded-xl text-sm font-semibold transition-all duration-300">
@@ -432,15 +439,13 @@ const IntervieweeDashboard = ({
 
           </div>
 
-          <footer className="max-w-7xl mx-auto mt-12 pt-8 border-t border-border-light dark:border-border-dark flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <p>© 2026 SkillWise Inc.</p>
-            <div className="flex gap-6">
-              <a className="hover:text-primary transition-colors" href="#" onClick={e => handleComingSoon(e, 'About', 'About page is coming soon.')}>About</a>
-              <a className="hover:text-primary transition-colors" href="#" onClick={e => handleComingSoon(e, 'Help Center', 'Help Center is coming soon.')}>Help Center</a>
-              <a className="hover:text-primary transition-colors" href="#" onClick={e => handleComingSoon(e, 'Privacy', 'Privacy details are coming soon.')}>Privacy</a>
-              <a className="hover:text-primary transition-colors" href="#" onClick={e => handleComingSoon(e, 'Terms', 'Terms are coming soon.')}>Terms</a>
-            </div>
-          </footer>
+          <Footer
+            onAbout={onNavigateToDeveloper}
+            onHelp={onNavigateToHelp}
+            onTerms={onNavigateToTerms}
+            onPrivacy={onNavigateToTerms}
+            onPricing={onNavigateToPricing}
+          />
         </main>
       </div>
     </div>

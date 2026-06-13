@@ -7,6 +7,7 @@ import { API_BASE_URL } from './services/api';
 import MobileSidebarBackdrop from './components/MobileSidebarBackdrop';
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
+import { getUserAvatar } from './utils/avatar';
 
 const EXPERIENCE_LEVELS = [
   { value: 'Fresher',    label: 'Fresher',    desc: '0–1 year' },
@@ -52,15 +53,12 @@ const ProfilePage = ({
     { key: 'resume',       icon: 'description', label: 'Resume' },
     { key: 'mock-interview', icon: 'smart_toy', label: 'Mock Interview' },
     { key: 'interviews',   icon: 'videocam',    label: 'Interviews' },
-    { key: 'profile',      icon: 'person',      label: 'Profile', isActive: true },
-    { key: 'settings',     icon: 'settings',    label: 'Settings' },
   ];
 
   const handleSidebarNavigate = (key) => {
     const map = {
       home: onNavigateToHome, resume: onNavigateToResume,
       'mock-interview': onNavigateToMockInterview, interviews: onNavigateToInterviews,
-      profile: onNavigateToProfile, settings: onNavigateToSettings,
     };
     map[key]?.();
   };
@@ -116,6 +114,39 @@ const ProfilePage = ({
   const handleSave = async () => {
     setError(''); setSuccess(''); setSaving(true);
     try {
+      // Validation: only bio and education are optional
+      if (!form.full_name.trim()) {
+        setError('Full name is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.gender) {
+        setError('Gender is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.preferred_roles || form.preferred_roles.length === 0) {
+        setError('At least one preferred role is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.experience_level) {
+        setError('Experience level is required');
+        setSaving(false);
+        return;
+      }
+      if (form.years_of_experience === '' || form.years_of_experience === null || form.years_of_experience === undefined) {
+        setError('Years of experience is required');
+        setSaving(false);
+        return;
+      }
+      const years = Number(form.years_of_experience);
+      if (isNaN(years) || years < 0 || years > 60) {
+        setError('Years of experience must be a number between 0 and 60');
+        setSaving(false);
+        return;
+      }
+
       const headers = { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` };
 
       // 1. Update full_name if changed
@@ -126,7 +157,7 @@ const ProfilePage = ({
           body: JSON.stringify({ full_name: form.full_name.trim() })
         });
         const nameData = await nameRes.json();
-        if (!nameRes.ok) throw new Error(nameData.message || 'Failed to update name');
+        if (!nameRes.ok) throw new Error(nameData.error || nameData.message || 'Failed to update name');
         // Optionally update context if the method exists
         updateUserInContext?.({ full_name: form.full_name.trim(), name: form.full_name.trim() });
       }
@@ -144,7 +175,10 @@ const ProfilePage = ({
         })
       });
       const profileData = await profileRes.json();
-      if (!profileRes.ok) throw new Error(profileData.message || 'Failed to update profile');
+      if (!profileRes.ok) throw new Error(profileData.error || profileData.message || 'Failed to update profile');
+
+      // Update gender in context
+      updateUserInContext?.({ gender: form.gender });
 
       setSuccess('Profile saved successfully!');
       setTimeout(() => setSuccess(''), 3500);
@@ -155,7 +189,7 @@ const ProfilePage = ({
     }
   };
 
-  const headerAvatar = 'https://lh3.googleusercontent.com/aida-public/AB6AXuAnvE6dtuVKhnW1CG7Ru8xLYWNZdR9yGwUzMbh1BuPP2rELZxbRZ5yS7AhQvk9zJeviK0mBKRSz8Rc8k8KDAT7u2AfT0060uk2OxG7XGB4uqdTIqd1lzCRRUzd2sgOQGVdXvhIUyFFBF0q_R3ESFNnd2WWgRCKQIWNsBHx69PgFWtSQ9G0C7R6HxM_6Ubjys3nsZpIq4xKgBFxoLicLN7JMLvbua5o_wOw-juJa4vCX__Zxk3qVxTKFBXnCEap7BR8WmUCWQaZyB0w';
+  const headerAvatar = getUserAvatar(form.gender || user?.gender);
   const displayName = user?.full_name || user?.name || 'User';
   const userProfile = { name: displayName, headerAvatar };
 
@@ -173,7 +207,12 @@ const ProfilePage = ({
   return (
     <div className="min-h-screen bg-background-light dark:bg-background-dark font-body text-text-main dark:text-white flex overflow-hidden">
       <MobileSidebarBackdrop isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <Sidebar items={sidebarItems} isOpen={isSidebarOpen} onNavigate={handleSidebarNavigate} />
+      <Sidebar
+        items={sidebarItems}
+        isOpen={isSidebarOpen}
+        onNavigate={handleSidebarNavigate}
+        onNavigateToSettings={onNavigateToSettings}
+      />
 
       <div className="flex-1 flex flex-col h-screen overflow-hidden">
         <TopBar
@@ -183,6 +222,8 @@ const ProfilePage = ({
           onNavigateToLogin={onNavigateToLogin}
           onNavigateToLanding={onNavigateToLanding}
           onNavigateToHome={onNavigateToHome}
+          onNavigateToProfile={onNavigateToProfile}
+          onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
           userProfile={userProfile}
         />
@@ -242,7 +283,7 @@ const ProfilePage = ({
                     <div className="grid grid-cols-2 gap-2">
                       {GENDER_OPTIONS.map(opt => (
                         <button key={opt.value} type="button"
-                          onClick={() => setForm(f => ({ ...f, gender: f.gender === opt.value ? '' : opt.value }))}
+                          onClick={() => setForm(f => ({ ...f, gender: opt.value }))}
                           className={`px-4 py-2.5 rounded-xl border text-sm font-medium transition-all ${
                             form.gender === opt.value
                               ? 'bg-primary text-white border-primary shadow-sm'
@@ -297,7 +338,7 @@ const ProfilePage = ({
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {EXPERIENCE_LEVELS.map(opt => (
                         <button key={opt.value} type="button"
-                          onClick={() => setForm(f => ({ ...f, experience_level: f.experience_level === opt.value ? '' : opt.value }))}
+                          onClick={() => setForm(f => ({ ...f, experience_level: opt.value }))}
                           className={`px-3 py-2.5 rounded-xl border text-sm transition-all text-left ${
                             form.experience_level === opt.value
                               ? 'bg-primary text-white border-primary'

@@ -26,8 +26,9 @@ const signup = async (req, res) => {
   }
 
   // Password strength validation
-  if (password.length < 6) {
-    throw new AppError('Password must be at least 6 characters long', 400);
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+  if (!passwordRegex.test(password)) {
+    throw new AppError('Password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 400);
   }
 
   // Full name validation
@@ -93,11 +94,13 @@ const login = async (req, res) => {
     throw new AppError('Invalid email or password', 401);
   }
 
-  // Fetch profile to include profile_completed in response
+  // Fetch profile to include profile_completed and gender in response
   let profileCompleted = false;
+  let gender = null;
   try {
     const profile = await UserProfile.getProfileByUserId(user.id);
     profileCompleted = profile?.profile_completed || false;
+    gender = profile?.gender || null;
   } catch (profileError) {
     // Non-fatal: if profile doesn't exist yet, treat as incomplete
     console.warn('Could not fetch profile for login response:', profileError.message);
@@ -120,6 +123,7 @@ const login = async (req, res) => {
     full_name: user.full_name,
     email: user.email,
     profile_completed: profileCompleted,
+    gender: gender,
     created_at: user.created_at
   };
 
@@ -176,16 +180,21 @@ const changePassword = async (req, res) => {
   if (!current_password || !new_password) {
     throw new AppError('Both current_password and new_password are required', 400);
   }
-  if (new_password.length < 6) {
-    throw new AppError('New password must be at least 6 characters', 400);
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+  if (!passwordRegex.test(new_password)) {
+    throw new AppError('New password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 400);
   }
   if (current_password === new_password) {
     throw new AppError('New password must be different from the current password', 400);
   }
 
   // Fetch current hash
-  const [rows] = await User.findById(userId);
-  const userRow = Array.isArray(rows) ? rows[0] : rows;
+  const db = require('../config/db');
+  const [rows] = await db.execute(
+    'SELECT password_hash FROM users WHERE id = ?',
+    [userId]
+  );
+  const userRow = rows[0];
 
   if (!userRow) {
     throw new AppError('User not found', 404);
@@ -199,7 +208,6 @@ const changePassword = async (req, res) => {
 
   // Hash and save new password
   const newHash = await bcrypt.hash(new_password, 12);
-  const db = require('../config/db');
   await db.execute(
     'UPDATE users SET password_hash = ? WHERE id = ?',
     [newHash, userId]

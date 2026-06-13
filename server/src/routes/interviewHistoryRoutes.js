@@ -152,6 +152,7 @@ const getSessionDetailHandler = async (req, res) => {
         iqe.score,
         iqe.rating,
         iqe.confidence,
+        iqe.feedback,
         iqe.created_at
       FROM interview_question_evaluations iqe
       WHERE iqe.session_id = ?
@@ -187,7 +188,8 @@ const getSessionDetailHandler = async (req, res) => {
         answer: ev.answer,
         score: ev.score,
         rating: ev.rating,
-        confidence: ev.confidence
+        confidence: ev.confidence,
+        feedback: ev.feedback
       })) || [],
       confidence_series: confidenceSeries,
       date: session.created_at,

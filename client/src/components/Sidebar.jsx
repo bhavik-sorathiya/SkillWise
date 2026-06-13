@@ -4,7 +4,7 @@
 import React from 'react';
 import { useComingSoon } from '../context/ComingSoonContext';
 
-const Sidebar = ({ items = [], isOpen, onNavigate }) => {
+const Sidebar = ({ items = [], isOpen, onNavigate, onNavigateToSettings }) => {
   const { openComingSoon } = useComingSoon();
 
   return (
@@ -33,7 +33,14 @@ const Sidebar = ({ items = [], isOpen, onNavigate }) => {
       <div className="mt-auto flex flex-col gap-6">
         <button
           className="text-gray-400 hover:text-primary transition-colors"
-          onClick={() => openComingSoon({ title: 'Settings', message: 'Settings are coming soon.' })}
+          onClick={() => {
+            if (onNavigateToSettings) {
+              onNavigateToSettings();
+              return;
+            }
+
+            openComingSoon({ title: 'Settings', message: 'Settings are coming soon.' });
+          }}
         >
           <span className="material-symbols-outlined text-2xl">settings</span>
         </button>
