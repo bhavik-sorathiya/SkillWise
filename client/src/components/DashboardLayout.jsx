@@ -56,6 +56,7 @@ const DashboardLayout = ({
           onNavigateToProfile={onNavigateToProfile}
           onNavigateToSettings={onNavigateToSettings}
           onLogout={onLogout}
+          onNavigateToHelp={footerLinks?.onHelp}
           userProfile={userProfile}
         />
 

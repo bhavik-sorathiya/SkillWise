@@ -3,7 +3,7 @@
 
 const express = require('express');
 const router = express.Router();
-const { getProfile, updateProfile, markProfileComplete } = require('../controllers/profileController');
+const { getProfile, updateProfile, markProfileComplete, getApiKey, updateApiKey, checkLimits } = require('../controllers/profileController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const { catchAsync } = require('../utils/errorHandler');
 
@@ -16,5 +16,14 @@ router.put('/', verifyToken, catchAsync(updateProfile));
 
 // PATCH /api/profile/complete — mark onboarding as done
 router.patch('/complete', verifyToken, catchAsync(markProfileComplete));
+
+// GET /api/profile/api-key — fetch user's Gemini API key status
+router.get('/api-key', verifyToken, catchAsync(getApiKey));
+
+// PUT /api/profile/api-key — update user's Gemini API key
+router.put('/api-key', verifyToken, catchAsync(updateApiKey));
+
+// GET /api/profile/check-limits — check daily limits for resume/interview
+router.get('/check-limits', verifyToken, catchAsync(checkLimits));
 
 module.exports = router;

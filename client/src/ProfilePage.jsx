@@ -27,7 +27,7 @@ const GENDER_OPTIONS = [
 const ProfilePage = ({
   onNavigateToLogin, onNavigateToLanding, onNavigateToHome,
   onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews,
-  onNavigateToProfile, onNavigateToSettings, onLogout
+  onNavigateToProfile, onNavigateToSettings, onLogout, onNavigateToHelp
 }) => {
   const { token, isAuthenticated, logout, user, updateUserInContext } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -225,6 +225,7 @@ const ProfilePage = ({
           onNavigateToProfile={onNavigateToProfile}
           onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
+          onNavigateToHelp={onNavigateToHelp}
           userProfile={userProfile}
         />
 

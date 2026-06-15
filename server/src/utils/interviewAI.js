@@ -77,7 +77,19 @@ CANDIDATE ANSWER: "${userAnswer}"
 
 Now evaluate this answer and generate the next question.
 
+NONSENSICAL / OFF-TOPIC ANSWER HANDLING:
+- If the candidate's answer is a joke, nonsensical, off-topic, unrelated to the question or target role, or empty (for example: "i think we should increase the height of the room 😅", or talking about unrelated things like furniture, games, weather):
+  - You MUST award a score of EXACTLY 0 to 10 (never higher!) & lead towards the ending of the interview as soon as possible (minimize the questions).
+  - Set rating to "weak".
+  - Set confidence to 0.0.
+  - Set all dimensions (technical_proficiency, communication, problem_solving) to 0.0.
+  - In mistakes and feedback, explicitly state that the response is completely off-topic or nonsensical.
+
 STRICT RULES:
+- CRITICAL SCORING STRICTNESS: Be extremely strict and rigorous. Do NOT give generous scores. 
+- If the answer is off-topic, unrelated, brief, empty, or completely misses the point, score it strictly below 25 (rating: "weak", and reduce confidence).
+- High scores (80+) must be hard to earn—requiring detailed, context-rich, concrete explanations with metrics and evidence.
+- Penalize vague, buzzword-heavy, generic, or textbook definitions that lack personal experience/evidence.
 - Never ask the same question or close paraphrase of any previous question.
 - Similar wording with same intent is also forbidden.
 - Prefer new dimensions over re-asking project/skills repeatedly.
@@ -130,8 +142,8 @@ CONTEXT USAGE RULE:
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       console.log(`[Question Flow AI] Attempt ${attempt}/2`);
-      const response = await generateText(prompt);
-      
+      const response = await generateText(prompt, { apiKey: context.apiKey });
+
       // Safe JSON parse with fallback evaluation
       const fallback = {
         answer_evaluation: getFallbackEvaluation(),
@@ -178,7 +190,7 @@ CONTEXT USAGE RULE:
     } catch (error) {
       lastError = error.message;
       console.error(`[Question Flow AI] Attempt ${attempt} failed:`, error.message);
-      
+
       if (attempt === 2) {
         // All retries exhausted, use fallback
         console.warn('[Question Flow AI] All retries exhausted, using fallback');
@@ -205,9 +217,10 @@ CONTEXT USAGE RULE:
  * @param {Array} evaluations - All question evaluations
  * @param {Object} resumeSummary - Resume summary
  * @param {string} role - Target role
+ * @param {string} apiKey - Custom API key (optional)
  * @returns {Promise<Object>} Final verdict with 7 dimensions
  */
-async function callFinalEvaluationAI(evaluations, resumeSummary, role) {
+async function callFinalEvaluationAI(evaluations, resumeSummary, role, apiKey = null) {
   if (!evaluations || evaluations.length === 0) {
     throw new Error('No evaluations provided for final assessment');
   }
@@ -265,14 +278,13 @@ ${feedback.slice(0, 5).join('\n- ')}
 Based on this complete interview, provide a final assessment.
 
 STRICT EVALUATION RULES:
+- Be extremely rigorous. No generous or encouraging uplifting. Only score what is genuinely earned.
+- Do not inflate overall_score. If the candidate had multiple weak answers, or failed to explain key concepts, score conservatively (e.g., overall_score below 50, and verdict HIRE is not allowed).
+- Overall score and dimension scores must reflect the true rigorous average of their performance.
+- Verdict STRONG_HIRE should be exceptionally rare, reserved only for candidates who exhibited master-level proficiency, technical depth, and clear evidence in almost every response.
+- If the candidate provided off-topic, vague, or empty responses, they must be graded strictly as NO_HIRE or LEANING_NO, and overall_score must be heavily penalized (below 45).
 - Detect redundancy patterns in candidate responses and reflect them in weaknesses/key_observations.
 - Penalize repeated low-information answers and unsupported claims.
-- Do not inflate overall_score if consistency, depth, or evidence is weak.
-- Verdict mapping guidance:
-  - STRONG_HIRE: consistently strong depth, clarity, and evidence.
-  - HIRE: solid performance with minor gaps.
-  - LEANING_NO: mixed performance, noticeable gaps/redundancy.
-  - NO_HIRE: repeated weak/redundant answers or major competency gaps.
 - Keep scores internally consistent (e.g., low dimensions should not produce very high overall).
 - Include practical, actionable improvement_suggestions.
 
@@ -321,7 +333,7 @@ STRICT EVALUATION RULES:
   for (let attempt = 1; attempt <= 2; attempt++) {
     try {
       console.log(`[Final Evaluation AI] Attempt ${attempt}/2`);
-      const response = await generateText(prompt);
+      const response = await generateText(prompt, { apiKey });
       const jsonResponse = safeJsonParse(response, defaultFallback, `Final Evaluation AI (Attempt ${attempt})`);
 
       // If parsing returned fallback, retry once before returning fallback

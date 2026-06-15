@@ -11,6 +11,8 @@ const { extractTextFromDocx, validateExtractedText, prepareTextForAI } = require
 const { getAnalysisPromptConfig, validateResumeText } = require('../utils/promptGenerator');
 const { validateAndSanitizeAnalysis } = require('../utils/responseValidator');
 const { analyzeResume, isInitialized: isGeminiInitialized } = require('../utils/geminiService');
+const UsageTracker = require('../utils/usageTracker');
+const { uploadFileToSupabase, deleteFileFromSupabase } = require('../utils/cloudStorage');
 
 const MAX_RESUMES_ALLOWED = 3;
 
@@ -141,8 +143,22 @@ const getResumesList = async (req, res) => {
  */
 const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs = {}) => {
   try {
-    // Step 1: Validate Gemini is initialized
-    if (!isGeminiInitialized()) {
+    // Step 1: Check daily limits and get API key if needed
+    let customApiKey = null;
+    try {
+      customApiKey = await UsageTracker.getApiKeyIfLimitExceeded(userId, 'resume');
+    } catch (limitError) {
+      return {
+        success: false,
+        analysis: null,
+        analysisId: null,
+        error: limitError.message,
+        code: limitError.code
+      };
+    }
+
+    // Step 2: Validate Gemini is initialized (if not using custom key)
+    if (!customApiKey && !isGeminiInitialized()) {
       console.warn('Gemini AI not initialized - skipping automatic resume analysis');
       return {
         success: false,
@@ -179,10 +195,11 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
 
     // Step 4: Call Gemini API
     const analysisTimeout = parseInt(process.env.RESUME_ANALYSIS_TIMEOUT) || 30000;
-    console.log('Calling Gemini API with prompt config...');
-    const analysisResult = await analyzeResume(promptConfig.userPrompt, {
+    console.log(`Calling Gemini API with prompt config... (Using ${customApiKey ? 'custom API key' : 'system API key'})`);
+    let analysisResult = await analyzeResume(promptConfig.userPrompt, {
       systemPrompt: promptConfig.systemPrompt,
-      timeout: analysisTimeout
+      timeout: analysisTimeout,
+      apiKey: customApiKey
     });
 
     console.log('Gemini API response:', {
@@ -191,13 +208,31 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
       error: analysisResult.error
     });
 
+    // Fallback Logic: If system key failed, try to fallback to user key
+    if (!analysisResult.success && !customApiKey) {
+      console.warn(`[Gemini Fallback] System key failed: ${analysisResult.error}. Checking for user custom API key...`);
+      const UserApiKeyModel = require('../models/userApiKeyModel');
+      const userKeyData = await UserApiKeyModel.getUserApiKey(userId);
+      
+      if (userKeyData && userKeyData.is_valid) {
+        console.log(`[Gemini Fallback] Found user custom API key, retrying...`);
+        customApiKey = userKeyData.api_key;
+        analysisResult = await analyzeResume(promptConfig.userPrompt, {
+          systemPrompt: promptConfig.systemPrompt,
+          timeout: analysisTimeout,
+          apiKey: customApiKey
+        });
+      }
+    }
+
     if (!analysisResult.success) {
       console.error('Gemini API call failed:', analysisResult.error);
       return {
         success: false,
         analysis: null,
         analysisId: null,
-        error: analysisResult.error
+        error: analysisResult.error,
+        code: customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'RATE_LIMIT_EXCEEDED'
       };
     }
 
@@ -256,6 +291,7 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
 // End-to-end flow: validate file, store resume, extract text, call AI, store analysis.
 const uploadResume = async (req, res) => {
   let finalFilePath = null;
+  let resumeId = null;
 
   try {
     console.log('\n📤 ========== RESUME UPLOAD STARTED ==========');
@@ -317,124 +353,108 @@ const uploadResume = async (req, res) => {
       throw new AppError('User information not found', 404);
     }
 
-    // Generate new filename: userId_username_resume_resumeCount.docx
-    // Use full_name (new schema column) — fallback to email prefix for safety
+    // Generate new filename: userId_username_resume_timestamp.docx
     const rawName = userInfo.full_name || userInfo.email?.split('@')[0] || 'user';
     const userName = rawName.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
-    const uploadsDir = path.join(__dirname, '../../uploads/resumes');
-    let resumeCount = currentCount + 1;
-    let newFileName = `${userId}_${userName}_resume_${resumeCount}.docx`;
-    let newFilePath = path.join(uploadsDir, newFileName);
+    const resumeCount = currentCount + 1;
+    const timestamp = Date.now();
+    const newFileName = `${userId}_${userName}_resume_${timestamp}.docx`;
 
-    while (fs.existsSync(newFilePath)) {
-      resumeCount += 1;
-      newFileName = `${userId}_${userName}_resume_${resumeCount}.docx`;
-      newFilePath = path.join(uploadsDir, newFileName);
+    // Extract text content from the uploaded resume buffer
+    console.log('[6] Extracting text from DOCX buffer...');
+    const extractionResult = await extractTextFromDocx(req.file.buffer);
+    if (!extractionResult.success) {
+      console.log(`[7] ❌ Extraction failed: ${extractionResult.error}`);
+      throw new AppError(extractionResult.error || 'Failed to extract text from DOCX file', 400);
     }
+    const rawText = extractionResult.text;
 
-    // Rename the temporary file to the new filename
-    fs.renameSync(req.file.path, newFilePath);
-    finalFilePath = newFilePath;
+    // Upload file to Supabase Storage
+    console.log('[8] Uploading file to Supabase Storage...');
+    const fileUrl = await uploadFileToSupabase(req.file.buffer, newFileName, req.file.mimetype);
+    finalFilePath = fileUrl; // For cleanup if needed, but it's a URL now
 
     // Extract title and targetRole from request body
     const resumeTitle = req.body.title || req.body.targetRole || `Resume ${resumeCount}`;
     const resumeTargetRole = req.body.targetRole || req.body.target_role || 'Not Specified';
 
     // Save resume record to database with new schema fields
-    console.log('[6] Creating resume record in database...');
-    const resumeId = await UserResume.createResume(
+    console.log('[9] Creating resume record in database...');
+    resumeId = await UserResume.createResume(
       userId,
       resumeTitle,
       resumeTargetRole,
       newFileName,
-      newFilePath,
-      req.file.size || 0
+      fileUrl, // Store URL in file_path
+      req.file.size || 0,
+      rawText // New column
     );
-    console.log(`[7] Resume created with ID: ${resumeId}`);
+    console.log(`[10] Resume created with ID: ${resumeId}`);
 
-    // Extract text content from the uploaded resume for GenAI processing
-    console.log('[8] Extracting text from DOCX...');
-    const extractionResult = await extractTextFromDocx(newFilePath);
-    let extractedText = '';
-    let textExtractionMetadata = {
-      success: extractionResult.success,
-      characterCount: extractionResult.characterCount,
-      wordCount: extractionResult.wordCount
-    };
+    console.log(`[9] Text extracted: ${extractionResult.characterCount} chars, ${extractionResult.wordCount} words`);
 
-    if (extractionResult.success) {
-      console.log(`[9] Text extracted: ${extractionResult.characterCount} chars, ${extractionResult.wordCount} words`);
-    } else {
-      console.log(`[9] ❌ Extraction failed: ${extractionResult.error}`);
+    // Validate the extracted text
+    const validation = validateExtractedText(extractionResult.text);
+    if (!validation.isValid) {
+      console.log(`[10] Text validation: FAILED - ${validation.message}`);
+      throw new AppError(validation.message || 'Extracted resume text is invalid', 400);
     }
 
-    if (extractionResult.success) {
-      // Validate the extracted text
-      const validation = validateExtractedText(extractionResult.text);
-      textExtractionMetadata.isValid = validation.isValid;
-      textExtractionMetadata.validationMessage = validation.message;
+    console.log(`[11] Text validation: PASSED`);
+    // Prepare text for GenAI API (optimize for cost and processing)
+    const extractedText = prepareTextForAI(extractionResult.text);
+    console.log(`[12] Text prepared for AI: ${extractedText.length} chars`);
 
-      if (validation.isValid) {
-        console.log(`[10] Text validation: PASSED`);
-        // Prepare text for GenAI API (optimize for cost and processing)
-        extractedText = prepareTextForAI(extractionResult.text);
-        console.log(`[11] Text prepared for AI: ${extractedText.length} chars`);
-      } else {
-        console.log(`[10] Text validation: FAILED - ${validation.message}`);
-      }
-    } else {
-      textExtractionMetadata.error = extractionResult.error;
-      console.log(`[10] ❌ Extraction error: ${extractionResult.error}`);
-    }
-
-    // Step 4: Perform Gemini AI analysis if text extraction was successful
+    // Step 4: Perform Gemini AI analysis
     let analysisMetadata = {
-      attempted: false,
+      attempted: true,
       success: false,
       warning: null
     };
 
-    console.log('[12] Checking if AI analysis should run...');
+    console.log('[12] Starting Gemini AI analysis...');
+    
+    // Extract target role from request body (only REQUIRED user input for analysis)
+    // Experience level and years are DETECTED by AI from resume
+    const userInputs = {
+      targetRole: req.body.targetRole || req.body.target_role || 'Not Specified'
+    };
+    console.log('[13] Target role:', userInputs.targetRole);
 
-    if (extractionResult.success && extractedText) {
-      console.log('[13] 🤖 Starting Gemini AI analysis...');
-      
-      // Extract target role from request body (only REQUIRED user input for analysis)
-      // Experience level and years are DETECTED by AI from resume
-      const userInputs = {
-        targetRole: req.body.targetRole || req.body.target_role || 'Not Specified'
-      };
-      console.log('[14] Target role:', userInputs.targetRole);
+    const analysisResponse = await analyzeResumeWithGemini(
+      extractedText,
+      resumeId,
+      userId,
+      userInputs
+    );
 
-      const analysisResponse = await analyzeResumeWithGemini(
-        extractedText,
-        resumeId,
-        userId,
-        userInputs
-      );
+    const isRateLimitError = (errorMsg) => {
+      if (!errorMsg || typeof errorMsg !== 'string') return false;
+      const lower = errorMsg.toLowerCase();
+      return lower.includes('429') || 
+             lower.includes('resource_exhausted') || 
+             lower.includes('rate limit') || 
+             lower.includes('quota');
+    };
 
-      analysisMetadata.attempted = true;
-      analysisMetadata.success = analysisResponse.success;
-
-      if (analysisResponse.skipped) {
-        analysisMetadata.warning = analysisResponse.error;
-        console.log('[15] ⏭️ Analysis skipped:', analysisResponse.error);
-      } else if (!analysisResponse.success) {
-        analysisMetadata.warning = `Analysis failed: ${analysisResponse.error}`;
-        console.log('[15] ❌ Analysis failed:', analysisResponse.error);
+    if (!analysisResponse.success || analysisResponse.skipped) {
+      console.log('[14] ❌ Analysis failed or skipped:', analysisResponse.error);
+      if (isRateLimitError(analysisResponse.error)) {
+        throw new AppError('Our free AI rate limits are currently exhausted. Please try again after some time.', 429, true, 'RATE_LIMIT_EXCEEDED');
       } else {
-        analysisMetadata.analysisId = analysisResponse.analysisId;
-        if (analysisResponse.warnings) {
-          analysisMetadata.warnings = analysisResponse.warnings;
-        }
-        console.log('[15] ✅ Analysis completed with ID:', analysisResponse.analysisId);
+        throw new AppError(analysisResponse.error || 'Failed to analyze resume with AI', 400, true, analysisResponse.code);
       }
-    } else {
-      console.log('[13] ℹ️ Analysis skipped (text extraction failed)');
     }
 
+    analysisMetadata.success = true;
+    analysisMetadata.analysisId = analysisResponse.analysisId;
+    if (analysisResponse.warnings) {
+      analysisMetadata.warnings = analysisResponse.warnings;
+    }
+    console.log('[14] ✅ Analysis completed with ID:', analysisResponse.analysisId);
+
     // Build response with resume details
-    console.log('[16] Building final response...');
+    console.log('[15] Building final response...');
     const newResume = {
       id: resumeId,
       title: resumeTitle,
@@ -448,44 +468,72 @@ const uploadResume = async (req, res) => {
       isPrimary: currentCount === 0
     };
 
-    console.log('Resume uploaded and saved successfully:', {
+    console.log('Resume uploaded, parsed and analyzed successfully:', {
       resumeId,
       fileName: newFileName,
-      textExtractionMetadata,
       analysisMetadata
     });
 
-    // Return resume as top-level data property (matches frontend expectations)
-    console.log('[17] ✅ UPLOAD SUCCESSFUL');
-    console.log('📋 Summary: ID=' + resumeId + ', Analysis=' + (analysisMetadata.success ? '✅' : analysisMetadata.attempted ? '❌' : '⏭️'));
+    console.log('[16] ✅ UPLOAD AND ANALYSIS SUCCESSFUL');
     console.log('========================================\n');
     
     res.status(201).json({
       success: true,
-      message: 'Resume uploaded successfully',
+      message: 'Resume uploaded and analyzed successfully',
       data: {
         ...newResume, // Spread resume properties at top level
-        textExtractionMetadata: textExtractionMetadata,
+        textExtractionMetadata: {
+          success: true,
+          characterCount: extractionResult.characterCount,
+          wordCount: extractionResult.wordCount,
+          isValid: true,
+          validationMessage: validation.message
+        },
         analysisMetadata: analysisMetadata
       }
     });
   } catch (error) {
     console.log('[ERROR] ❌ Upload failed:', error.message);
     console.log('========================================\n');
-    // Clean up file if upload fails
+    
+    // Clean up temp multer files
     if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (err) {
+        console.error('Error deleting temporary file:', err);
+      }
     }
-    if (finalFilePath && fs.existsSync(finalFilePath)) {
-      fs.unlinkSync(finalFilePath);
+    
+    // Clean up final destination files (Supabase Storage)
+    if (finalFilePath && finalFilePath.startsWith('http')) {
+      try {
+        const filename = finalFilePath.split('/').pop();
+        await deleteFileFromSupabase(filename);
+      } catch (err) {
+        console.error('Error deleting final file from Supabase:', err);
+      }
     }
+    
+    // Clean up database records (rollback)
+    if (resumeId) {
+      try {
+        const db = require('../config/db');
+        await db.execute('DELETE FROM resume_analysis WHERE resume_id = ?', [resumeId]);
+        await db.execute('DELETE FROM user_resumes WHERE id = ?', [resumeId]);
+        console.log(`[Rollback] Deleted database entries for resume ID: ${resumeId}`);
+      } catch (dbErr) {
+        console.error('[Rollback Error] Failed to delete database entries for resume ID:', resumeId, dbErr);
+      }
+    }
+
     if (error instanceof AppError) {
       throw error;
     }
 
     throw new AppError(
       process.env.NODE_ENV === 'development' ? `Failed to upload resume: ${error.message}` : 'Failed to upload resume',
-      500
+      error.statusCode || 500
     );
   }
 };

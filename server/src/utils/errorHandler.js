@@ -4,10 +4,11 @@
  */
 
 class AppError extends Error {
-  constructor(message, statusCode = 500, isOperational = true) {
+  constructor(message, statusCode = 500, isOperational = true, code = null) {
     super(message);
     this.statusCode = statusCode;
     this.isOperational = isOperational;
+    this.code = code;
 
     Error.captureStackTrace(this, this.constructor);
   }
@@ -28,6 +29,7 @@ const catchAsync = (fn) => {
         return res.status(error.statusCode).json({
           success: false,
           error: error.message,
+          code: error.code,
           ...(process.env.NODE_ENV === 'development' && { stack: error.stack })
         });
       }

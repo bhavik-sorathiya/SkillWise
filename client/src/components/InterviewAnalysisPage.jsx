@@ -109,9 +109,13 @@ const InterviewAnalysisPage = ({ analysis, interview, onBack }) => {
       };
     });
 
-  const chartWidth = 460;
-  const chartHeight = 190;
   const chartPadding = { top: 24, right: 24, bottom: 42, left: 44 };
+  
+  // Calculate dynamic chart width based on question count to maintain a uniform 50px spacing
+  const dynamicWidth = chartPadding.left + chartPadding.right + Math.max(1, confidenceSeries.length - 1) * 50;
+  const chartWidth = Math.max(460, dynamicWidth);
+  const chartHeight = 190;
+  
   const plotWidth = chartWidth - chartPadding.left - chartPadding.right;
   const plotHeight = chartHeight - chartPadding.top - chartPadding.bottom;
 
@@ -220,67 +224,74 @@ const InterviewAnalysisPage = ({ analysis, interview, onBack }) => {
                   <span className="text-xs text-gray-500 dark:text-gray-400">X: Asked Question (dynamic) | Y: Confidence Score</span>
                 </div>
 
-                {confidenceSeries.length > 1 ? (
-                  <div className="w-full">
-                    <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
-                      {yTicks.map((tick) => {
-                        const y = pointToY(tick);
-                        return (
-                          <g key={`tick-${tick}`}>
-                            <line
-                              x1={chartPadding.left}
-                              y1={y}
-                              x2={chartWidth - chartPadding.right}
-                              y2={y}
-                              stroke="currentColor"
-                              strokeOpacity="0.12"
-                            />
-                            <text x={10} y={y + 4} fontSize="11" fill="currentColor" opacity="0.6">
-                              {tick}
+                {confidenceSeries.length >= 1 ? (
+                  <div className="w-full overflow-x-auto pb-2">
+                    <div style={{ minWidth: `${chartWidth}px`, width: '100%' }}>
+                      <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full h-auto">
+                        {yTicks.map((tick) => {
+                          const y = pointToY(tick);
+                          return (
+                            <g key={`tick-${tick}`}>
+                              <line
+                                x1={chartPadding.left}
+                                y1={y}
+                                x2={chartWidth - chartPadding.right}
+                                y2={y}
+                                stroke="currentColor"
+                                strokeOpacity="0.12"
+                              />
+                              <text x={10} y={y + 4} fontSize="11" fill="currentColor" opacity="0.6">
+                                {tick}
+                              </text>
+                            </g>
+                          );
+                        })}
+
+                        <line
+                          x1={chartPadding.left}
+                          y1={chartPadding.top}
+                          x2={chartPadding.left}
+                          y2={chartHeight - chartPadding.bottom}
+                          stroke="currentColor"
+                          strokeOpacity="0.35"
+                        />
+                        <line
+                          x1={chartPadding.left}
+                          y1={chartHeight - chartPadding.bottom}
+                          x2={chartWidth - chartPadding.right}
+                          y2={chartHeight - chartPadding.bottom}
+                          stroke="currentColor"
+                          strokeOpacity="0.35"
+                        />
+
+                        {confidenceSeries.length > 1 && (
+                          <polyline
+                            fill="none"
+                            stroke="#2563eb"
+                            strokeWidth="3"
+                            strokeLinejoin="round"
+                            strokeLinecap="round"
+                            points={polylinePoints}
+                          />
+                        )}
+
+                        {chartPoints.map((p, idx) => (
+                          <g key={`point-${idx}`}>
+                            <circle cx={p.x} cy={p.y} r="4" fill="#2563eb" />
+                            <text x={p.x} y={p.y - 8} textAnchor="middle" fontSize="9" fontWeight="bold" fill="#2563eb">
+                              {p.value.toFixed(0)}%
+                            </text>
+                            <text x={p.x} y={chartHeight - 12} textAnchor="middle" fontSize="10" fill="currentColor" opacity="0.65">
+                              Q{idx + 1}
                             </text>
                           </g>
-                        );
-                      })}
-
-                      <line
-                        x1={chartPadding.left}
-                        y1={chartPadding.top}
-                        x2={chartPadding.left}
-                        y2={chartHeight - chartPadding.bottom}
-                        stroke="currentColor"
-                        strokeOpacity="0.35"
-                      />
-                      <line
-                        x1={chartPadding.left}
-                        y1={chartHeight - chartPadding.bottom}
-                        x2={chartWidth - chartPadding.right}
-                        y2={chartHeight - chartPadding.bottom}
-                        stroke="currentColor"
-                        strokeOpacity="0.35"
-                      />
-
-                      <polyline
-                        fill="none"
-                        stroke="#2563eb"
-                        strokeWidth="3"
-                        strokeLinejoin="round"
-                        strokeLinecap="round"
-                        points={polylinePoints}
-                      />
-
-                      {chartPoints.map((p, idx) => (
-                        <g key={`point-${idx}`}>
-                          <circle cx={p.x} cy={p.y} r="4" fill="#2563eb" />
-                          <text x={p.x} y={chartHeight - 12} textAnchor="middle" fontSize="10" fill="currentColor" opacity="0.65">
-                            Q{idx + 1}
-                          </text>
-                        </g>
-                      ))}
-                    </svg>
+                        ))}
+                      </svg>
+                    </div>
                   </div>
                 ) : (
                   <div className="h-[160px] rounded-xl border border-dashed border-border-light dark:border-border-dark flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-                    Confidence points are not sufficient to draw a line chart yet.
+                    No confidence data recorded.
                   </div>
                 )}
               </div>

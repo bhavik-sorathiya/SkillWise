@@ -15,6 +15,7 @@ import TargetRoleModal from './components/TargetRoleModal';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
 import { useError } from './context/ErrorContext';
+import { useApiKey } from './context/ApiKeyContext';
 import { resumeAPI, logout as logoutAPI } from './services/api';
 import { getUserAvatar } from './utils/avatar';
 import Footer from './components/Footer';
@@ -30,6 +31,7 @@ const ResumeAndSkills = ({
   const { token, isAuthenticated, logout, user } = useAuth();
   const { openComingSoon } = useComingSoon();
   const { addError } = useError();
+  const { showApiKeyModal } = useApiKey();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [isAddSkillModalOpen, setIsAddSkillModalOpen] = useState(false);
@@ -165,6 +167,9 @@ const ResumeAndSkills = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Reset file input early so same file can be selected again if needed
+    event.target.value = '';
+
     try {
       // Check authentication
       if (!token) {
@@ -177,7 +182,6 @@ const ResumeAndSkills = ({
       const allowedMimes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedMimes.includes(file.type)) {
         addError(`Invalid file type: ${file.type}. Only DOCX (Word) files are allowed.`, 'warning');
-        event.target.value = '';
         return;
       }
 
@@ -185,19 +189,49 @@ const ResumeAndSkills = ({
       const maxSize = 3 * 1024 * 1024;
       if (file.size > maxSize) {
         addError(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word file.`, 'warning');
-        event.target.value = '';
         return;
       }
 
-      // Store file and open target role modal
+      // Check daily limit before proceeding to the target role modal
+      setLoadingUpload(true);
+      setUploadStatusMessage('Checking daily usage limits...');
+
+      const limitRes = await fetch(`${API_BASE_URL}/profile/check-limits?type=resume`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      const limitData = await limitRes.json();
+      setLoadingUpload(false);
+
+      if (limitData.success && !limitData.allowed) {
+        showApiKeyModal(
+          () => {
+            // On API key saved successfully: proceed
+            setPendingFile(file);
+            setIsTargetRoleModalOpen(true);
+            addError('API key saved. You can now proceed with your upload.', 'success');
+          },
+          () => {
+            // On API key modal close without key: notify
+            setPendingFile(null);
+            addError('Daily free resume analysis limit reached. Please add your own API key to continue.', 'warning');
+          }
+        );
+        return;
+      }
+
+      // Allowed, open target role modal
       setPendingFile(file);
       setIsTargetRoleModalOpen(true);
-      
-      // Reset file input after storing
-      event.target.value = '';
     } catch (err) {
-      console.error('Error in handleResumeUpload:', err);
-      addError(`Upload failed: ${err.message}`, 'error');
+      console.error('Error in handleResumeUpload limit check:', err);
+      // Fallback: proceed to open target role modal
+      setLoadingUpload(false);
+      setPendingFile(file);
+      setIsTargetRoleModalOpen(true);
     }
   };
 
@@ -256,6 +290,11 @@ const ResumeAndSkills = ({
       if (err.message.includes('Session expired') || err.message.includes('Unauthorized')) {
         addError('Session expired. Please login again.', 'warning');
         onNavigateToLogin();
+      } else if (err.code === 'RATE_LIMIT_EXCEEDED' || err.code === 'QUOTA_EXCEEDED' || err.code === 'INVALID_CUSTOM_API_KEY' || err.message.toLowerCase().includes('limit')) {
+        showApiKeyModal(() => {
+          // Retry logic could go here if needed
+          addError('API key saved. Please try uploading again.', 'success');
+        });
       } else {
         addError(`Upload failed: ${err.message}`, 'error');
       }
@@ -390,6 +429,7 @@ const ResumeAndSkills = ({
           onNavigateToProfile={onNavigateToProfile}
           onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
+          onNavigateToHelp={onNavigateToHelp}
           userProfile={userProfile}
         />
 

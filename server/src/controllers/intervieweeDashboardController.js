@@ -175,10 +175,18 @@ const getDashboardData = async (req, res) => {
   );
   const latestInterview = latestInterviewRows[0] || null;
 
+  // ── 4b. API Key status check ───────────────────────────────────────────────
+  const [apiKeyRows] = await db.execute(
+    'SELECT 1 FROM user_gemini_api_keys WHERE user_id = ? AND is_valid = true',
+    [userId]
+  );
+  const hasApiKey = apiKeyRows.length > 0;
+
   // ── 5. Response ─────────────────────────────────────────────────────────────
   res.status(200).json({
     success: true,
     data: {
+      has_api_key: hasApiKey,
       user: {
         id: user.id,
         full_name: user.full_name,

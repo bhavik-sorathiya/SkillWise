@@ -8,32 +8,19 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Extracts text content from a DOCX file using mammoth library
- * @param {string} filePath - Absolute path to the DOCX file
+ * Extracts text content from a DOCX file buffer using mammoth library
+ * @param {Buffer} fileBuffer - The buffer of the DOCX file
  * @returns {Promise<{success: boolean, text: string, characterCount: number, wordCount: number, error?: string}>}
  */
-const extractTextFromDocx = async (filePath) => {
+const extractTextFromDocx = async (fileBuffer) => {
   try {
-    // Validate file exists
-    if (!fs.existsSync(filePath)) {
+    if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
       return {
         success: false,
         text: '',
         characterCount: 0,
         wordCount: 0,
-        error: 'File not found at the specified path'
-      };
-    }
-
-    // Validate file extension
-    const fileExt = path.extname(filePath).toLowerCase();
-    if (fileExt !== '.docx') {
-      return {
-        success: false,
-        text: '',
-        characterCount: 0,
-        wordCount: 0,
-        error: 'Only DOCX files are supported'
+        error: 'Invalid file buffer provided'
       };
     }
 
@@ -52,8 +39,8 @@ const extractTextFromDocx = async (filePath) => {
       };
     }
 
-    // Extract text from DOCX file
-    const result = await mammoth.extractRawText({ path: filePath });
+    // Extract text from DOCX buffer
+    const result = await mammoth.extractRawText({ buffer: fileBuffer });
     
     // Handle extraction errors
     if (result.messages && result.messages.length > 0) {

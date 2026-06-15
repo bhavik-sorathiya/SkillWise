@@ -17,7 +17,7 @@ const UserResume = {
   getResumesByUserId: async (userId) => {
     try {
       const [rows] = await db.execute(
-        `SELECT id, title, target_role, file_name, file_size, status, uploaded_at
+        `SELECT id, title, target_role, file_name, file_link, file_size, status, uploaded_at
          FROM user_resumes
          WHERE user_id = ? AND status = 'active'
          ORDER BY uploaded_at DESC`,
@@ -113,16 +113,17 @@ const UserResume = {
    * @param {string} title      - User-facing display title (e.g. "Digital Marketing Resume")
    * @param {string} targetRole - Target job role for AI analysis
    * @param {string} fileName   - System storage file name
-   * @param {string} filePath   - Absolute server file path
+   * @param {string} fileLink   - Absolute server file link or URL
    * @param {number} fileSize   - File size in bytes
+   * @param {string} rawText    - Extracted resume text
    * @returns {Promise<number>} Inserted resume ID
    */
-  createResume: async (userId, title, targetRole, fileName, filePath, fileSize) => {
+  createResume: async (userId, title, targetRole, fileName, fileLink, fileSize, rawText = null) => {
     try {
       const [result] = await db.execute(
-        `INSERT INTO user_resumes (user_id, title, target_role, file_name, file_path, file_size, status)
-         VALUES (?, ?, ?, ?, ?, ?, 'active')`,
-        [userId, title, targetRole, fileName, filePath, fileSize || 0]
+        `INSERT INTO user_resumes (user_id, title, target_role, file_name, file_link, file_size, status, raw_text)
+         VALUES (?, ?, ?, ?, ?, ?, 'active', ?)`,
+        [userId, title, targetRole, fileName, fileLink, fileSize || 0, rawText]
       );
       return result.insertId;
     } catch (error) {

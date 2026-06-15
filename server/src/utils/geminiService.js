@@ -4,12 +4,13 @@
  * Utility Layer - Reusable across different controllers
  */
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 
-let genAI = null;
-let model = null;
+let aiClient1 = null;
+let aiClient2 = null;
 let apiKey1 = null;
 let apiKey2 = null;
+const modelName = 'gemini-3.1-flash-lite';
 
 /**
  * Initialize Gemini AI client and model
@@ -24,17 +25,15 @@ const initializeGemini = async () => {
     // Fallback API key (optional, for rate limiting fallback)
     apiKey2 = process.env.GEMINI_API_KEY_2;
 
-    const modelName = 'gemini-2.5-flash';
-
     if (!apiKey1) {
       console.error('❌ GEMINI_API_KEY or GEMINI_API_KEY_1 is not set in environment variables');
       return false;
     }
 
-    genAI = new GoogleGenerativeAI(apiKey1);
-    model = genAI.getGenerativeModel({ model: modelName });
+    aiClient1 = new GoogleGenAI({ apiKey: apiKey1 });
 
     if (apiKey2) {
+      aiClient2 = new GoogleGenAI({ apiKey: apiKey2 });
       console.log(`✓ Gemini AI initialized with model: ${modelName} (Dual-key mode: Primary + Fallback)`);
     } else {
       console.log(`✓ Gemini AI initialized with model: ${modelName} (Single-key mode)`);
@@ -51,7 +50,7 @@ const initializeGemini = async () => {
  * @returns {boolean} True if initialized and ready
  */
 const isInitialized = () => {
-  return genAI !== null && model !== null;
+  return aiClient1 !== null;
 };
 
 /**
@@ -65,11 +64,20 @@ const isInitialized = () => {
  */
 const analyzeResume = async (resumeText, options = {}) => {
   try {
-    if (!isInitialized()) {
+    const { timeout = 30000, systemPrompt = '', apiKey = null } = options;
+
+    let targetClient1 = aiClient1;
+    let targetClient2 = aiClient2;
+
+    if (apiKey) {
+      // Use custom API key instead of initialized clients
+      targetClient1 = new GoogleGenAI({ apiKey });
+      targetClient2 = null; // No fallback for custom key
+    } else if (!isInitialized()) {
       return {
         success: false,
         analysis: null,
-        error: 'Gemini AI is not initialized. Please initialize before calling analyze.',
+        error: 'Gemini AI is not initialized and no API key was provided.',
         tokens: null
       };
     }
@@ -83,23 +91,17 @@ const analyzeResume = async (resumeText, options = {}) => {
       };
     }
 
-    const { timeout = 30000, systemPrompt = '' } = options;
-
     // Create abort controller for timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
-      // Combine system prompt with user content if system prompt exists
-      let userContent = resumeText;
-      if (systemPrompt) {
-        userContent = `${systemPrompt}\n\n${resumeText}`;
-      }
-
-      // Send request to Gemini (without systemInstruction parameter)
+      // Send request to Gemini
       const response = await Promise.race([
-        model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: userContent }] }]
+        targetClient1.models.generateContent({
+          model: modelName,
+          contents: resumeText,
+          config: systemPrompt ? { systemInstruction: systemPrompt } : undefined
         }),
         new Promise((_, reject) =>
           controller.signal.addEventListener('abort', () =>
@@ -111,7 +113,7 @@ const analyzeResume = async (resumeText, options = {}) => {
       clearTimeout(timeoutId);
 
       // Extract response text
-      const analysisText = response.response.text();
+      const analysisText = response.text;
 
       // Parse JSON from response
       let analysis = null;
@@ -131,10 +133,10 @@ const analyzeResume = async (resumeText, options = {}) => {
       }
 
       // Extract token usage if available
-      const tokens = response.response.usageMetadata
+      const tokens = response.usageMetadata
         ? {
-            prompt: response.response.usageMetadata.promptTokenCount || 0,
-            completion: response.response.usageMetadata.candidateCount || 0
+            prompt: response.usageMetadata.promptTokenCount || 0,
+            completion: response.usageMetadata.candidatesTokenCount || 0
           }
         : null;
 
@@ -163,32 +165,50 @@ const analyzeResume = async (resumeText, options = {}) => {
  * Generate text using Gemini AI with dual API key fallback support
  * Used by interview system for real-time question evaluation and generation
  * @param {string} prompt - The prompt to send to Gemini
- * @param {number} timeout - Request timeout in ms (default: 30000)
+ * @param {Object|number} options - Configuration options or timeout
+ * @param {number} options.timeout - Request timeout in ms (default: 30000)
+ * @param {string} options.apiKey - Custom API key to use (optional)
  * @returns {Promise<string>} The generated text response
  * @throws {Error} If both API keys fail or generation fails
  */
-const generateText = async (prompt, timeout = 30000) => {
-  if (!isInitialized()) {
-    throw new Error('Gemini AI is not initialized');
+const generateText = async (prompt, options = {}) => {
+  let timeout = 30000;
+  let apiKey = null;
+
+  if (typeof options === 'number') {
+    timeout = options;
+  } else if (typeof options === 'object' && options !== null) {
+    timeout = options.timeout || 30000;
+    apiKey = options.apiKey || null;
+  }
+
+  let targetClient1 = aiClient1;
+  let targetClient2 = aiClient2;
+
+  if (apiKey) {
+    targetClient1 = new GoogleGenAI({ apiKey });
+    targetClient2 = null;
+  } else if (!isInitialized()) {
+    throw new Error('Gemini AI is not initialized and no API key was provided');
   }
 
   if (!prompt || typeof prompt !== 'string') {
     throw new Error('Prompt must be a non-empty string');
   }
 
-  // Helper function to attempt generation with a specific API key
-  const attemptWithKey = async (key, keyLabel) => {
+  // Helper function to attempt generation with a specific API key client
+  const attemptWithKey = async (client, keyLabel) => {
     try {
       console.log(`[Gemini] Attempting with ${keyLabel}...`);
       
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const tempGenAI = new GoogleGenerativeAI(key);
-      const tempModel = tempGenAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-
       const response = await Promise.race([
-        tempModel.generateContent(prompt),
+        client.models.generateContent({
+          model: modelName,
+          contents: prompt
+        }),
         new Promise((_, reject) =>
           controller.signal.addEventListener('abort', () =>
             reject(new Error(`Request timed out after ${timeout}ms`))
@@ -197,7 +217,7 @@ const generateText = async (prompt, timeout = 30000) => {
       ]);
 
       clearTimeout(timeoutId);
-      const text = response.response.text();
+      const text = response.text;
       console.log(`[Gemini] ✓ Success with ${keyLabel}`);
       return text;
     } catch (error) {
@@ -212,15 +232,15 @@ const generateText = async (prompt, timeout = 30000) => {
   };
 
   // Try primary API key first
-  const primaryResult = await attemptWithKey(apiKey1, 'Primary Key (GEMINI_API_KEY_1)');
+  const primaryResult = await attemptWithKey(targetClient1, apiKey ? 'Custom User Key' : 'Primary Key (GEMINI_API_KEY_1)');
   if (typeof primaryResult === 'string') {
     return primaryResult;
   }
 
-  // If primary key failed due to rate limiting and fallback key exists, try it
-  if (primaryResult.isRateLimit && apiKey2) {
+  // If primary key failed due to rate limiting and fallback client exists, try it
+  if (primaryResult.isRateLimit && targetClient2) {
     console.warn(`[Gemini] Primary key rate limited, falling back to secondary key...`);
-    const fallbackResult = await attemptWithKey(apiKey2, 'Fallback Key (GEMINI_API_KEY_2)');
+    const fallbackResult = await attemptWithKey(targetClient2, 'Fallback Key (GEMINI_API_KEY_2)');
     
     if (typeof fallbackResult === 'string') {
       return fallbackResult;
@@ -253,9 +273,12 @@ const testConnection = async () => {
       };
     }
 
-    const response = await model.generateContent('Test');
+    const response = await aiClient1.models.generateContent({
+      model: modelName,
+      contents: 'Test'
+    });
 
-    if (response.response.text()) {
+    if (response.text) {
       return {
         connected: true,
         message: 'Gemini API connection successful'

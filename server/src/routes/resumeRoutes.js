@@ -16,19 +16,8 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
-// Multer storage config: save files on disk with temporary names.
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    // Use temporary filename - will be renamed in controller with user data
-    // Format: temp_timestamp.docx
-    const timestamp = Date.now();
-    const filename = `temp_${timestamp}.docx`;
-    cb(null, filename);
-  }
-});
+// Use memory storage for direct cloud upload
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage: storage,

@@ -12,7 +12,7 @@ import { getUserAvatar } from './utils/avatar';
 const SettingsPage = ({
   onNavigateToLogin, onNavigateToLanding, onNavigateToHome,
   onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews,
-  onNavigateToProfile, onNavigateToSettings, onLogout
+  onNavigateToProfile, onNavigateToSettings, onLogout, onNavigateToHelp
 }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -24,6 +24,33 @@ const SettingsPage = ({
   const [pwSaving, setPwSaving] = useState(false);
   const [pwSuccess, setPwSuccess] = useState('');
   const [pwError, setPwError] = useState('');
+
+  // API Key state
+  const [apiKey, setApiKey] = useState('');
+  const [apiKeyStatus, setApiKeyStatus] = useState(null);
+  const [apiSaving, setApiSaving] = useState(false);
+  const [apiSuccess, setApiSuccess] = useState('');
+  const [apiError, setApiError] = useState('');
+
+  React.useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const res = await fetch(`${API_BASE_URL}/profile/api-key`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          setApiKeyStatus(data.data);
+          if (data.data.hasApiKey && data.data.maskedKey) {
+            setApiKey(data.data.maskedKey);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch API key status', err);
+      }
+    };
+    if (token) fetchApiKey();
+  }, [token]);
 
   const sidebarItems = [
     { key: 'home',           icon: 'home',        label: 'Home' },
@@ -84,6 +111,35 @@ const SettingsPage = ({
     }
   };
 
+  const handleSaveApiKey = async (e) => {
+    e.preventDefault();
+    setApiError(''); setApiSuccess('');
+    
+    if (!apiKey || apiKey.startsWith('...')) {
+      setApiError('Please enter a valid API key'); return;
+    }
+    
+    setApiSaving(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/profile/api-key`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ apiKey })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || data.message || 'Failed to save API key');
+      setApiSuccess('API key verified and saved successfully!');
+      
+      setApiKeyStatus({ hasApiKey: true, isValid: true, maskedKey: `...${apiKey.slice(-4)}` });
+      setApiKey(`...${apiKey.slice(-4)}`);
+      setTimeout(() => setApiSuccess(''), 4000);
+    } catch(err) {
+      setApiError(err.message);
+    } finally {
+      setApiSaving(false);
+    }
+  };
+
   const headerAvatar = getUserAvatar(user?.gender);
   const displayName = user?.full_name || user?.name || 'User';
   const userProfile = { name: displayName, headerAvatar };
@@ -129,6 +185,7 @@ const SettingsPage = ({
           onNavigateToProfile={onNavigateToProfile}
           onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
+          onNavigateToHelp={onNavigateToHelp}
           userProfile={userProfile}
         />
 
@@ -172,6 +229,57 @@ const SettingsPage = ({
                   <span className="material-symbols-outlined text-sm">edit</span>
                   Edit Profile
                 </button>
+              </div>
+
+              {/* API Key Settings */}
+              <div className="bg-surface-light dark:bg-surface-dark rounded-2xl border border-border-light dark:border-border-dark p-6">
+                <div className="flex justify-between items-start mb-5">
+                  <h3 className="text-base font-bold text-text-main dark:text-white flex items-center gap-2">
+                    <span className="material-symbols-outlined text-primary">key</span>
+                    Custom Gemini API Key
+                  </h3>
+                  {apiKeyStatus && (
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      apiKeyStatus.isValid ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                    }`}>
+                      {apiKeyStatus.isValid ? 'Valid' : 'Invalid'}
+                    </span>
+                  )}
+                </div>
+                
+                <p className="text-sm text-text-secondary dark:text-gray-400 mb-5">
+                  Provide your own Gemini API key to bypass the daily limit of 1 free resume analysis and 1 free interview per day.
+                </p>
+
+                {apiSuccess && (
+                  <div className="mb-5 p-4 rounded-xl bg-green-500/10 border border-green-500/30 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-green-500">check_circle</span>
+                    <p className="text-sm font-medium text-green-700 dark:text-green-400">{apiSuccess}</p>
+                  </div>
+                )}
+                {apiError && (
+                  <div className="mb-5 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-red-500">error</span>
+                    <p className="text-sm font-medium text-red-700 dark:text-red-400">{apiError}</p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSaveApiKey} className="space-y-4">
+                  <div>
+                    <label htmlFor="api_key" className={labelCls}>Gemini API Key</label>
+                    <div className="relative flex gap-3">
+                      <input id="api_key" type="text"
+                        value={apiKey}
+                        onChange={e => setApiKey(e.target.value)}
+                        placeholder="AIzaSy..."
+                        className={inputCls} />
+                      <button type="submit" disabled={apiSaving || apiKey.startsWith('...')}
+                        className="px-5 py-2.5 bg-primary text-white rounded-xl font-medium hover:bg-primary/90 transition-all shadow-sm shadow-primary/20 disabled:opacity-50 flex items-center gap-2">
+                        {apiSaving ? <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span> : 'Save'}
+                      </button>
+                    </div>
+                  </div>
+                </form>
               </div>
 
               {/* Change Password */}

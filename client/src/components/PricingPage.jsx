@@ -11,9 +11,11 @@ const PricingPage = ({ onBack, onGetStarted }) => {
       color: "border-gray-200 dark:border-gray-700",
       highlight: false,
       features: [
+        "1 Free Resume Analysis per day",
+        "1 Free AI Mock Interview per day",
+        "Add your own Gemini API key for UNLIMITED free usage!",
         "Standard AI Response Speed (runs on a toaster)",
-        "Basic Resume SWOT Analysis (might roast you)",
-        "Max 5 Resumes storage capacity",
+        "Max 3 Resumes storage capacity",
         "Support: Send a silent prayer and hope it works"
       ],
       buttonText: "Stay Gareeb (Free)",
@@ -49,7 +51,7 @@ const PricingPage = ({ onBack, onGetStarted }) => {
       badge: "Musk Mode",
       features: [
         "Bhavik will write your React/Node code for you",
-        "Answers fed to you during real placement interviews via secret Bluetooth earpiece (no GCET disciplinary liability)",
+        "Answers fed to you during real placement interviews via secret Bluetooth earpiece",
         "Sponsorship of coffee/tea services at entire GCET Campus",
         "Direct 3 AM calls to the developer to discuss life and bugs",
         "Payment: Accepted only via 24K gold biscuits or a 1BHK apartment title deed in Anand"

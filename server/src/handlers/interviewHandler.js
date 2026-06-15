@@ -10,9 +10,12 @@ const { callQuestionFlowAI, callFinalEvaluationAI } = require('../utils/intervie
 const { buildInterviewContext } = require('../utils/contextBuilder');
 const { validateQuestionFlowResponse, validateFinalEvaluationResponse } = require('../utils/responseParser');
 const { getFallbackEvaluation, getFallbackQuestion } = require('../utils/interviewUtils');
+const UsageTracker = require('../utils/usageTracker');
 
 // In-memory session cache to store resume summaries (one-time per session)
 const sessionResumeSummaryCache = new Map();
+// Cache custom API keys for the session
+const sessionApiKeys = new Map();
 
 const QUESTION_TYPE_LIMITS = {
   technical: 3,
@@ -209,10 +212,24 @@ function registerInterviewHandlers(io, socket) {
         emitError(socket, 'Resume and role are required to start interview', 'validation_error');
         return;
       }
-
+      
+      let session = null;
       try {
+        // Step 0: Check limits
+        let customApiKey = null;
+        try {
+          customApiKey = await UsageTracker.getApiKeyIfLimitExceeded(userId, 'interview');
+        } catch (limitError) {
+          emitError(socket, limitError.message, limitError.code);
+          return;
+        }
+
         // Step 1: Create interview session
-        const session = await InterviewModel.createSession(userId, resumeId, role);
+        session = await InterviewModel.createSession(userId, resumeId, role);
+
+        if (customApiKey && session && session.id) {
+          sessionApiKeys.set(session.id, customApiKey);
+        }
         
         if (!session || !session.id) {
           emitError(socket, 'Failed to create interview session', 'database_error');
@@ -340,6 +357,7 @@ function registerInterviewHandlers(io, socket) {
           context.askedQuestions = askedQuestions;
           context.typeCounts = typeCountsBefore;
           context.questionLimits = QUESTION_TYPE_LIMITS;
+          context.apiKey = sessionApiKeys.get(sessionId);
         } catch (err) {
           emitError(
             socket,
@@ -359,14 +377,41 @@ function registerInterviewHandlers(io, socket) {
             return;
           }
         } catch (err) {
-          if (err.message.includes('timeout')) {
+          if (!context.apiKey && (err.message.includes('429') || err.message.toLowerCase().includes('rate limit') || err.message.toLowerCase().includes('quota') || err.message.includes('API'))) {
+            try {
+              console.warn(`[Interview Fallback] System key failed: ${err.message}. Checking for user custom API key...`);
+              const UserApiKeyModel = require('../models/userApiKeyModel');
+              const userKeyData = await UserApiKeyModel.getUserApiKey(userId);
+              
+              if (userKeyData && userKeyData.is_valid) {
+                console.log(`[Interview Fallback] Found user custom API key, retrying question flow...`);
+                context.apiKey = userKeyData.api_key;
+                sessionApiKeys.set(sessionId, userKeyData.api_key); // Save it for next questions
+                aiResponse = await callQuestionFlowAI(context);
+                
+                if (!aiResponse) {
+                  emitError(socket, 'AI service did not return a response using custom key', 'INVALID_CUSTOM_API_KEY');
+                  return;
+                }
+              } else {
+                emitError(socket, 'Daily free interview limit reached or service busy. Please add your own Gemini API Key in settings.', 'RATE_LIMIT_EXCEEDED');
+                return;
+              }
+            } catch (fallbackErr) {
+              emitError(socket, 'Daily free interview limit reached. Please add your own Gemini API Key in settings.', 'RATE_LIMIT_EXCEEDED');
+              return;
+            }
+          } else if (err.message.includes('timeout')) {
             emitError(socket, 'Request timed out. The AI service took too long to respond. Please try again', 'timeout_error', err);
-          } else if (err.message.includes('API')) {
-            emitError(socket, 'AI service is temporarily unavailable. Please try again in a moment', 'ai_error', err);
+            return;
           } else {
-            emitError(socket, 'Failed to evaluate your answer. Please try again', 'ai_error', err);
+            if (context.apiKey) {
+               emitError(socket, 'Your custom API Key failed: ' + err.message, 'INVALID_CUSTOM_API_KEY');
+            } else {
+               emitError(socket, 'AI service is temporarily unavailable. Please try again in a moment', 'ai_error', err);
+            }
+            return;
           }
-          return;
         }
 
         // STEP 6: Parse + validate AI response (STRICT JSON)
@@ -559,21 +604,49 @@ function registerInterviewHandlers(io, socket) {
 
         // STEP 3: Call AI for final evaluation
         let aiResponse;
+        let apiKey = sessionApiKeys.get(sessionId);
         try {
-          aiResponse = await callFinalEvaluationAI(evaluations, resumeSummary, role);
+          aiResponse = await callFinalEvaluationAI(evaluations, resumeSummary, role, apiKey);
           if (!aiResponse) {
             emitError(socket, 'AI service did not return a evaluation. Please try again', 'ai_error');
             return;
           }
         } catch (err) {
-          if (err.message.includes('timeout')) {
+          if (!apiKey && (err.message.includes('429') || err.message.toLowerCase().includes('rate limit') || err.message.toLowerCase().includes('quota') || err.message.includes('API'))) {
+            try {
+              console.warn(`[Interview Fallback] System key failed for evaluation: ${err.message}. Checking user key...`);
+              const UserApiKeyModel = require('../models/userApiKeyModel');
+              const userKeyData = await UserApiKeyModel.getUserApiKey(userId);
+              
+              if (userKeyData && userKeyData.is_valid) {
+                console.log(`[Interview Fallback] Found user custom API key, retrying evaluation...`);
+                apiKey = userKeyData.api_key;
+                sessionApiKeys.set(sessionId, apiKey);
+                aiResponse = await callFinalEvaluationAI(evaluations, resumeSummary, role, apiKey);
+                
+                if (!aiResponse) {
+                  emitError(socket, 'AI service did not return an evaluation using custom key', 'INVALID_CUSTOM_API_KEY');
+                  return;
+                }
+              } else {
+                emitError(socket, 'Daily free interview limit reached or service busy. Please add your own Gemini API Key in settings.', 'RATE_LIMIT_EXCEEDED');
+                return;
+              }
+            } catch (fallbackErr) {
+              emitError(socket, 'Daily free interview limit reached. Please add your own Gemini API Key in settings.', 'RATE_LIMIT_EXCEEDED');
+              return;
+            }
+          } else if (err.message.includes('timeout')) {
             emitError(socket, 'Request timed out generating your evaluation. Please try again later', 'timeout_error', err);
-          } else if (err.message.includes('API')) {
-            emitError(socket, 'AI service is temporarily unavailable. Your interview data has been saved', 'ai_error', err);
+            return;
           } else {
-            emitError(socket, 'Failed to generate final evaluation. Please try again', 'ai_error', err);
+            if (apiKey) {
+               emitError(socket, 'Your custom API Key failed: ' + err.message, 'INVALID_CUSTOM_API_KEY');
+            } else {
+               emitError(socket, 'AI service is temporarily unavailable. Your interview data has been saved', 'ai_error', err);
+            }
+            return;
           }
-          return;
         }
 
         // STEP 4: Parse + validate final response

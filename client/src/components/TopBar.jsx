@@ -14,6 +14,7 @@ const TopBar = ({
   onNavigateToProfile,
   onNavigateToSettings,
   onLogout,
+  onNavigateToHelp,
   userProfile,
 }) => {
   const { openComingSoon } = useComingSoon();
@@ -87,7 +88,7 @@ const TopBar = ({
               </button>
               <button
                 className="w-full px-4 py-2 text-left text-sm text-text-main dark:text-white hover:bg-background-light dark:hover:bg-background-dark transition-colors flex items-center gap-3"
-                onClick={() => openComingSoon({ title: 'Help Center', message: 'Help Center is coming soon.' })}
+                onClick={() => handleNavigate(onNavigateToHelp)}
               >
                 <span className="material-symbols-outlined text-[20px]">help</span>
                 Help Center

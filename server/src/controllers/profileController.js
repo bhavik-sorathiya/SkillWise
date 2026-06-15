@@ -3,6 +3,9 @@
 // Works with individual columns in user_profiles — no JSON blob
 
 const UserProfile = require('../models/userProfileModel');
+const UserApiKeyModel = require('../models/userApiKeyModel');
+const UsageTracker = require('../utils/usageTracker');
+const { generateText } = require('../utils/geminiService');
 const { AppError } = require('../utils/errorHandler');
 
 /**
@@ -143,4 +146,94 @@ const markProfileComplete = async (req, res) => {
   });
 };
 
-module.exports = { getProfile, updateProfile, markProfileComplete };
+/**
+ * GET /api/profile/api-key
+ * Get current user's Gemini API key status
+ */
+const getApiKey = async (req, res) => {
+  const userId = req.user.id;
+  
+  const apiKeyRecord = await UserApiKeyModel.getApiKey(userId);
+  
+  res.status(200).json({
+    success: true,
+    data: {
+      hasApiKey: !!apiKeyRecord,
+      isValid: apiKeyRecord ? apiKeyRecord.is_valid : false,
+      // For security, don't return the full key, just masked or partial
+      maskedKey: apiKeyRecord ? `...${apiKeyRecord.api_key.slice(-4)}` : null
+    }
+  });
+};
+
+/**
+ * PUT /api/profile/api-key
+ * Update user's custom Gemini API key
+ * Body: { apiKey }
+ */
+const updateApiKey = async (req, res) => {
+  const userId = req.user.id;
+  const { apiKey } = req.body;
+  
+  if (!apiKey || typeof apiKey !== 'string' || apiKey.trim() === '') {
+    throw new AppError('A valid API key must be provided', 400);
+  }
+  
+  try {
+    // Verify the key works before saving it
+    const testResponse = await generateText('Return the word "OK"', { apiKey, timeout: 10000 });
+    
+    if (!testResponse) {
+      throw new AppError('Invalid API Key. Gemini API returned empty response.', 400);
+    }
+    
+    // Key is valid, save it
+    await UserApiKeyModel.setApiKey(userId, apiKey);
+    
+    res.status(200).json({
+      success: true,
+      message: 'API key successfully verified and saved'
+    });
+  } catch (error) {
+    throw new AppError(`Failed to verify API key: ${error.message}`, 400);
+  }
+};
+
+/**
+ * GET /api/profile/check-limits
+ * Check if the user is within free limit or has a valid api key
+ * Query: ?type=resume|interview
+ */
+const checkLimits = async (req, res) => {
+  const userId = req.user.id;
+  const { type } = req.query;
+
+  if (type !== 'resume' && type !== 'interview') {
+    throw new AppError('Invalid limit type. Must be "resume" or "interview".', 400);
+  }
+
+  try {
+    const customApiKey = await UsageTracker.getApiKeyIfLimitExceeded(userId, type);
+    res.status(200).json({
+      success: true,
+      allowed: true,
+      useCustomKey: !!customApiKey
+    });
+  } catch (error) {
+    res.status(200).json({
+      success: true,
+      allowed: false,
+      code: error.code || 'LIMIT_EXCEEDED',
+      message: error.message
+    });
+  }
+};
+
+module.exports = { 
+  getProfile, 
+  updateProfile, 
+  markProfileComplete, 
+  getApiKey, 
+  updateApiKey,
+  checkLimits
+};

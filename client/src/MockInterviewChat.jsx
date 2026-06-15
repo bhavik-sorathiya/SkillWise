@@ -4,6 +4,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useError } from './context/ErrorContext';
+import { useApiKey } from './context/ApiKeyContext';
 import { logout as logoutAPI, API_BASE_URL } from './services/api';
 import socketService from './services/socketService';
 import Sidebar from './components/Sidebar';
@@ -28,6 +29,7 @@ const MockInterviewChat = ({
 }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const { addError } = useError();
+  const { showApiKeyModal } = useApiKey();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -35,7 +37,8 @@ const MockInterviewChat = ({
   const [inputValue, setInputValue] = useState('');
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
-  
+  const [checkingLimits, setCheckingLimits] = useState(true);
+
   // Interview initialization state
   const [showResumeModal, setShowResumeModal] = useState(true);
   const [resumes, setResumes] = useState([]);
@@ -51,6 +54,8 @@ const MockInterviewChat = ({
   const finalizingTimerRef = useRef(null);
 
   const chatEndRef = useRef(null);
+  const textareaRef = useRef(null);
+  const pendingNavigationRef = useRef(null);
 
   const userProfile = useMemo(
     () => ({
@@ -92,6 +97,7 @@ const MockInterviewChat = ({
   const queueNavigation = useCallback((navigateFn) => {
     if (interviewActive && !isFinalizingInterview) {
       setPendingNavigation(() => navigateFn);
+      pendingNavigationRef.current = navigateFn;
       setShowLeaveWarning(true);
       return;
     }
@@ -107,21 +113,25 @@ const MockInterviewChat = ({
 
   const endInterviewAndNavigate = useCallback((navigateFn) => {
     beginFinalizingInterview('Analyzing the interview...');
+    pendingNavigationRef.current = navigateFn;
 
     if (!sessionId) {
       finalizingTimerRef.current = window.setTimeout(() => {
         setIsFinalizingInterview(false);
         navigateFn?.();
-      }, 1800);
+      }, 500);
       return;
     }
 
     try {
       socketService.endInterview(sessionId);
+      // Set a long safety fallback timeout (e.g., 6 seconds) in case the server doesn't respond.
+      // Under normal circumstances, the 'interview_result' event will arrive first and clear this timeout.
       finalizingTimerRef.current = window.setTimeout(() => {
+        console.warn('[Mock Interview] End session fallback timeout triggered');
         setIsFinalizingInterview(false);
         navigateFn?.();
-      }, 1800);
+      }, 6000);
     } catch (error) {
       console.error('[Mock Interview] Error ending session:', error);
       setIsFinalizingInterview(false);
@@ -142,8 +152,10 @@ const MockInterviewChat = ({
     setPendingNavigation(null);
   }, []);
 
-  // Fetch available resumes on mount
+  // Fetch limits and resumes on mount
   useEffect(() => {
+    let isMounted = true;
+
     if (!isAuthenticated || !token) {
       onNavigateToLogin?.();
       return;
@@ -165,24 +177,85 @@ const MockInterviewChat = ({
         }
 
         const data = await response.json();
+        if (!isMounted) return;
+
         if (data.success && data.data.resumes) {
           setResumes(data.data.resumes);
         } else {
           setResumes([]);
         }
       } catch (error) {
+        if (!isMounted) return;
         console.error('[Mock Interview] Error fetching resumes:', error);
         addError(
           error.message || 'Failed to load resumes. Please try again.',
           'error'
         );
       } finally {
-        setModalLoading(false);
+        if (isMounted) {
+          setModalLoading(false);
+        }
       }
     };
 
-    fetchResumes();
-  }, [token, isAuthenticated, onNavigateToLogin, addError]);
+    const verifyLimitsAndFetch = async () => {
+      try {
+        setCheckingLimits(true);
+        const limitRes = await fetch(`${API_BASE_URL}/profile/check-limits?type=interview`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const limitData = await limitRes.json();
+
+        if (!isMounted) return;
+
+        if (limitData.success && !limitData.allowed) {
+          // Blocked by daily limit
+          showApiKeyModal(
+            () => {
+              if (!isMounted) return;
+              setCheckingLimits(false);
+              fetchResumes();
+            },
+            () => {
+              if (!isMounted) return;
+              addError('Daily free mock interview limit reached. Please add your own API key to continue.', 'warning');
+              onNavigateToHome?.();
+            }
+          );
+          return;
+        }
+
+        // Allowed to proceed, fetch resumes now
+        setCheckingLimits(false);
+        fetchResumes();
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('[Mock Interview] Error verifying limits:', err);
+        // Fallback: let them proceed if backend limit check itself fails
+        setCheckingLimits(false);
+        fetchResumes();
+      }
+    };
+
+    verifyLimitsAndFetch();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [token, isAuthenticated]);
+
+  // Auto-resize textarea based on user input content height
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    const newHeight = Math.min(textarea.scrollHeight, 140);
+    textarea.style.height = `${newHeight}px`;
+  }, [inputValue]);
 
   // Scroll to latest message
   useEffect(() => {
@@ -219,7 +292,8 @@ const MockInterviewChat = ({
       setIsFinalizingInterview(false);
       addError('Interview complete! View your detailed analysis in the interview history.', 'success', 4000);
 
-      const nextNavigation = pendingNavigation || (() => onNavigateToInterviews?.());
+      const nextNavigation = pendingNavigationRef.current || (() => onNavigateToInterviews?.());
+      pendingNavigationRef.current = null;
       setPendingNavigation(null);
 
       setTimeout(() => {
@@ -255,7 +329,15 @@ const MockInterviewChat = ({
     // Listen for errors
     const offError = socketService.on('error', (data) => {
       console.error('[Socket] Error:', data);
-      addError(data.message || 'An error occurred during the interview.', 'error');
+      if (data.code === 'RATE_LIMIT_EXCEEDED' || data.code === 'QUOTA_EXCEEDED' || data.code === 'INVALID_CUSTOM_API_KEY' || data.message?.toLowerCase().includes('limit')) {
+        setInterviewActive(false);
+        setShowResumeModal(false); // Hide the resume modal if it's still open
+        showApiKeyModal(() => {
+          addError('API key saved. You can now start the interview again.', 'success');
+        });
+      } else {
+        addError(data.message || 'An error occurred during the interview.', 'error');
+      }
       setIsAiTyping(false);
       setLoadingMessage('');
     });
@@ -375,6 +457,18 @@ const MockInterviewChat = ({
   const handleNavigateToLanding = () => queueNavigation(() => onNavigateToLanding?.());
   const handleNavigateToHome = () => queueNavigation(() => onNavigateToHome?.());
 
+  // Limits check loading screen
+  if (checkingLimits) {
+    return (
+      <div className="min-h-screen bg-background-light dark:bg-background-dark flex items-center justify-center p-4">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent mb-4 animate-duration-1000" />
+          <p className="text-text-main dark:text-white font-medium">Verifying daily usage limits…</p>
+        </div>
+      </div>
+    );
+  }
+
   // Resume Selection Modal
   if (showResumeModal) {
     return (
@@ -431,11 +525,10 @@ const MockInterviewChat = ({
                           setTargetRole(resume.target_role);
                         }
                       }}
-                      className={`p-4 border-2 rounded-lg cursor-pointer transition ${
-                        selectedResume?.id === resume.id
-                          ? 'border-primary bg-primary/10 dark:bg-primary/20'
-                          : 'border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50'
-                      }`}
+                      className={`p-4 border-2 rounded-lg cursor-pointer transition ${selectedResume?.id === resume.id
+                        ? 'border-primary bg-primary/10 dark:bg-primary/20'
+                        : 'border-border-light dark:border-border-dark hover:border-primary/50 dark:hover:border-primary/50'
+                        }`}
                     >
                       <p className="font-semibold text-text-main dark:text-white">
                         {resume.title || resume.name}
@@ -508,12 +601,13 @@ const MockInterviewChat = ({
           onNavigateToProfile={onNavigateToProfile}
           onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
+          onNavigateToHelp={onNavigateToHelp}
           userProfile={userProfile}
         />
 
-        <main className="flex-1 overflow-hidden flex flex-col p-4 md:p-8 pt-4 md:pt-6">
-          <div className="max-w-6xl mx-auto w-full h-full flex flex-col gap-4 md:gap-6">
-            <section className="bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl p-4 md:p-5">
+        <main className="flex-1 overflow-hidden flex flex-col p-3 md:p-6 pt-3 md:pt-4 relative">
+          <div className="max-w-6xl mx-auto w-full flex-1 min-h-0 flex flex-col gap-3 md:gap-4">
+            <section className="sticky top-0 z-20 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-2xl p-4 md:p-5 shadow-sm">
               <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="flex items-center gap-2 text-sm font-semibold text-text-main dark:text-white">
@@ -566,11 +660,10 @@ const MockInterviewChat = ({
                           {isUser ? 'You' : 'AI Interviewer'}
                         </p>
                         <div
-                          className={`text-[15px] leading-relaxed rounded-2xl px-4 py-3 border ${
-                            isUser
-                              ? 'bg-primary text-white border-primary rounded-tr-sm'
-                              : 'bg-background-light dark:bg-background-dark border-border-light dark:border-border-dark rounded-tl-sm'
-                          }`}
+                          className={`text-[15px] leading-relaxed rounded-2xl px-4 py-3 border ${isUser
+                            ? 'bg-primary text-white border-primary rounded-tr-sm'
+                            : 'bg-background-light dark:bg-background-dark border-border-light dark:border-border-dark rounded-tl-sm'
+                            }`}
                         >
                           {message.text}
                         </div>
@@ -618,6 +711,7 @@ const MockInterviewChat = ({
               <div className="border-t border-border-light dark:border-border-dark p-4 md:p-5">
                 <div className="flex items-end gap-2 bg-background-light dark:bg-background-dark rounded-2xl border border-border-light dark:border-border-dark px-3 py-2 focus-within:ring-2 focus-within:ring-primary/40 transition-all">
                   <textarea
+                    ref={textareaRef}
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
                     onKeyDown={handleInputKeyDown}
@@ -641,12 +735,6 @@ const MockInterviewChat = ({
             </section>
           </div>
 
-          <Footer 
-            onAbout={onNavigateToDeveloper}
-            onHelp={onNavigateToHelp}
-            onTerms={onNavigateToTerms}
-            onPrivacy={onNavigateToTerms}
-          />
         </main>
       </div>
 

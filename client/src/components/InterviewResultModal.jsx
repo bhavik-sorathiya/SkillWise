@@ -177,19 +177,29 @@ const InterviewResultModal = ({ result, onClose, onViewResume }) => {
               
               {expandedSection === 'confidence' && (
                 <div className="mt-4">
-                  <div className="flex items-flex-end gap-1 h-32 bg-gray-50 p-4 rounded">
-                    {scaledTrend.map((height, idx) => (
-                      <div
-                        key={idx}
-                        className="flex-1 bg-blue-500 rounded-t hover:bg-blue-600 transition"
-                        style={{ height: `${height}%`, minHeight: '4px' }}
-                        title={`Question ${idx + 1}: ${(confidence_trend[idx] * 100).toFixed(0)}%`}
-                      />
-                    ))}
+                  <div className="flex flex-col bg-gray-50 p-4 rounded-xl border border-gray-100">
+                    <div className="flex items-end justify-start gap-3 h-32 overflow-x-auto pb-2">
+                      {scaledTrend.map((height, idx) => (
+                        <div key={idx} className="flex flex-col items-center gap-1.5 shrink-0" style={{ width: '32px' }}>
+                          <div className="w-full relative group flex flex-col justify-end h-24">
+                            <div
+                              className="bg-blue-500 rounded-t hover:bg-blue-600 transition-all duration-300 relative"
+                              style={{ height: `${height}%`, minHeight: '4px' }}
+                            >
+                              {/* Tooltip on hover */}
+                              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-gray-900 text-white text-[10px] py-1 px-1.5 rounded whitespace-nowrap shadow-md z-10 font-bold">
+                                {(confidence_trend[idx] * 100).toFixed(0)}%
+                              </div>
+                            </div>
+                          </div>
+                          <span className="text-[10px] font-semibold text-gray-500">Q{idx + 1}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-3 border-t border-gray-100 pt-2 font-medium">
+                      {confidence_trend.length} evaluations across your interview
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-600 mt-2">
-                    {confidence_trend.length} evaluations across your interview
-                  </p>
                 </div>
               )}
             </div>

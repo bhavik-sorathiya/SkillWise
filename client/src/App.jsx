@@ -22,6 +22,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import { ErrorProvider } from './context/ErrorContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { ComingSoonProvider } from './context/ComingSoonContext'
+import { ApiKeyProvider } from './context/ApiKeyContext'
 import { getUserAvatar } from './utils/avatar'
 import './App.css'
 
@@ -337,7 +338,9 @@ function App() {
       <ErrorProvider>
         <AuthProvider>
           <ComingSoonProvider>
-            <AppContent />
+            <ApiKeyProvider>
+              <AppContent />
+            </ApiKeyProvider>
           </ComingSoonProvider>
         </AuthProvider>
       </ErrorProvider>

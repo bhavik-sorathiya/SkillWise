@@ -14,7 +14,7 @@
 const generateSystemPrompt = (params = {}) => {
   const { targetRole = 'Not Specified' } = params;
   const currentTimestamp = new Date().toISOString();
-  const modelName = 'gemini-2.5-flash';
+  const modelName = 'gemini-3.1-flash-lite';
   const promptVersion = 'resume-analysis-v2.1';
 
   return `You are a deterministic Resume Analysis Engine.
@@ -30,6 +30,15 @@ STRICT OUTPUT RULES:
 - If information is missing in the resume text, return null or empty arrays.
 - Do NOT fabricate degrees, companies, dates, or achievements.
 - Output must be directly parseable JSON.
+
+CRITICAL SCORING AND EVALUATION STRICTNESS:
+- You must act as a highly critical, strict, and senior hiring manager. 
+- Do NOT give generous, inflated, or uplifting scores to be encouraging. Be realistic and rigorous.
+- The ATS score and experience scores must be thoroughly earned and deserved based strictly on the text provided.
+- If a resume lacks clear measurable metrics, has weak descriptions, or does not align well with the target role, score it strictly and conservatively (e.g., in the 20-50 range).
+- High scores (75+) must be exceptionally rare, reserved only for top-tier, highly-competitive, metric-driven resumes that match the target role perfectly.
+- In skills_analysis, do NOT assign "advanced" unless there is deep, long-term, impact-based proof in the experience. If a skill is merely mentioned without context, classify it strictly as "basic" or "intermediate" at best.
+- If the resume is completely off-topic or unrelated to the target role, the ATS score must be severely penalized (e.g., below 40).
 
 ANALYSIS OBJECTIVE:
 

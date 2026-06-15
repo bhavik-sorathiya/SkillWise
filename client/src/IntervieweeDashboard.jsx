@@ -31,6 +31,9 @@ const IntervieweeDashboard = ({
   const [dashboardData, setDashboardData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showLimitBanner, setShowLimitBanner] = useState(() => {
+    return sessionStorage.getItem('dismissedLimitBanner') !== 'true';
+  });
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -181,11 +184,49 @@ const IntervieweeDashboard = ({
           onNavigateToProfile={onNavigateToProfile}
           onNavigateToSettings={onNavigateToSettings}
           onLogout={handleLogout}
+          onNavigateToHelp={onNavigateToHelp}
           userProfile={userProfile}
         />
 
         <main className="flex-1 overflow-y-auto p-4 md:p-8 pt-4 md:pt-6 pb-20">
           <div className="max-w-7xl mx-auto flex flex-col gap-6">
+
+            {/* ── Premium/Limit Info Banner ──────────────────────────────────── */}
+            {showLimitBanner && dashboardData?.has_api_key === false && (
+              <div className="relative bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/20 rounded-2xl p-5 shadow-sm overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in slide-in-from-top-4 duration-300">
+                <div className="flex items-start gap-4">
+                  <div className="size-12 rounded-xl bg-primary/15 text-primary flex items-center justify-center shrink-0">
+                    <span className="material-symbols-outlined text-[26px]">info</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-text-main dark:text-white flex items-center gap-2">
+                      SkillWise Free Daily Limits
+                    </h3>
+                    <p className="text-sm text-text-secondary dark:text-gray-400 mt-1 max-w-3xl leading-relaxed">
+                      SkillWise provides <strong>1 free resume analysis</strong> and <strong>1 free mock interview</strong> per day. Want unlimited access? You can easily add your own <strong>free Gemini API Key</strong> to unlock unlimited usage securely.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                  <button
+                    onClick={() => onNavigateToSettings?.()}
+                    className="px-4 py-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold rounded-lg shadow-md shadow-primary/20 hover:shadow-primary/30 transition-all duration-200"
+                  >
+                    Add API Key
+                  </button>
+                  <button
+                    onClick={() => {
+                      sessionStorage.setItem('dismissedLimitBanner', 'true');
+                      setShowLimitBanner(false);
+                    }}
+                    className="p-2 border border-border-light dark:border-border-dark text-text-secondary dark:text-gray-400 hover:text-red-500 rounded-lg transition-colors hover:bg-red-500/5 hover:border-red-500/20 flex items-center justify-center"
+                    aria-label="Dismiss banner"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">close</span>
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* ── Profile Hero Card ─────────────────────────────────────────── */}
             <section className="bg-gradient-to-br from-surface-light to-background-light dark:from-surface-dark dark:to-background-dark border border-border-light dark:border-border-dark rounded-2xl p-6 md:p-8 shadow-sm relative overflow-hidden group">

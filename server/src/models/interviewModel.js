@@ -98,6 +98,10 @@ class InterviewModel {
       feedback = ''
     } = evaluation;
 
+    const dbConfidence = typeof confidence === 'number'
+      ? (confidence <= 1 ? Math.round(confidence * 100) : Math.round(confidence))
+      : 50;
+
     await db.execute(query, [
       safeSessionId,
       question,
@@ -106,7 +110,7 @@ class InterviewModel {
       difficulty,
       score,
       rating,
-      confidence,
+      dbConfidence,
       technical_score,
       communication_score,
       problem_solving_score,
