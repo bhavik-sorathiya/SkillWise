@@ -198,6 +198,15 @@ const PORT = Number(process.env.PORT) || 3000;
     server.listen(PORT, () => {
       logger.info(`✓ Server is running on port ${PORT}`);
       logger.info(`✓ Socket.IO initialized`);
+
+      // Self-ping to prevent free-tier hosting (e.g., Render) from sleeping
+      const pingInterval = 14 * 60 * 1000; // 14 minutes
+      setInterval(() => {
+        const selfUrl = process.env.SELF_URL || `http://localhost:${PORT}/health`;
+        fetch(selfUrl)
+          .then(res => logger.info(`[Self-Ping] OK: ${res.status}`))
+          .catch(err => logger.error(`[Self-Ping] Failed: ${err.message}`));
+      }, pingInterval);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
