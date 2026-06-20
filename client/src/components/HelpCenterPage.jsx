@@ -7,7 +7,7 @@ const FAQs = [
   },
   {
     question: "Which resume file formats are supported?",
-    answer: "Currently, SkillWise supports Word Documents (.docx) up to 3MB. We parse the contents to structure your skills, years of experience, and target job descriptions."
+    answer: "SkillWise supports Word Documents (.docx) and PDF files up to 3MB. Note: PDF files are supported, but we prefer DOCX format for better extraction efficiency and response accuracy."
   },
   {
     question: "How does the AI Mock Interview simulator work?",

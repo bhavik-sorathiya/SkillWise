@@ -92,6 +92,8 @@ SWOT RULES:
 - Avoid generic statements.
 
 RESUME IMPROVEMENT RULES:
+- You MUST generate at least 6 resume improvements in total.
+- There MUST be at least 2 improvements in "high_priority", at least 2 in "medium_priority", and at least 2 in "low_priority". More are allowed but not less.
 - Focus only on impactful changes.
 - Keep suggestions concise (1–2 medium sentences max).
 - Provide short relevant examples when helpful.

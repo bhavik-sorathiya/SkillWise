@@ -26,12 +26,15 @@ const upload = multer({
   },
   fileFilter: (req, file, cb) => {
     console.log('File being processed:', file.originalname, 'MIME type:', file.mimetype);
-    // Only accept DOCX files
-    const allowedMimes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    // Accept DOCX and PDF files
+    const allowedMimes = [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/pdf'
+    ];
     if (allowedMimes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error(`Only DOCX (Word) files are allowed. Received: ${file.mimetype}`));
+      cb(new Error(`Only DOCX (Word) and PDF files are allowed. Received: ${file.mimetype}`));
     }
   }
 });
@@ -42,7 +45,7 @@ const uploadErrorHandler = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File size exceeds 3MB limit. Please use a smaller DOCX file.'
+        message: 'File size exceeds 3MB limit. Please use a smaller Word or PDF file.'
       });
     }
     return res.status(400).json({

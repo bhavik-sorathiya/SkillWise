@@ -104,9 +104,20 @@ function AppContent() {
     const currentPath = normalizePath(window.location.pathname);
     if (currentPath !== targetPath) {
       const historyMethod = replace ? 'replaceState' : 'pushState';
-      window.history[historyMethod]({ page: targetPage }, '', targetPath);
+      const currentIdx = window.history.state?.idx || 0;
+      const nextIdx = replace ? currentIdx : currentIdx + 1;
+      window.history[historyMethod]({ page: targetPage, idx: nextIdx }, '', targetPath);
     }
   }, [isAuthenticated]);
+
+  const handleBack = useCallback(() => {
+    const currentIdx = window.history.state?.idx || 0;
+    if (currentIdx > 0) {
+      window.history.back();
+    } else {
+      navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing', { replace: true });
+    }
+  }, [isAuthenticated, navigateToPage]);
 
   const handleInterviewHistorySidebarNavigate = (key) => {
     switch (key) {
@@ -149,17 +160,16 @@ function AppContent() {
     if (loading) return;
 
     if (PROTECTED_PAGES.includes(currentPage) && !isAuthenticated) {
-      const landingPath = PAGE_TO_PATH.landing;
-      if (normalizePath(window.location.pathname) !== landingPath) {
-        window.history.replaceState({ page: 'landing' }, '', landingPath);
-      }
+      navigateToPage('landing', { replace: true });
       return;
     }
 
     const expectedPath = PAGE_TO_PATH[currentPage] || '/';
     const currentPath = normalizePath(window.location.pathname);
     if (currentPath !== expectedPath) {
-      window.history.replaceState({ page: currentPage }, '', expectedPath);
+      window.history.replaceState({ page: currentPage, idx: window.history.state?.idx || 0 }, '', expectedPath);
+    } else if (!window.history.state || window.history.state.idx === undefined) {
+      window.history.replaceState({ page: currentPage, idx: 0 }, '', expectedPath);
     }
   }, [currentPage, isAuthenticated, loading, navigateToPage]);
 
@@ -167,14 +177,14 @@ function AppContent() {
     switch (currentPage) {
       case 'login':
         return <Login 
-          onBackToHome={() => navigateToPage('landing')} 
+          onBackToHome={handleBack} 
           onNavigateToSignup={() => navigateToPage('signup')}
           onNavigateToDashboard={() => navigateToPage('interviewee-dashboard')}
           onNavigateToOnboarding={() => navigateToPage('onboarding')}
         />
       case 'signup':
         return <Signup 
-          onBackToHome={() => navigateToPage('landing')} 
+          onBackToHome={handleBack} 
           onNavigateToLogin={() => navigateToPage('login')} 
           onNavigateToOnboarding={() => navigateToPage('onboarding')}
           onNavigateToDashboard={() => navigateToPage('interviewee-dashboard')}
@@ -231,6 +241,7 @@ function AppContent() {
           onNavigateToHelp={() => navigateToPage('help-center')}
           onNavigateToTerms={() => navigateToPage('terms-policy')}
           onNavigateToPricing={() => navigateToPage('pricing')}
+          onBack={handleBack}
         />
       case 'profile':
         return <ProfilePage
@@ -247,6 +258,7 @@ function AppContent() {
           onNavigateToHelp={() => navigateToPage('help-center')}
           onNavigateToTerms={() => navigateToPage('terms-policy')}
           onNavigateToPricing={() => navigateToPage('pricing')}
+          onBack={handleBack}
         />
       case 'settings':
         return <SettingsPage
@@ -263,6 +275,7 @@ function AppContent() {
           onNavigateToHelp={() => navigateToPage('help-center')}
           onNavigateToTerms={() => navigateToPage('terms-policy')}
           onNavigateToPricing={() => navigateToPage('pricing')}
+          onBack={handleBack}
         />
       case 'interview-history':
         return (
@@ -298,13 +311,13 @@ function AppContent() {
           </DashboardLayout>
         )
       case 'know-developer':
-        return <KnowDeveloperPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} />
+        return <KnowDeveloperPage onBack={handleBack} />
       case 'help-center':
-        return <HelpCenterPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} />
+        return <HelpCenterPage onBack={handleBack} />
       case 'terms-policy':
-        return <TermsPolicyPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} />
+        return <TermsPolicyPage onBack={handleBack} />
       case 'pricing':
-        return <PricingPage onBack={() => navigateToPage(isAuthenticated ? 'interviewee-dashboard' : 'landing')} onGetStarted={() => navigateToPage('signup')} />
+        return <PricingPage onBack={handleBack} onGetStarted={() => navigateToPage('signup')} />
       case 'landing':
       default:
         return <Landing 

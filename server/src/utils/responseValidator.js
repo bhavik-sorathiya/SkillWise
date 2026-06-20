@@ -114,6 +114,7 @@ const resumeAnalysisSchema = Joi.object({
           impact: Joi.string().valid('High', 'Medium', 'Low').required()
         })
       )
+      .min(2)
       .required(),
     medium_priority: Joi.array()
       .items(
@@ -123,6 +124,7 @@ const resumeAnalysisSchema = Joi.object({
           impact: Joi.string().valid('High', 'Medium', 'Low').required()
         })
       )
+      .min(2)
       .required(),
     low_priority: Joi.array()
       .items(
@@ -132,6 +134,7 @@ const resumeAnalysisSchema = Joi.object({
           impact: Joi.string().valid('High', 'Medium', 'Low').required()
         })
       )
+      .min(2)
       .required()
   })
     .required(),

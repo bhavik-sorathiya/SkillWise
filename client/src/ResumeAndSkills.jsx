@@ -179,16 +179,19 @@ const ResumeAndSkills = ({
       }
 
       // Validate file type on client
-      const allowedMimes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      const allowedMimes = [
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/pdf'
+      ];
       if (!allowedMimes.includes(file.type)) {
-        addError(`Invalid file type: ${file.type}. Only DOCX (Word) files are allowed.`, 'warning');
+        addError(`Invalid file type: ${file.type}. Only DOCX (Word) and PDF files are allowed.`, 'warning');
         return;
       }
 
       // Validate file size on client (3MB max)
       const maxSize = 3 * 1024 * 1024;
       if (file.size > maxSize) {
-        addError(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word file.`, 'warning');
+        addError(`File size (${(file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word or PDF file.`, 'warning');
         return;
       }
 

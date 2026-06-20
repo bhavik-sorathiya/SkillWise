@@ -55,8 +55,18 @@ const Landing = ({
 
             <div className="flex items-center space-x-4">
               <button onClick={onNavigateToLogin} className="hidden md:block text-sm font-medium text-gray-900 dark:text-white hover:text-primary transition-colors">Sign in</button>
-              <button onClick={onNavigateToSignup} className="bg-primary hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-lg hover:shadow-primary/30">
-                Get started
+              <button 
+                onClick={() => {
+                  if (window.innerWidth < 768) {
+                    onNavigateToLogin();
+                  } else {
+                    onNavigateToSignup();
+                  }
+                }} 
+                className="bg-primary hover:bg-orange-600 text-white px-6 py-2.5 rounded-lg font-medium transition-all shadow-lg hover:shadow-primary/30"
+              >
+                <span className="md:hidden">Login</span>
+                <span className="hidden md:inline">Get started</span>
               </button>
             </div>
           </div>

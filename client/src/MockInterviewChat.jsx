@@ -25,7 +25,8 @@ const MockInterviewChat = ({
   onLogout,
   onNavigateToDeveloper,
   onNavigateToHelp,
-  onNavigateToTerms
+  onNavigateToTerms,
+  onBack
 }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const { addError } = useError();
@@ -478,7 +479,9 @@ const MockInterviewChat = ({
             <button
               type="button"
               onClick={() => {
-                if (window.history.length > 1) {
+                if (onBack) {
+                  onBack();
+                } else if (window.history.length > 1) {
                   window.history.back();
                 } else {
                   onNavigateToHome?.();

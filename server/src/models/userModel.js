@@ -13,9 +13,10 @@ const User = {
    * @returns {Promise<number>} Inserted user ID
    */
   create: async (fullName, email, passwordHash) => {
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
     const [result] = await db.execute(
       'INSERT INTO users (full_name, email, password_hash) VALUES (?, ?, ?)',
-      [fullName, email, passwordHash]
+      [fullName, cleanEmail, passwordHash]
     );
     return result.insertId;
   },
@@ -26,9 +27,10 @@ const User = {
    * @returns {Promise<Object|undefined>} User row (includes full_name, password_hash)
    */
   findByEmail: async (email) => {
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
     const [rows] = await db.execute(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
+      'SELECT * FROM users WHERE LOWER(email) = ?',
+      [cleanEmail]
     );
     return rows[0];
   },

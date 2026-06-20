@@ -61,10 +61,11 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToOnboarding, onNav
       }
 
       // Call signup from Auth Context
-      const response = await signup(formData.fullName.trim(), formData.email.trim(), formData.password);
+      const emailLower = formData.email.trim().toLowerCase();
+      const response = await signup(formData.fullName.trim(), emailLower, formData.password);
       console.log('Signup successful:', response);
 
-      await login(formData.email.trim(), formData.password);
+      await login(emailLower, formData.password);
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {

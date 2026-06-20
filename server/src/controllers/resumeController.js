@@ -7,7 +7,7 @@ const ResumeAnalysis = require('../models/resumeAnalysisModel');
 const { AppError } = require('../utils/errorHandler');
 const fs = require('fs');
 const path = require('path');
-const { extractTextFromDocx, validateExtractedText, prepareTextForAI } = require('../utils/resumeParser');
+const { extractTextFromDocx, extractTextFromPdf, validateExtractedText, prepareTextForAI } = require('../utils/resumeParser');
 const { getAnalysisPromptConfig, validateResumeText } = require('../utils/promptGenerator');
 const { validateAndSanitizeAnalysis } = require('../utils/responseValidator');
 const { analyzeResume, isInitialized: isGeminiInitialized } = require('../utils/geminiService');
@@ -193,16 +193,16 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
       };
     }
 
-    // Step 4: Call Gemini API
+    // Step 4: Call Gemini API (Attempt 1)
     const analysisTimeout = parseInt(process.env.RESUME_ANALYSIS_TIMEOUT) || 30000;
-    console.log(`Calling Gemini API with prompt config... (Using ${customApiKey ? 'custom API key' : 'system API key'})`);
+    console.log(`Calling Gemini API with prompt config (Attempt 1)... (Using ${customApiKey ? 'custom API key' : 'system API key'})`);
     let analysisResult = await analyzeResume(promptConfig.userPrompt, {
       systemPrompt: promptConfig.systemPrompt,
       timeout: analysisTimeout,
       apiKey: customApiKey
     });
 
-    console.log('Gemini API response:', {
+    console.log('Gemini API response (Attempt 1):', {
       success: analysisResult.success,
       hasAnalysis: !!analysisResult.analysis,
       error: analysisResult.error
@@ -226,7 +226,7 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
     }
 
     if (!analysisResult.success) {
-      console.error('Gemini API call failed:', analysisResult.error);
+      console.error('Gemini API call failed (Attempt 1):', analysisResult.error);
       return {
         success: false,
         analysis: null,
@@ -236,17 +236,48 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
       };
     }
 
-    // Step 5: Validate and sanitize response
-    const validation = validateAndSanitizeAnalysis(analysisResult.analysis);
+    // Step 5: Validate and sanitize response (Attempt 1)
+    let validation = validateAndSanitizeAnalysis(analysisResult.analysis);
 
     if (!validation.success) {
-      console.error('Analysis validation failed:', validation.errors);
-      return {
-        success: false,
-        analysis: null,
-        analysisId: null,
-        error: `Analysis validation failed: ${validation.errors.join('; ')}`
-      };
+      console.warn('Analysis validation failed on Attempt 1. Retrying Gemini API call (Attempt 2)...', validation.errors);
+
+      // Attempt 2 API call
+      analysisResult = await analyzeResume(promptConfig.userPrompt, {
+        systemPrompt: promptConfig.systemPrompt,
+        timeout: analysisTimeout,
+        apiKey: customApiKey
+      });
+
+      console.log('Gemini API response (Attempt 2):', {
+        success: analysisResult.success,
+        hasAnalysis: !!analysisResult.analysis,
+        error: analysisResult.error
+      });
+
+      if (!analysisResult.success) {
+        console.error('Gemini API call failed on Attempt 2 retry:', analysisResult.error);
+        return {
+          success: false,
+          analysis: null,
+          analysisId: null,
+          error: `Retry failed: ${analysisResult.error}`,
+          code: customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'RATE_LIMIT_EXCEEDED'
+        };
+      }
+
+      // Validate Attempt 2
+      validation = validateAndSanitizeAnalysis(analysisResult.analysis);
+
+      if (!validation.success) {
+        console.error('Analysis validation failed on Attempt 2 retry:', validation.errors);
+        return {
+          success: false,
+          analysis: null,
+          analysisId: null,
+          error: `Analysis validation failed after retry: ${validation.errors.join('; ')}`
+        };
+      }
     }
 
     // Step 6: Store analysis in database
@@ -310,62 +341,58 @@ const uploadResume = async (req, res) => {
 
     console.log('[2] File received:', req.file.originalname, `(${(req.file.size / 1024 / 1024).toFixed(2)}MB)`);
 
-    // Validation: Check file type (should only be DOCX)
+    // Validation: Check file type (should only be DOCX or PDF)
     console.log('[3] Validating file type...');
-    const allowedMimes = ['application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    const allowedMimes = [
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/pdf'
+    ];
     if (!allowedMimes.includes(req.file.mimetype)) {
-      // Delete the uploaded file if it somehow passed filter
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-      throw new AppError(`Invalid file type: ${req.file.mimetype}. Only DOCX (Word) files are allowed.`, 400);
+      throw new AppError(`Invalid file type: ${req.file.mimetype}. Only DOCX (Word) and PDF files are allowed.`, 400);
     }
 
     // Validation: Check file size (max 3MB)
     console.log('[4] Checking file size...');
     const maxSize = 3 * 1024 * 1024;
     if (req.file.size > maxSize) {
-      // Delete the uploaded file
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
-      throw new AppError(`File size (${(req.file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word file.`, 400);
+      throw new AppError(`File size (${(req.file.size / (1024 * 1024)).toFixed(2)}MB) exceeds 3MB limit. Please use a smaller Word or PDF file.`, 400);
     }
 
     // Check current resume count from database (max 3)
     const currentCount = await UserResume.getResumeCountByUserId(userId);
     console.log(`[5] Checking resume count: ${currentCount}/${MAX_RESUMES_ALLOWED}`);
     if (currentCount >= MAX_RESUMES_ALLOWED) {
-      // Delete the uploaded file
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
       throw new AppError(`Maximum resume uploads (${MAX_RESUMES_ALLOWED}) reached. Delete an existing resume to upload a new one.`, 409);
     }
 
     // Get user information for filename
     const userInfo = await UserProfile.getUserById(userId);
     if (!userInfo) {
-      // Delete the uploaded file
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
       throw new AppError('User information not found', 404);
     }
 
-    // Generate new filename: userId_username_resume_timestamp.docx
+    // Generate new filename: userId_username_resume_timestamp.docx/.pdf
     const rawName = userInfo.full_name || userInfo.email?.split('@')[0] || 'user';
     const userName = rawName.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
     const resumeCount = currentCount + 1;
     const timestamp = Date.now();
-    const newFileName = `${userId}_${userName}_resume_${timestamp}.docx`;
+    const isPdf = req.file.mimetype === 'application/pdf';
+    const fileExt = isPdf ? 'pdf' : 'docx';
+    const newFileName = `${userId}_${userName}_resume_${timestamp}.${fileExt}`;
 
     // Extract text content from the uploaded resume buffer
-    console.log('[6] Extracting text from DOCX buffer...');
-    const extractionResult = await extractTextFromDocx(req.file.buffer);
+    let extractionResult;
+    if (isPdf) {
+      console.log('[6] Extracting text from PDF buffer...');
+      extractionResult = await extractTextFromPdf(req.file.buffer);
+    } else {
+      console.log('[6] Extracting text from DOCX buffer...');
+      extractionResult = await extractTextFromDocx(req.file.buffer);
+    }
+
     if (!extractionResult.success) {
       console.log(`[7] ❌ Extraction failed: ${extractionResult.error}`);
-      throw new AppError(extractionResult.error || 'Failed to extract text from DOCX file', 400);
+      throw new AppError(extractionResult.error || 'Failed to extract text from resume file', 400);
     }
     const rawText = extractionResult.text;
 

@@ -39,6 +39,20 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
+  // Listen for global 401 unauthorized fetch events to update Auth Context state
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      console.warn('[AuthContext] auth-unauthorized event received, clearing state');
+      clearAuth();
+    };
+
+    window.addEventListener('auth-unauthorized', handleUnauthorized);
+    return () => {
+      window.removeEventListener('auth-unauthorized', handleUnauthorized);
+    };
+  }, []);
+
+
   /**
    * Login user and store auth token
    * @param {string} email - User email

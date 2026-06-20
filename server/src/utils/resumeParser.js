@@ -128,8 +128,84 @@ const prepareTextForAI = (text = '', maxLength = 10000) => {
   return prepared;
 };
 
+/**
+ * Extracts text content from a PDF file buffer using pdf-parse library
+ * @param {Buffer} fileBuffer - The buffer of the PDF file
+ * @returns {Promise<{success: boolean, text: string, characterCount: number, wordCount: number, error?: string}>}
+ */
+const extractTextFromPdf = async (fileBuffer) => {
+  try {
+    if (!fileBuffer || !Buffer.isBuffer(fileBuffer)) {
+      return {
+        success: false,
+        text: '',
+        characterCount: 0,
+        wordCount: 0,
+        error: 'Invalid file buffer provided'
+      };
+    }
+
+    let pdfParsePkg;
+    try {
+      pdfParsePkg = require('pdf-parse');
+    } catch (err) {
+      console.error('pdf-parse library not installed. Install with: npm install pdf-parse');
+      return {
+        success: false,
+        text: '',
+        characterCount: 0,
+        wordCount: 0,
+        error: 'Resume PDF text extraction service is not available. Please contact support.'
+      };
+    }
+
+    // Extract text from PDF buffer
+    let extractedText = '';
+    if (pdfParsePkg && typeof pdfParsePkg === 'function') {
+      const data = await pdfParsePkg(fileBuffer);
+      extractedText = data.text || '';
+    } else if (pdfParsePkg && pdfParsePkg.PDFParse) {
+      const pdfInstance = new pdfParsePkg.PDFParse(new Uint8Array(fileBuffer));
+      await pdfInstance.load();
+      const data = await pdfInstance.getText();
+      extractedText = data.text || '';
+    } else {
+      throw new Error('Unsupported pdf-parse library structure');
+    }
+
+    // Clean up text: remove extra whitespace but preserve paragraph structure
+    const cleanedText = extractedText
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .join('\n');
+
+    // Calculate statistics
+    const characterCount = cleanedText.length;
+    const wordCount = cleanedText.split(/\s+/).filter(word => word.length > 0).length;
+
+    return {
+      success: true,
+      text: cleanedText,
+      characterCount,
+      wordCount,
+      rawText: extractedText
+    };
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    return {
+      success: false,
+      text: '',
+      characterCount: 0,
+      wordCount: 0,
+      error: `Failed to extract resume text from PDF: ${error.message}`
+    };
+  }
+};
+
 module.exports = {
   extractTextFromDocx,
+  extractTextFromPdf,
   validateExtractedText,
   prepareTextForAI
 };

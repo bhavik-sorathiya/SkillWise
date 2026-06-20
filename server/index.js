@@ -17,8 +17,11 @@ const profileRoutes = require('./src/routes/profileRoutes');
 const { initializeGemini } = require('./src/utils/geminiService');
 const { initializeInterviewSocket } = require('./src/handlers/interviewHandler');
 const { globalErrorHandler } = require('./src/utils/errorHandler');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
+// Trust proxy is required to read correct client IPs behind cloud load balancers (like Render/Railway)
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 const isProduction = process.env.NODE_ENV === 'production';
 const clientDistPath = path.join(__dirname, '..', 'client', 'dist');
@@ -66,16 +69,42 @@ const io = socketIo(server, {
   }
 });
 
+// Rate limiting configurations
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 800, // Limit each IP to 800 requests per 15 minutes
+  message: {
+    success: false,
+    error: 'Too many requests from this IP, please try again after 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 15, // Limit each IP to 15 auth attempts per 15 minutes
+  message: {
+    success: false,
+    error: 'Too many authentication attempts. Please try again after 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 // Global middleware for CORS and JSON/form request parsing.
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Apply rate limiter to all API endpoints
+app.use('/api', globalLimiter);
+
 // Serve uploaded resume files when the runtime supports persistent local storage.
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // API route registration by bounded context.
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/interviewee', intervieweeDashboardRoutes);
 app.use('/api/resumes', resumeRoutes);

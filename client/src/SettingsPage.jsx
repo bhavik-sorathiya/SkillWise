@@ -12,7 +12,8 @@ import { getUserAvatar } from './utils/avatar';
 const SettingsPage = ({
   onNavigateToLogin, onNavigateToLanding, onNavigateToHome,
   onNavigateToResume, onNavigateToMockInterview, onNavigateToInterviews,
-  onNavigateToProfile, onNavigateToSettings, onLogout, onNavigateToHelp
+  onNavigateToProfile, onNavigateToSettings, onLogout, onNavigateToHelp,
+  onBack
 }) => {
   const { token, isAuthenticated, logout, user } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -194,7 +195,7 @@ const SettingsPage = ({
 
             {/* Header */}
             <div className="flex items-center gap-3 mb-8">
-              <button onClick={() => onNavigateToHome?.()}
+              <button onClick={() => onBack ? onBack() : onNavigateToHome?.()}
                 className="p-2 rounded-xl border border-border-light dark:border-border-dark hover:bg-surface-light dark:hover:bg-surface-dark transition-colors">
                 <span className="material-symbols-outlined text-xl">arrow_back</span>
               </button>

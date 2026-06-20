@@ -112,7 +112,7 @@ const ResumeUploadSection = ({
             <input
               ref={fileInputRef}
               type="file"
-              accept=".docx"
+              accept=".docx,.pdf"
               onChange={onResumeUpload}
               disabled={resumeCount >= MAX_RESUMES}
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
@@ -136,7 +136,7 @@ const ResumeUploadSection = ({
             >
               Browse Files
             </button>
-            <p className="text-xs text-gray-400 mt-4">Word/DOCX only (Max 3MB)</p>
+            <p className="text-xs text-gray-400 mt-4">Word/DOCX or PDF (Max 3MB) - DOCX preferred for best accuracy</p>
           </div>
         </div>
       </div>

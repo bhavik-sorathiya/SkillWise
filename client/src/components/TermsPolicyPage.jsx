@@ -50,9 +50,9 @@ const TermsPolicyPage = ({ onBack }) => {
           </div>
 
           <div>
-            <h3 className="font-bold text-lg text-primary mb-2">4. Indian Meme Exemption Clause</h3>
+            <h3 className="font-bold text-lg text-primary mb-2">4. Fair Use & Limits</h3>
             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-              This app values humor and Indian memes. Bug fixes may contain hidden comments quoting popular Indian developer realities. Feel free to roast the CSS in your feedback mails!
+              SkillWise provides daily limits for resume analysis and mock interviews to manage hosting costs. Users are expected to use the platform fairly. Attempting to spam or scrape the AI endpoints is prohibited. If you require unlimited usage, you are encouraged to add your own Gemini API key in the settings.
             </p>
           </div>
 

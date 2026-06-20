@@ -14,6 +14,26 @@ const getDefaultApiBaseUrl = () => {
 
 export const API_BASE_URL = getDefaultApiBaseUrl();
 
+// Global fetch interceptor to catch 401 Unauthorized responses
+const originalFetch = window.fetch;
+window.fetch = async function (...args) {
+  try {
+    const response = await originalFetch(...args);
+    if (response.status === 401) {
+      console.warn('[Fetch Interceptor] 401 Unauthorized detected. Clearing auth state.');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+      sessionStorage.removeItem('authContext');
+      // Dispatch custom event to notify AuthContext to update React state
+      window.dispatchEvent(new Event('auth-unauthorized'));
+    }
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
 /**
  * Check token validity before making requests
  * If token is expired, clear auth and throw error
@@ -297,7 +317,7 @@ export const resumeAPI = {
   /**
    * Upload a new resume with target job role for AI analysis
    * AI will automatically detect experience level and years from resume
-   * @param {File} file - Resume file (DOCX only)
+   * @param {File} file - Resume file (DOCX or PDF)
    * @param {Object} options - Optional analysis parameters
    * @param {string} options.targetRole - Target job role for role-specific analysis
    * @returns {Promise<Object>}

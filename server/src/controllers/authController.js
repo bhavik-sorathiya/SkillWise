@@ -12,16 +12,17 @@ const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
   const { full_name, email, password } = req.body;
+  const emailLower = email?.trim().toLowerCase();
 
   // Support both full_name and name from frontend for backward compat
   const userName = full_name || req.body.name;
 
   // Validate required fields
-  validateRequest({ full_name: userName, email, password }, ['full_name', 'email', 'password']);
+  validateRequest({ full_name: userName, email: emailLower, password }, ['full_name', 'email', 'password']);
 
   // Email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(emailLower)) {
     throw new AppError('Please provide a valid email address', 400);
   }
 
@@ -37,7 +38,7 @@ const signup = async (req, res) => {
   }
 
   // Check if user already exists
-  const existingUser = await User.findByEmail(email);
+  const existingUser = await User.findByEmail(emailLower);
   if (existingUser) {
     throw new AppError('User already exists with this email. Please login instead', 409);
   }
@@ -47,7 +48,7 @@ const signup = async (req, res) => {
 
   // Create the user
   try {
-    const userId = await User.create(userName.trim(), email, hashedPassword);
+    const userId = await User.create(userName.trim(), emailLower, hashedPassword);
 
     if (!userId) {
       throw new AppError('Failed to create user account', 500);
@@ -78,12 +79,13 @@ const signup = async (req, res) => {
 
 const login = async (req, res) => {
   const { email, password } = req.body;
+  const emailLower = email?.trim().toLowerCase();
 
   // Validate required fields
-  validateRequest(req.body, ['email', 'password']);
+  validateRequest({ email: emailLower, password }, ['email', 'password']);
 
   // Check if user exists
-  const user = await User.findByEmail(email);
+  const user = await User.findByEmail(emailLower);
   if (!user) {
     throw new AppError('Invalid email or password', 401);
   }
