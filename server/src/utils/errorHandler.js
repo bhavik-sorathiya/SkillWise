@@ -2,6 +2,7 @@
  * Error handling utility for Express
  * Standardizes error responses across the entire backend
  */
+const logger = require('./logger');
 
 class AppError extends Error {
   constructor(message, statusCode = 500, isOperational = true, code = null) {
@@ -22,7 +23,7 @@ class AppError extends Error {
 const catchAsync = (fn) => {
   return (req, res, next) => {
     fn(req, res, next).catch((error) => {
-      console.error('[Async Handler Error]', error.message);
+      logger.error(`[Async Handler Error] ${error.message}`, { stack: error.stack });
       
       // If error is an AppError, use its statusCode
       if (error instanceof AppError) {
@@ -73,7 +74,7 @@ const catchAsync = (fn) => {
       }
 
       // Unexpected error
-      console.error('[Unexpected Error]', error);
+      logger.error(`[Unexpected Error] ${error.message}`, { stack: error.stack, fullError: error });
       res.status(500).json({
         success: false,
         error: process.env.NODE_ENV === 'development' 
@@ -112,10 +113,11 @@ const validateRequest = (data, required = []) => {
  * @param {Function} next - Express next function
  */
 const globalErrorHandler = (err, req, res, next) => {
-  console.error('[Global Error Handler]', {
-    message: err.message,
+  logger.error(`[Global Error Handler] ${err.message}`, {
     statusCode: err.statusCode || 500,
-    stack: err.stack
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method
   });
 
   // If response headers already sent, delegate to Express error handler

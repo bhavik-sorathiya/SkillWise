@@ -2,12 +2,30 @@
 // Application entry point: configures middleware/routes, initializes Gemini, and starts HTTP server.
 
 require('dotenv').config();
+
+const Sentry = require("@sentry/node");
+const { nodeProfilingIntegration } = require("@sentry/profiling-node");
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    integrations: [
+      nodeProfilingIntegration(),
+    ],
+    tracesSampleRate: 1.0,
+    profilesSampleRate: 1.0,
+  });
+}
+
 const express = require('express');
+const helmet = require('helmet');
+const compression = require('compression');
 const cors = require('cors');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const socketIo = require('socket.io');
+const logger = require('./src/utils/logger');
 const authRoutes = require('./src/routes/authRoutes');
 const intervieweeDashboardRoutes = require('./src/routes/intervieweeDashboardRoutes');
 const resumeRoutes = require('./src/routes/resumeRoutes');
@@ -92,7 +110,20 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Global middleware for CORS and JSON/form request parsing.
+const aiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Strict limit for AI endpoints
+  message: {
+    success: false,
+    error: 'Too many AI requests. Please try again after 15 minutes.'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Global middleware for CORS, Security, Compression, and JSON/form parsing.
+app.use(helmet());
+app.use(compression());
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -107,9 +138,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/interviewee', intervieweeDashboardRoutes);
-app.use('/api/resumes', resumeRoutes);
+app.use('/api/resumes', aiLimiter, resumeRoutes);
 app.use('/api/skills', skillsRoutes);
-app.use('/api/interviews', interviewHistoryRoutes);
+app.use('/api/interviews', aiLimiter, interviewHistoryRoutes);
 
 // Health endpoint for load balancers and deployment probes.
 app.get('/health', (req, res) => {
@@ -142,6 +173,11 @@ app.use((req, res, next) => {
   next(error);
 });
 
+// Sentry error handler - must be before our global error handler
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
+
 // Global error handler - MUST be last middleware
 app.use(globalErrorHandler);
 
@@ -156,15 +192,41 @@ const PORT = Number(process.env.PORT) || 3000;
     // Initialize Gemini AI for resume analysis
     const geminiInitialized = await initializeGemini();
     if (!geminiInitialized) {
-      console.warn('⚠️  Gemini AI initialization failed - resume analysis features will be unavailable');
+      logger.warn('⚠️  Gemini AI initialization failed - resume analysis features will be unavailable');
     }
 
     server.listen(PORT, () => {
-      console.log(`✓ Server is running on port ${PORT}`);
-      console.log(`✓ Socket.IO initialized`);
+      logger.info(`✓ Server is running on port ${PORT}`);
+      logger.info(`✓ Socket.IO initialized`);
     });
   } catch (error) {
-    console.error('Failed to start server:', error);
+    logger.error('Failed to start server:', error);
     process.exit(1);
   }
 })();
+
+// Graceful Shutdown
+const shutdown = async () => {
+  logger.info('SIGTERM/SIGINT received. Shutting down gracefully...');
+  server.close(async () => {
+    logger.info('HTTP server closed.');
+    try {
+      const db = require('./src/config/db');
+      await db.end();
+      logger.info('Database pool closed.');
+      process.exit(0);
+    } catch (err) {
+      logger.error('Error during database pool shutdown', err);
+      process.exit(1);
+    }
+  });
+  
+  // Force exit if hanging
+  setTimeout(() => {
+    logger.error('Forcing shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

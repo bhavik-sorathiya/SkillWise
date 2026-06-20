@@ -2,7 +2,7 @@
 
 SkillWise is a full-stack web application: a React (Vite) frontend and a Node.js + Express backend with MySQL and Socket.IO for real-time mock interviews & resume analysis.
 
-This README covers quick setup, run commands, required environment variables, documentation links and a short troubleshooting section.
+This README covers quick setup, run commands, required environment variables, documentation links, troubleshooting, and **Pre-Launch Checklist** instructions.
 
 ## Project layout
 
@@ -59,11 +59,31 @@ Backend (`server/.env`):
 - `GEMINI_API_KEY_2` (optional fallback)
 - `RESUME_ANALYSIS_TIMEOUT` (ms, optional)
 - `NODE_ENV` (`development|production`)
+- `ALLOWED_ORIGINS` (Comma-separated origins for CORS, e.g. `http://your-frontend-domain.com,http://localhost:5173`)
+- `SENTRY_DSN` (Optional: for backend error tracking)
 
 Frontend (`client/.env`):
 
-- `VITE_API_URL` (e.g. `http://localhost:3000/api`)
-- `VITE_SOCKET_URL` (e.g. `http://localhost:3000`)
+- `VITE_API_URL` (e.g. `http://localhost:3000/api` or your deployed backend URL)
+- `VITE_SOCKET_URL` (e.g. `http://localhost:3000` or your deployed backend URL)
+- `VITE_SENTRY_DSN` (Optional: for frontend error tracking)
+
+## Pre-Launch / Deployment Checklist
+
+Before taking the application live, review the following external configurations that need to be managed through your hosting platforms:
+
+1. **Uptime Monitoring**
+   - Use a free service like **UptimeRobot** or **Better Uptime**.
+   - Point the monitor to your backend's `GET /health` endpoint.
+   - Configure email/SMS alerts so you are notified immediately if the app crashes.
+2. **Error Tracking (Sentry)**
+   - Create a free account at [sentry.io](https://sentry.io).
+   - Create two projects (one for Express/Node.js, one for React).
+   - Add the resulting DSN keys to your platform's environment variables (`SENTRY_DSN` and `VITE_SENTRY_DSN`). The app will automatically initialize Sentry if these keys are present.
+3. **Database Backups**
+   - Ensure your database provider (e.g., Supabase, PlanetScale, AWS RDS) has automated backups enabled. Many "free tier" providers do not enable this by default. Check their documentation and configure a daily backup schedule.
+4. **HTTPS Enforcement**
+   - Verify that your hosting provider (Vercel, Render, Railway, etc.) automatically redirects HTTP traffic to HTTPS and provisions an SSL certificate (Let's Encrypt). This is usually the default behavior.
 
 ## Documentation
 
@@ -78,8 +98,6 @@ The `docs/` folder contains the project's canonical documentation. Quick links a
 - [docs/tech-stack.md](docs/tech-stack.md) — Libraries, frameworks, build tooling, and runtime versions used across the project.
 - [docs/decisions.md](docs/decisions.md) — Key architectural and implementation decisions, tradeoffs and alternatives considered.
 - [docs/README.md](docs/README.md) — Overview index for the `docs/` directory with quick navigation.
-
-Open any of the files above for more detailed guidance. If you want, I can expand any single doc into a fuller how-to or add examples (database seed scripts, deployment CI, etc.).
 
 ## Troubleshooting
 
@@ -111,8 +129,3 @@ npm ci --prefix server
 ```bash
 npm install --prefix client --legacy-peer-deps
 ```
-
-## Next steps
-
-- Read `docs/getting-started.md` and `docs/architecture.md` for a deeper walkthrough.
-- Want me to: run the setup now, or pin `tailwindcss` to v3 and rebuild the client? Reply which action you prefer and I'll proceed.

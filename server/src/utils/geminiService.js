@@ -62,8 +62,15 @@ const isInitialized = () => {
  * @param {string} options.systemPrompt - Custom system instruction (optional)
  * @returns {Promise<{success: boolean, analysis: Object|null, error: string|null, tokens: {prompt: number, completion: number}|null}>}
  */
+const delay = ms => new Promise(res => setTimeout(res, ms));
+
 const analyzeResume = async (resumeText, options = {}) => {
-  try {
+  let attempt = 0;
+  const maxRetries = 2;
+  const baseDelay = 1000;
+
+  while (attempt <= maxRetries) {
+    try {
     const { timeout = 30000, systemPrompt = '', apiKey = null } = options;
 
     let targetClient1 = aiClient1;
@@ -151,7 +158,19 @@ const analyzeResume = async (resumeText, options = {}) => {
       throw abortError;
     }
   } catch (error) {
-    console.error('Error analyzing resume with Gemini:', error.message);
+    const isRateLimit = error.message?.includes('429') || 
+                        error.message?.includes('RESOURCE_EXHAUSTED') ||
+                        error.message?.includes('quota');
+    
+    if (isRateLimit && attempt < maxRetries) {
+      attempt++;
+      const waitTime = baseDelay * Math.pow(2, attempt);
+      console.warn(`[Gemini] Rate limited on resume analysis. Retrying in ${waitTime}ms (Attempt ${attempt}/${maxRetries})...`);
+      await delay(waitTime);
+      continue;
+    }
+    
+    console.error(`[Gemini] Error analyzing resume (Attempt ${attempt}):`, error.message);
     return {
       success: false,
       analysis: null,
@@ -159,6 +178,7 @@ const analyzeResume = async (resumeText, options = {}) => {
       tokens: null
     };
   }
+  } // End while
 };
 
 /**
@@ -172,6 +192,9 @@ const analyzeResume = async (resumeText, options = {}) => {
  * @throws {Error} If both API keys fail or generation fails
  */
 const generateText = async (prompt, options = {}) => {
+  let attempt = 0;
+  const maxRetries = 2;
+  const baseDelay = 1000;
   let timeout = 30000;
   let apiKey = null;
 
@@ -231,33 +254,52 @@ const generateText = async (prompt, options = {}) => {
     }
   };
 
-  // Try primary API key first
-  const primaryResult = await attemptWithKey(targetClient1, apiKey ? 'Custom User Key' : 'Primary Key (GEMINI_API_KEY_1)');
-  if (typeof primaryResult === 'string') {
-    return primaryResult;
-  }
-
-  // If primary key failed due to rate limiting and fallback client exists, try it
-  if (primaryResult.isRateLimit && targetClient2) {
-    console.warn(`[Gemini] Primary key rate limited, falling back to secondary key...`);
-    const fallbackResult = await attemptWithKey(targetClient2, 'Fallback Key (GEMINI_API_KEY_2)');
-    
-    if (typeof fallbackResult === 'string') {
-      return fallbackResult;
+  while (attempt <= maxRetries) {
+    // Try primary API key first
+    const primaryResult = await attemptWithKey(targetClient1, apiKey ? 'Custom User Key' : 'Primary Key (GEMINI_API_KEY_1)');
+    if (typeof primaryResult === 'string') {
+      return primaryResult;
     }
-    
-    // Both failed
-    console.error(`[Gemini] Both API keys failed:`, fallbackResult.error);
-    throw new Error(`All API keys exhausted: ${fallbackResult.error.message}`);
-  }
 
-  // Primary key failed without rate limit, or no fallback key available
-  if (primaryResult.error) {
-    console.error(`[Gemini] Primary key error without fallback:`, primaryResult.error);
-    throw primaryResult.error;
-  }
+    // If primary key failed due to rate limiting and fallback client exists, try it
+    if (primaryResult.isRateLimit && targetClient2) {
+      console.warn(`[Gemini] Primary key rate limited, falling back to secondary key...`);
+      const fallbackResult = await attemptWithKey(targetClient2, 'Fallback Key (GEMINI_API_KEY_2)');
+      
+      if (typeof fallbackResult === 'string') {
+        return fallbackResult;
+      }
+      
+      // Both failed - if we still have retries, backoff and retry loop
+      if (attempt < maxRetries) {
+        attempt++;
+        const waitTime = baseDelay * Math.pow(2, attempt);
+        console.warn(`[Gemini] Both keys rate limited. Retrying in ${waitTime}ms (Attempt ${attempt}/${maxRetries})...`);
+        await delay(waitTime);
+        continue;
+      }
 
-  throw new Error('Unknown error in generateText');
+      console.error(`[Gemini] Both API keys exhausted:`, fallbackResult.error);
+      throw new Error(`All API keys exhausted: ${fallbackResult.error.message}`);
+    }
+
+    // If rate limited but no fallback key, backoff and retry primary
+    if (primaryResult.isRateLimit && attempt < maxRetries) {
+      attempt++;
+      const waitTime = baseDelay * Math.pow(2, attempt);
+      console.warn(`[Gemini] Rate limited. Retrying in ${waitTime}ms (Attempt ${attempt}/${maxRetries})...`);
+      await delay(waitTime);
+      continue;
+    }
+
+    // Primary key failed without rate limit, or retries exhausted
+    if (primaryResult.error) {
+      console.error(`[Gemini] Primary key error:`, primaryResult.error);
+      throw primaryResult.error;
+    }
+
+    throw new Error('Unknown error in generateText');
+  } // end while
 };
 
 /**
