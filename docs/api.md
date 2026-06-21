@@ -1,189 +1,81 @@
-# API
+# REST API & Socket Contract
 
-Base URL (default local):
-- `http://localhost:3000/api`
+The SkillWise backend exposes both a standard stateless REST API and a stateful WebSocket API for live interactions.
 
-Auth model:
-- JWT bearer token for protected HTTP routes
-- Header: `Authorization: Bearer <token>`
+## Base Configuration
+- **Base HTTP URL**: `http://localhost:3000/api`
+- **Socket URL**: `ws://localhost:3000`
+- **Authentication Model**: Stateless JWT (JSON Web Tokens). Passed via the `Authorization: Bearer <token>` header on HTTP requests, and via the auth payload during Socket handshakes.
+- **Global Response Pattern**:
+  - Success: `{ "success": true, "data": { ... } }`
+  - Error: `{ "success": false, "error": "Reason string", "stack": "..." (dev only) }`
 
-Response pattern:
-- Success: `{ success: true, ... }`
-- Error: `{ success: false, message|error, ... }`
+## Rate Limiting Policy
+To prevent abuse, protect the database, and preserve Gemini API quota, endpoints are strictly rate-limited per IP address:
+- **Global API Scope**: 800 requests per 15 minutes.
+- **Auth Scope (`/api/auth/*`)**: 15 requests per 15 minutes (Brute-force protection).
+- **AI Scope (`/api/resumes/*`, `/api/interviews/*`)**: 10 requests per 15 minutes (Quota protection).
+When limits are exceeded, a `429 Too Many Requests` response is returned.
 
-## Auth Endpoints
-### POST `/auth/signup`
-Creates a new user.
+---
 
-Request:
-```json
-{
-  "name": "Jane Doe",
-  "email": "jane@example.com",
-  "password": "secret123"
-}
-```
+## 1. Auth Endpoints
 
-Response (201):
-```json
-{
-  "success": true,
-  "message": "User created successfully. You can now login.",
-  "userId": 10
-}
-```
+### `POST /api/auth/signup`
+Creates a new user with a securely hashed password.
+- **Payload**: `{ "name": "Jane", "email": "j@test.com", "password": "pass" }`
+- **Response**: `201 Created`
 
-### POST `/auth/login`
-Authenticates user and returns JWT.
+### `POST /api/auth/login`
+Authenticates a user and issues a JWT.
+- **Payload**: `{ "email": "j@test.com", "password": "pass" }`
+- **Response**: `200 OK` (Includes the JWT).
 
-Request:
-```json
-{
-  "email": "jane@example.com",
-  "password": "secret123"
-}
-```
+---
 
-Response (200):
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "user": {
-    "id": 10,
-    "name": "Jane Doe",
-    "email": "jane@example.com",
-    "created_at": "2026-03-22T12:00:00.000Z"
-  },
-  "token": "<jwt>"
-}
-```
+## 2. Document/Resume Endpoints (Protected)
 
-### POST `/auth/logout` (protected)
-Stateless logout acknowledgement.
+### `POST /api/resumes/upload`
+Uploads a document (DOCX/PDF) and triggers the AI analysis pipeline.
+- **Payload**: `multipart/form-data` containing `file`. Maximum size: 3MB.
+- **Response**: Returns the resume metadata and the generated AI analysis ID.
 
-## Interviewee Endpoints
-### GET `/interviewee/dashboard` (protected)
-Returns dashboard user/profile data.
+### `GET /api/resumes/list`
+Returns a list of all resumes uploaded by the authenticated user.
 
-### GET `/interviewee/resume-analysis` (protected)
-Returns resume analysis payload used by dashboard flow.
+### `GET /api/resumes/analysis/:resumeId`
+Retrieves the complete, structured JSON output produced by Gemini for a specific resume.
 
-## Resume Endpoints
-### GET `/resumes/list` (protected)
-List current user resumes.
+---
 
-Response example:
-```json
-{
-  "success": true,
-  "data": {
-    "resumes": [
-      {
-        "id": 4,
-        "name": "4_John_resume_1.docx",
-        "uploadedDate": "1 day ago",
-        "type": "docx",
-        "uploadedAt": "2026-03-21T12:00:00.000Z",
-        "isPrimary": true
-      }
-    ],
-    "total": 1,
-    "maxAllowed": 3,
-    "canUpload": true
-  }
-}
-```
+## 3. Interview History Endpoints (Protected)
 
-### POST `/resumes/upload` (protected)
-Upload DOCX and trigger analysis.
+### `GET /api/interviews?limit=10&offset=0&sortBy=date`
+Returns a paginated list of all interview sessions the user has completed or abandoned.
 
-Constraints:
-- File field: `file`
-- MIME: DOCX only
-- Max size: 3MB
+### `GET /api/interviews/session/:sessionId`
+Deep fetch. Returns the session metadata, full chat transcript, individual question evaluations, and the final aggregate verdict (`STRONG_HIRE`, `NO_HIRE`).
 
-Request (multipart form-data):
-- `file`: `resume.docx`
-- `targetRole`: `Frontend Developer`
+---
 
-Response (201) example:
-```json
-{
-  "success": true,
-  "message": "Resume uploaded successfully",
-  "data": {
-    "id": 12,
-    "name": "12_Jane_resume_1.docx",
-    "uploadedDate": "Just now",
-    "type": "docx",
-    "analysisMetadata": {
-      "attempted": true,
-      "success": true,
-      "analysisId": 33
-    }
-  }
-}
-```
+## 4. Socket.IO API (Live Interview)
 
-### GET `/resumes/analysis/:resumeId` (protected)
-Returns full structured analysis for a resume.
+Because HTTP is stateless and request-response driven, we use WebSockets for the live mock interview to achieve sub-second latency and persistent contextual state.
 
-## Skills Endpoints (all protected)
-### GET `/skills`
-Returns profile skills.
+### Handshake & Connection
+Clients must provide their JWT token upon connection. Unauthenticated sockets are immediately disconnected.
 
-### POST `/skills/add`
-Request:
-```json
-{
-  "skill_name": "React",
-  "proficiency_level": "intermediate",
-  "years_of_experience": 1
-}
-```
+### Client-to-Server Events
+- `start_interview`: Initiates a session. Payload: `{ resumeId, role }`.
+- `user_message`: Submits an answer to the AI. Payload: `{ sessionId, message }`.
+- `end_interview`: Requests the session be finalized and scored. Payload: `{ sessionId }`.
 
-### PUT `/skills/:skillName`
-Request example:
-```json
-{
-  "new_skill_name": "React.js",
-  "proficiency_level": "advanced"
-}
-```
+### Server-to-Client Events
+- `ai_message`: Emits the next interview question generated by Gemini.
+- `loading`: Emits state updates (e.g., "Evaluating your answer...") to drive frontend spinners.
+- `interview_closing`: Emits when the session is transitioning into the finalization phase.
+- `interview_result`: Emits the aggregate final score payload when generation completes.
+- `error`: Emits structured failure messages if the AI fails or the database connection drops.
 
-### DELETE `/skills/:skillName`
-Removes skill from profile and latest analysis copy.
-
-## Interview History Endpoints (protected)
-### GET `/interviews?limit=10&offset=0&sortBy=date&sortOrder=desc`
-Returns paginated session list.
-
-### GET `/interviews/user/:userId?limit=10&offset=0&sortBy=score&sortOrder=asc`
-Same as list endpoint but enforces owner-only access.
-
-### GET `/interviews/session/:sessionId`
-Returns one session detail with stats, evaluations, confidence series, and parsed final analysis.
-
-## Socket.IO API (Live Interview)
-Connection:
-- URL: backend host (`http://localhost:3000`)
-- Handshake auth payload includes `token` and `userId`
-
-Client -> Server events:
-- `start_interview`: `{ resumeId, role }`
-- `user_message`: `{ sessionId, message }`
-- `end_interview`: `{ sessionId }`
-
-Server -> Client events:
-- `ai_message`: next question / system transition message
-- `loading`: progress state (`Evaluating your answer...`, etc.)
-- `interview_closing`: indicates finalization stage
-- `interview_result`: final verdict payload
-- `error`: structured error payload
-
-## Auth Details
-- Token signing secret: `JWT_SECRET`
-- HTTP protected routes use middleware verification
-- 401 responses for missing/invalid/expired tokens
-- Ownership checks prevent cross-user interview history access
+---
+[⬅ Previous Page: Backend Infrastructure](backend.md) | [🏠 Documentation Index](README.md) | [Next Page: Deployment ➡](deployment.md)

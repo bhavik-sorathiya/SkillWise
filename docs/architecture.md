@@ -1,15 +1,16 @@
-# Architecture
+# System Architecture
 
-## System Design
-SkillWise uses a **modular monolith** architecture:
-- One backend service (`Node.js + Express`) handles auth, resume analysis, skills, and interview history.
-- One frontend SPA (`React + Vite`) handles UI, routing state, and API/socket communication.
-- One relational database (`MySQL`) stores users, profiles, resumes, analysis, and interview sessions.
-- One real-time channel (`Socket.IO`) supports live mock interview flows.
+SkillWise utilizes a **Modular Monolith** architectural pattern. This design provides the simplicity of a single deployable unit while maintaining strict internal boundaries for future scalability.
 
-This is not a microservices architecture today. Boundaries are separated by folders/modules instead of separate deployable services.
+## High-Level Topology
 
-## High-Level Interaction
+- **Frontend Application**: A Single Page Application (SPA) built with React and Vite. It handles client-side routing, local state management, and visual representation.
+- **Backend Service**: A Node.js + Express server. It manages REST API routes, Socket.IO connections, business logic, and acts as the secure intermediary for external APIs.
+- **Relational Database**: A MySQL instance storing user identities, session data, resume metadata, and historical analysis.
+- **AI Engine Integration**: Google's Gemini API, invoked securely from the backend to process natural language tasks.
+
+## Data Flow Diagram
+
 ```mermaid
 flowchart LR
   U[User Browser]
@@ -19,18 +20,21 @@ flowchart LR
   AI[Gemini API]
   WS[Socket.IO]
 
-  U --> FE
-  FE -->|REST /api/*| API
-  FE -->|Socket Events| WS
+  U -->|Interacts| FE
+  FE -->|REST HTTPS| API
+  FE -->|WebSocket| WS
   WS --> API
-  API --> DB
-  API --> AI
-  API --> WS
-  WS --> FE
+  API -->|SQL Queries| DB
+  API -->|Secure RPC| AI
+  API -->|Emit| WS
+  WS -->|Listen| FE
 ```
 
-## Frontend -> Backend -> DB Flow
-### Resume analysis flow
+## Core Interaction Flows
+
+### 1. The Resume Analysis Pipeline
+When a user uploads a resume, the data follows a linear, synchronous flow:
+
 ```mermaid
 sequenceDiagram
   participant FE as Frontend
@@ -38,57 +42,57 @@ sequenceDiagram
   participant DB as MySQL
   participant AI as Gemini
 
-  FE->>API: POST /api/resumes/upload (DOCX + targetRole)
-  API->>DB: INSERT user_resumes
-  API->>API: Parse DOCX + validate text
-  API->>AI: Analyze resume prompt
-  AI-->>API: Structured JSON analysis
-  API->>DB: INSERT resume_analysis
-  API-->>FE: Upload + analysis metadata response
+  FE->>API: POST /api/resumes/upload (DOCX/PDF)
+  API->>DB: INSERT into user_resumes
+  API->>API: Parse Document & Extract Text
+  API->>AI: Send prompt with extracted text
+  Note right of API: Exponential Backoff & Retry Logic active
+  AI-->>API: Return structured JSON analysis
+  API->>DB: INSERT into resume_analysis
+  API-->>FE: Return 200 OK + Analysis JSON
 ```
 
-### Live interview flow
+### 2. The Real-Time Mock Interview Loop
+Mock interviews require stateful, bidirectional communication. We use WebSockets (via Socket.IO) to achieve sub-second latency.
+
 ```mermaid
 sequenceDiagram
   participant FE as Frontend
   participant IO as Socket.IO
-  participant API as Interview Handler
+  participant API as Interview Engine
   participant DB as MySQL
   participant AI as Gemini
 
-  FE->>IO: start_interview(resumeId, role)
-  IO->>API: create session + seed first question
-  API->>DB: INSERT interview_sessions/messages
-  API-->>FE: ai_message
+  FE->>IO: emit: start_interview(resumeId, role)
+  IO->>API: Initialize session
+  API->>DB: Create interview_sessions record
+  API-->>FE: emit: ai_message (First Question)
 
-  loop per answer
-    FE->>IO: user_message(sessionId, message)
-    IO->>API: evaluate answer
-    API->>DB: save message + evaluation
-    API->>AI: next question/evaluation
-    API-->>FE: ai_message or interview_closing
+  loop Answer & Evaluation Cycle
+    FE->>IO: emit: user_message(answer)
+    IO->>API: Process Answer
+    API->>AI: Evaluate answer & generate next question
+    API->>DB: Save dialogue turn
+    API-->>FE: emit: ai_message
   end
 
-  FE->>IO: end_interview(sessionId)
-  IO->>API: finalize
-  API->>AI: final evaluation
-  API->>DB: save interview_results + close session
-  API-->>FE: interview_result
+  FE->>IO: emit: end_interview
+  IO->>API: Finalize Session
+  API->>AI: Generate aggregate feedback
+  API->>DB: Update interview_sessions with final score
+  API-->>FE: emit: interview_result
 ```
 
-## Internal Module Boundaries
-- `server/src/routes/*`: HTTP route registration and middleware binding
-- `server/src/controllers/*`: request orchestration and response shaping
-- `server/src/models/*`: SQL/database access
-- `server/src/utils/*`: parser/validator/AI helpers
-- `server/src/handlers/interviewHandler.js`: socket event orchestration
+## Architectural Resilience & Security
 
-## Communication Details
-- REST for CRUD/data retrieval (`/api/auth`, `/api/resumes`, `/api/skills`, `/api/interviews`, `/api/interviewee`)
-- Socket.IO for low-latency interview chat and evaluation events
-- JWT bearer tokens for protected REST routes; token + user context for socket handshake
+SkillWise is designed to fail gracefully and recover automatically:
 
-## Why this architecture
-- Faster development and easier debugging for a student/mini-project scope
-- Clear module boundaries without multi-service deployment overhead
-- Supports both request-response and real-time workflows in one backend process
+- **AI Fault Tolerance**: The `geminiService` implements an exponential backoff algorithm. If Google's API returns a `429 Too Many Requests`, the backend pauses and retries automatically before falling back to a secondary API key.
+- **Database Connection Pooling**: The MySQL connection utilizes a managed pool with a strict `connectTimeout` to prevent the Node.js event loop from hanging during database outages.
+- **Application Hardening**:
+  - `helmet`: Injects critical HTTP security headers.
+  - `express-rate-limit`: Prevents brute-force attacks on Auth routes and stops abuse of expensive AI endpoints.
+- **Graceful Shutdown**: Upon receiving `SIGTERM` (during a deploy or scale event), the server stops accepting new connections and explicitly drains the database pool before exiting.
+
+---
+[⬅ Previous Page: Getting Started](getting-started.md) | [🏠 Documentation Index](README.md) | [Next Page: Tech Stack ➡](tech-stack.md)

@@ -200,7 +200,7 @@ const PORT = Number(process.env.PORT) || 3000;
       logger.info(`✓ Socket.IO initialized`);
 
       // Self-ping to prevent free-tier hosting (e.g., Render) from sleeping
-      const pingInterval = 14 * 60 * 1000; // 14 minutes
+      const pingInterval = 10 * 60 * 1000; // 10 minutes
       setInterval(() => {
         const selfUrl = process.env.SELF_URL || `http://localhost:${PORT}/health`;
         fetch(selfUrl)
@@ -229,7 +229,7 @@ const shutdown = async () => {
       process.exit(1);
     }
   });
-  
+
   // Force exit if hanging
   setTimeout(() => {
     logger.error('Forcing shutdown after timeout');

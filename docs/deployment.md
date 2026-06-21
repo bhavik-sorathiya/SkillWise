@@ -1,79 +1,69 @@
-# Deployment
+# Deployment & DevOps
 
-## Deployment Model
-Current setup is designed for local/dev first, and can be deployed as:
-- Frontend static app (Vite build output)
-- Backend Node server (Express + Socket.IO)
-- MySQL database service
+SkillWise is designed to be deployed as a decoupled system: a static frontend and a stateful Node.js backend. 
 
-Recommended deployment approach:
-- Deploy the frontend and backend separately on platforms that suit each runtime.
-- Let the backend own API, auth, uploads, and Socket.IO.
-- If you want a single-host demo, the backend can also serve `client/dist` in production after the frontend build.
+## Suggested Hosting Split
+- **Frontend**: Vercel, Netlify, or AWS S3 + CloudFront. (Static Hosting).
+- **Backend**: Render, Railway, DigitalOcean App Platform, or a traditional VM (e.g., EC2) using PM2.
+- **Database**: Managed MySQL (e.g., PlanetScale, AWS RDS, Supabase).
 
-## Environment Variables
-Backend (`server/.env`):
-- `PORT` (default `3000`)
-- `CLIENT_URL` or `CLIENT_URLS`
-- `DB_HOST`
-- `DB_PORT`
-- `DB_USER`
-- `DB_PASSWORD`
-- `DB_DATABASE`
-- `DB_SSL` (`true|false`)
-- `JWT_SECRET`
-- `GEMINI_API_KEY` or `GEMINI_API_KEY_1`
-- `GEMINI_API_KEY_2` (optional fallback)
-- `RESUME_ANALYSIS_TIMEOUT` (optional, default 30000 ms)
-- `NODE_ENV` (`development|production`)
+This split is the recommended default because it keeps the frontend globally distributed on an edge CDN, while the backend maintains strict control over the API, Socket.IO connections, and database scaling.
 
-Frontend (`client/.env`):
-- `VITE_API_URL` (default `/api` in production, `http://localhost:3000/api` in development)
-- `VITE_SOCKET_URL` (default same-origin in production, `http://localhost:3000` in development)
-- `VITE_DEV_BACKEND_URL` (optional dev proxy target)
-- `VITE_DEV_PORT` (optional dev server port)
+---
 
-## Build Steps
-### Frontend
+## The Pre-Flight Checklist
+
+Before taking the application live to real users, ensure you have completed the following infrastructure configurations:
+
+### 1. Observability
+- **Sentry Integration**: Create a free account at [sentry.io](https://sentry.io). Obtain a Node.js DSN and a React DSN. Add them to your environment variables as `SENTRY_DSN` and `VITE_SENTRY_DSN`. This will automatically activate error tracking and stack trace capture.
+- **Uptime Monitoring**: Configure a service like UptimeRobot to ping your `GET /health` endpoint every 5 minutes. (Note: The backend also runs an internal 10-minute self-ping to prevent free-tier hosting cold starts).
+
+### 2. Security & Compliance
+- **Disable Frontend Sourcemaps**: Already configured in `client/vite.config.js`. This ensures your raw source code is not exposed to the public.
+- **CORS Configuration**: In your backend hosting provider, set the `ALLOWED_ORIGINS` environment variable to your exact production frontend URL (e.g., `https://skillwise.example.com`). Do not use a wildcard `*` in production.
+- **HTTPS**: Ensure your reverse proxy or hosting provider is terminating SSL and redirecting HTTP traffic to HTTPS.
+
+### 3. Data Persistence
+- **Database Backups**: Verify that your managed MySQL provider has automated daily backups enabled.
+- **File Uploads**: The backend requires a writable filesystem to temporarily store resumes. If you are deploying to a serverless or ephemeral environment (where files are lost on restart), you must map the `server/uploads/resumes` directory to a persistent volume, or adapt the `multer` config to pipe directly to an S3 bucket.
+
+---
+
+## Continuous Integration (CI/CD)
+
+The repository includes a GitHub Actions workflow (`.github/workflows/build.yml`). 
+On every push to the `main` branch, the pipeline automatically:
+1. Provisions a Node 20 environment.
+2. Installs dependencies for both client and server.
+3. Builds the React application to ensure no syntax errors break the UI.
+4. Runs a syntax check (`node --check`) against the Express server.
+
+This guarantees that fundamentally broken code never reaches your deployment pipeline.
+
+---
+
+## Build & Run Commands
+
+### Frontend Build
 ```bash
 cd client
-npm install
+npm install --legacy-peer-deps
 npm run build
 ```
-Build output: `client/dist`
+The resulting `client/dist` folder can be served by any static web server (Nginx, Vercel).
 
-### Backend
+### Backend Run
 ```bash
 cd server
 npm install
 npm run start
 ```
-For production, use `npm run start` behind a process manager (PM2/systemd/container).
-
-## Local Combined Run
-From repo root:
+*If deploying to a raw VM (not a managed platform like Render), it is highly recommended to use a process manager like PM2:*
 ```bash
-npm run setup
-npm run dev
+npm install -g pm2
+pm2 start index.js --name "skillwise-api"
 ```
 
-## Production Checklist
-1. Set secure `JWT_SECRET`.
-2. Use production DB credentials (no defaults).
-3. Restrict CORS origins in `server/index.js`.
-4. Configure HTTPS/TLS at reverse proxy or platform layer.
-5. Persist `uploads/` volume (resume files).
-6. Ensure Gemini keys are configured and rotated securely.
-
-## Suggested Hosting Split
-- Frontend: Vercel/Netlify/static host
-- Backend: Render/Railway/VM/container
-- DB: Managed MySQL (PlanetScale/RDS/etc.)
-
-This split is the recommended default because it keeps the frontend CDN-friendly while the backend owns the API, Socket.IO, and auth state.
-
-## Common Deployment Pitfalls
-- Socket CORS mismatch between frontend URL and backend config.
-- Missing writable `uploads/resumes` directory.
-- Missing env vars causing startup or auth failures.
-- Different API base URL in frontend build vs runtime expectation.
+---
+[⬅ Previous Page: API Contract](api.md) | [🏠 Documentation Index](README.md) | [Next Page: Architectural Decisions ➡](decisions.md)

@@ -1,83 +1,41 @@
 # Architectural Decisions
 
-## 1. Modular Monolith Instead of Microservices
-Decision:
-- Keep one backend service with clear module boundaries.
+This document acts as an Architecture Decision Record (ADR), detailing the *why* behind our core engineering choices.
 
-Why:
-- Faster iteration for current project scope.
-- Lower ops complexity (single deploy/runtime).
+## 1. Modular Monolith Over Microservices
+**Decision:** We chose a single Node.js/Express backend over split microservices.
+**Why:** Faster iteration, lower operational complexity, and simpler deployment.
+**Trade-off:** Independent horizontal scaling of specific features (e.g., separating the heavy AI analysis from simple CRUD tasks) is not possible without refactoring.
 
-Trade-off:
-- Simpler now, but horizontal scaling and independent service evolution are limited.
+## 2. Hybrid Database Schema (SQL + JSON)
+**Decision:** We use standard MySQL tables (`users`, `interview_sessions`) but rely heavily on JSON columns for AI responses (`profile_data`, `analysis_data`).
+**Why:** The AI prompt outputs are subject to frequent change as we tune the models. JSON columns prevent the need for continuous schema migrations.
+**Trade-off:** Deep querying inside the JSON structures is slower and less efficient than querying fully normalized tables.
 
-## 2. Relational DB + JSON Hybrid Model
-Decision:
-- Use MySQL tables for core entities, and JSON columns for flexible AI payloads.
+## 3. Explicit CORS Environment Variables (Proxy-less)
+**Decision:** We removed the Vite development proxy. CORS is strictly handled by the Express backend using an `ALLOWED_ORIGINS` array.
+**Why:** Proxies obscure the actual network request origins. By enforcing explicit CORS arrays on the backend, the local development environment perfectly mirrors the strict production security environment.
+**Trade-off:** Requires setting explicit frontend URLs in the backend's `.env` file upon deployment.
 
-Why:
-- Structured entities (users/sessions/messages) benefit from SQL.
-- AI outputs vary; JSON avoids constant migration churn.
+## 4. Exponential Backoff for Gemini API
+**Decision:** The `geminiService` intercepts `429 Too Many Requests` errors and automatically retries with exponential backoff before failing.
+**Why:** External AI APIs are volatile. A momentary quota hiccup shouldn't instantly crash a user's mock interview.
+**Trade-off:** If the API is truly down, the request will hang slightly longer before returning a failure to the client.
 
-Trade-off:
-- JSON fields are harder to index/query deeply than fully normalized schema.
+## 5. Strict API Rate Limiting
+**Decision:** We enforce a global rate limit, a strict Auth rate limit (15 req/15 min), and a strict AI rate limit (10 req/15 min).
+**Why:** AI endpoint invocations are financially expensive and computationally heavy. Without limits, a malicious user could drain the Gemini API quota in minutes.
+**Trade-off:** Legitimate power users testing multiple resumes rapidly might hit the limit.
 
-## 3. JWT Stateless Authentication
-Decision:
-- Use bearer JWT tokens for protected APIs.
+## 6. Socket.IO for Live Interview Flow
+**Decision:** We use event-based WebSockets for the interview runtime instead of polling a REST API.
+**Why:** Sub-second latency is required for a natural "chat" feel. WebSockets allow the server to push updates (`ai_message`, `loading` states) instantaneously.
+**Trade-off:** WebSockets require stateful sticky sessions on load balancers, making zero-downtime deployments slightly more complex.
 
-Why:
-- Simple client-server auth model with no server-side session store.
+## 7. JWT Stateless Authentication
+**Decision:** We use bearer JWT tokens for protected APIs without storing session IDs in a database or Redis.
+**Why:** Extremely simple implementation that scales effortlessly across multiple Express worker nodes.
+**Trade-off:** Immediate token revocation (e.g., forced logout) is difficult to implement without introducing a database-backed denylist.
 
-Trade-off:
-- Token revocation is harder without extra infrastructure.
-
-## 4. Socket.IO for Live Interview Flow
-Decision:
-- Use event-based sockets for interview runtime, not polling REST.
-
-Why:
-- Better UX for real-time Q/A and status events.
-
-Trade-off:
-- More connection/state complexity vs pure HTTP flows.
-
-## 5. Strict Validation Around AI Output
-Decision:
-- Validate/sanitize AI responses before DB writes and use fallbacks.
-
-Why:
-- Prevent malformed AI responses from breaking workflow or persistence.
-
-Trade-off:
-- Additional code complexity and maintenance for schemas/parsers.
-
-## 6. File Upload Constraints (DOCX, 3MB, max 3 resumes)
-Decision:
-- Hard constraints enforced in route/controller logic.
-
-Why:
-- Controls storage, parsing reliability, and AI processing cost.
-
-Trade-off:
-- Restricts user flexibility (e.g., PDFs unsupported in upload flow).
-
-## 7. Client-Side Lightweight Routing State
-Decision:
-- Use page-state mapping in `App.jsx` instead of React Router.
-
-Why:
-- Keeps routing simple for current number of pages and controlled nav flow.
-
-Trade-off:
-- Less conventional than router libraries; deep-linking patterns are more manual.
-
-## 8. Keep Existing CORS Defaults for Local Dev
-Decision:
-- Allow localhost frontend origins explicitly in backend.
-
-Why:
-- Smooth local development without extra proxy setup.
-
-Trade-off:
-- Must be hardened for production deployment environments.
+---
+[⬅ Previous Page: Deployment](deployment.md) | [🏠 Documentation Index](README.md)

@@ -1,61 +1,97 @@
 # Getting Started
 
-## Prerequisites
-- Node.js 18+
-- npm 9+
-- MySQL 8+
-- Gemini API key(s)
+This guide covers everything you need to know to get the SkillWise application running on your local machine for development and testing.
 
-## Run Project Locally
-From root:
+## Prerequisites
+
+Before cloning the repository, ensure your environment meets the following specifications:
+- **Node.js**: v18.0.0 or higher.
+- **npm**: v9.0.0 or higher.
+- **MySQL**: v8.0 or higher (or a compatible cloud instance like PlanetScale).
+- **API Keys**: You will need a Google Gemini API Key to test the core resume analysis and mock interview functionalities.
+
+## Initial Setup
+
+1. **Clone the repository** and navigate to the project root:
+   ```bash
+   git clone <repository_url>
+   cd SkillWise
+   ```
+
+2. **Install all dependencies** (this installs packages for both the `client` and `server` directories):
+   ```bash
+   npm run setup
+   ```
+
+## Environment Configuration
+
+The application requires two `.env` files.
+
+### 1. Backend (`server/.env`)
+Create a file at `server/.env` with the following variables:
+```env
+# Server Config
+PORT=3000
+NODE_ENV=development
+ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+
+# Database
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=your_password
+DB_DATABASE=skillwise
+DB_PORT=3306
+
+# Authentication
+JWT_SECRET=your_super_secret_jwt_string
+
+# AI Integration
+GEMINI_API_KEY=your_google_gemini_key
+
+# Observability (Optional)
+SENTRY_DSN=your_sentry_dsn
+```
+
+### 2. Frontend (`client/.env`)
+Create a file at `client/.env`:
+```env
+VITE_API_URL=http://localhost:3000/api
+VITE_SOCKET_URL=http://localhost:3000
+
+# Observability (Optional)
+VITE_SENTRY_DSN=your_sentry_dsn
+```
+
+## Database Initialization
+
+SkillWise requires a relational database. You can find the canonical SQL schema in the root directory.
+
+1. Create an empty database in MySQL named `skillwise`.
+2. Import the `dbQueries.sql` script to create all necessary tables and constraints.
+3. Verify that your `server/.env` credentials match this local database.
+
+## Running the Application Locally
+
+To start both the Vite React frontend and the Express backend simultaneously:
 ```bash
-npm run setup
 npm run dev
 ```
 
-Default local URLs:
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:3000`
+The application will be available at:
+- **Frontend**: `http://localhost:5173`
+- **Backend API**: `http://localhost:3000`
 
-## One-Time Database Setup
-1. Create database and tables using `dbQueries.sql`.
-2. Ensure backend `.env` points to the same database.
+### Running Independently
+If you need to debug a specific layer, you can run them in isolation:
+- Frontend only: `npm run client`
+- Backend only: `npm run server`
 
-## Project Structure Walkthrough
-```text
-SkillWise/
-  client/        # React app (UI, state, API/socket clients)
-  server/        # Express API + Socket.IO + business logic
-  docs/          # Canonical documentation set
-  dbQueries.sql  # Schema + seed/reference SQL
-```
+## Common Local Pitfalls
 
-Where major logic lives:
-- UI routing/composition: `client/src/App.jsx`
-- Interview chat page: `client/src/MockInterviewChat.jsx`
-- Interview history page: `client/src/components/InterviewHistory.jsx`
-- API client: `client/src/services/api.js`
-- Socket client: `client/src/services/socketService.js`
-- Backend entry: `server/index.js`
-- Socket interview engine: `server/src/handlers/interviewHandler.js`
+- **Port Conflicts**: Ensure port `3000` and `5173` are not being used by other applications.
+- **Missing Sentry DSNs**: If `SENTRY_DSN` is empty, the application will still boot successfully. Sentry initialization is safely bypassed in local development if omitted.
+- **Upload Failures**: Resume uploads will fail if the file exceeds 3MB, or if the `server/uploads/resumes` directory is missing write permissions.
+- **WebSocket Drops**: Ensure `VITE_SOCKET_URL` strictly points to the backend port without trailing slashes.
 
-## Common Pitfalls
-- Backend port mismatch (frontend expects backend at port `3000` unless overridden).
-- Missing JWT secret or DB env values.
-- Resume uploads fail if file is not DOCX or > 3MB.
-- Live interview fails if socket URL or CORS origins are not aligned.
-- Missing `uploads/resumes` write permission in some environments.
-
-## Where to Start Reading Code
-Recommended order:
-1. `server/index.js` (runtime wiring)
-2. `server/src/routes/*` (API boundaries)
-3. `server/src/controllers/*` (request flows)
-4. `server/src/handlers/interviewHandler.js` (socket flow)
-5. `client/src/App.jsx` (frontend page orchestration)
-6. `client/src/services/api.js` + `socketService.js` (integration layer)
-
-## Quick Validation
-- Run `npm run build` in `client/` to validate frontend compile.
-- Start backend and test `GET /` returns `Welcome to SkillWise API`.
-- Login from UI, then verify protected endpoints work with token.
+---
+[⬅ Index](README.md) | [🏠 Documentation Index](README.md) | [Next Page: System Architecture ➡](architecture.md)
