@@ -48,13 +48,11 @@ const logger = winston.createLogger({
   ]
 });
 
-// If not in production, log to console with colored format
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: consoleFormat
-    })
-  );
-}
+// Always log to console so cloud providers (like Render) capture standard outputs
+logger.add(
+  new winston.transports.Console({
+    format: process.env.NODE_ENV === 'production' ? logFormat : consoleFormat
+  })
+);
 
 module.exports = logger;
