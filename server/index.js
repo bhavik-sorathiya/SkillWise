@@ -144,6 +144,7 @@ app.use('/api/interviews', aiLimiter, interviewHistoryRoutes);
 
 // Health endpoint for load balancers and deployment probes.
 app.get('/health', (req, res) => {
+  logger.info(`[Health Check] Ping received from: ${req.headers['x-forwarded-for'] || req.ip}`);
   res.status(200).json({ success: true, status: 'ok' });
 });
 
@@ -198,15 +199,6 @@ const PORT = Number(process.env.PORT) || 3000;
     server.listen(PORT, () => {
       logger.info(`✓ Server is running on port ${PORT}`);
       logger.info(`✓ Socket.IO initialized`);
-
-      // Self-ping to prevent free-tier hosting (e.g., Render) from sleeping
-      const pingInterval = 10 * 60 * 1000; // 10 minutes
-      setInterval(() => {
-        const selfUrl = process.env.SELF_URL || `http://localhost:${PORT}/health`;
-        fetch(selfUrl)
-          .then(res => logger.info(`[Self-Ping] OK: ${res.status}`))
-          .catch(err => logger.error(`[Self-Ping] Failed: ${err.message}`));
-      }, pingInterval);
     });
   } catch (error) {
     logger.error('Failed to start server:', error);
