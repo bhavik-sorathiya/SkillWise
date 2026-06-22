@@ -6,6 +6,9 @@
 
 import io from 'socket.io-client';
 
+if (!import.meta.env.VITE_SOCKET_URL && !import.meta.env.DEV) {
+  console.error('CRITICAL: VITE_SOCKET_URL environment variable is missing in production! Mock Interviews will fail to connect.');
+}
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.DEV ? 'http://localhost:3000' : window.location.origin);
 
 class SocketService {

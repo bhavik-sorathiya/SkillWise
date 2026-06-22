@@ -9,6 +9,10 @@ const getDefaultApiBaseUrl = () => {
     return import.meta.env.VITE_API_URL;
   }
 
+  if (!import.meta.env.DEV) {
+    console.error('CRITICAL: VITE_API_URL environment variable is missing in production! API calls will fail.');
+  }
+
   return import.meta.env.DEV ? 'http://localhost:3000/api' : '/api';
 };
 
