@@ -167,6 +167,21 @@ export const authAPI = {
     return response;
   },
 
+  // Google login
+  googleLogin: async (idToken) => {
+    const response = await apiRequest('/auth/google', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+    });
+
+    if (response.token) {
+      localStorage.setItem('authToken', response.token);
+      localStorage.setItem('user', JSON.stringify(response.user || response.result));
+    }
+
+    return response;
+  },
+
   // Get current user
   getCurrentUser: () => {
     const user = localStorage.getItem('user');
@@ -236,13 +251,14 @@ export const skillsAPI = {
    * @param {number} yearsOfExperience - Years of experience with this skill
    * @returns {Promise<Object>} Created skill data
    */
-  addSkill: async (skillName, proficiency = 'intermediate', yearsOfExperience = 0) => {
+  addSkill: async (skillName, proficiency = 'intermediate', yearsOfExperience = 0, resumeId = null) => {
     const response = await apiRequest('/skills/add', {
       method: 'POST',
       body: JSON.stringify({
         skill_name: skillName,
         proficiency_level: proficiency,
         years_of_experience: yearsOfExperience,
+        resume_id: resumeId,
       }),
     });
 
@@ -397,6 +413,21 @@ export const resumeAPI = {
 
     return response;
   },
+};
+
+// Admin API surface
+export const adminAPI = {
+  getStats: async () => {
+    return await apiRequest('/admin/stats', {
+      method: 'GET'
+    });
+  },
+  
+  getUsers: async () => {
+    return await apiRequest('/admin/users', {
+      method: 'GET'
+    });
+  }
 };
 
 export default authAPI;

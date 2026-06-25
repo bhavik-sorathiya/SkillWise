@@ -37,6 +37,18 @@ const getLatestResumeAnalysis = async (userId) => {
   return rows[0] || null;
 };
 
+const getResumeAnalysisById = async (userId, resumeId) => {
+  const [rows] = await db.execute(
+    `SELECT ra.id, ra.analysis_data, ur.id as resume_id
+     FROM resume_analysis ra
+     JOIN user_resumes ur ON ra.resume_id = ur.id
+     WHERE ur.user_id = ? AND ur.id = ? AND ur.status = 'active'
+     LIMIT 1`,
+    [userId, resumeId]
+  );
+  return rows[0] || null;
+};
+
 /**
  * GET /api/skills
  * Read skills from the latest active resume's analysis_data
@@ -90,7 +102,7 @@ exports.getSkills = async (req, res) => {
  */
 exports.addSkill = async (req, res) => {
   try {
-    const { skill_name, proficiency_level = 'intermediate', years_of_experience = 0 } = req.body;
+    const { skill_name, proficiency_level = 'intermediate', years_of_experience = 0, resume_id = null } = req.body;
     const userId = req.user.id;
 
     if (!skill_name || skill_name.trim() === '') {
@@ -109,7 +121,7 @@ exports.addSkill = async (req, res) => {
       });
     }
 
-    const analysisRow = await getLatestResumeAnalysis(userId);
+    const analysisRow = resume_id ? await getResumeAnalysisById(userId, resume_id) : await getLatestResumeAnalysis(userId);
 
     if (!analysisRow) {
       return res.status(404).json({
@@ -130,7 +142,7 @@ exports.addSkill = async (req, res) => {
     const skills = analysisData.skills_analysis.identified;
 
     // Check duplicate
-    const exists = skills.some(s => s.name.toLowerCase() === skill_name.trim().toLowerCase());
+    const exists = skills.some(s => s.name && s.name.toLowerCase() === skill_name.trim().toLowerCase());
     if (exists) {
       return res.status(409).json({
         success: false,
@@ -201,7 +213,7 @@ exports.deleteSkill = async (req, res) => {
     const analysisData = parseJSONData(analysisRow.analysis_data) || {};
     const skills = analysisData.skills_analysis?.identified || [];
 
-    const idx = skills.findIndex(s => s.name.toLowerCase() === skillName.trim().toLowerCase());
+    const idx = skills.findIndex(s => s.name && s.name.toLowerCase() === skillName.trim().toLowerCase());
 
     if (idx === -1) {
       return res.status(404).json({
@@ -272,7 +284,7 @@ exports.updateSkill = async (req, res) => {
     const analysisData = parseJSONData(analysisRow.analysis_data) || {};
     const skills = analysisData.skills_analysis?.identified || [];
 
-    const idx = skills.findIndex(s => s.name.toLowerCase() === skillName.trim().toLowerCase());
+    const idx = skills.findIndex(s => s.name && s.name.toLowerCase() === skillName.trim().toLowerCase());
 
     if (idx === -1) {
       return res.status(404).json({

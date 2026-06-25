@@ -8,7 +8,7 @@ import { skillsAPI } from '../services/api';
  * Add Skill Modal Component
  * Modal for adding a new skill to user's profile
  */
-const AddSkillModal = ({ isOpen, onClose, onSkillAdded }) => {
+const AddSkillModal = ({ isOpen, onClose, onSkillAdded, resumeId }) => {
   const [skillName, setSkillName] = useState('');
   const [proficiency, setProficiency] = useState('intermediate');
   const [yearsOfExperience, setYearsOfExperience] = useState(0);
@@ -31,7 +31,8 @@ const AddSkillModal = ({ isOpen, onClose, onSkillAdded }) => {
       const response = await skillsAPI.addSkill(
         skillName,
         proficiency,
-        parseInt(yearsOfExperience) || 0
+        parseInt(yearsOfExperience) || 0,
+        resumeId
       );
 
       if (response.success) {

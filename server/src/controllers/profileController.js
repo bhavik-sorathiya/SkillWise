@@ -112,9 +112,8 @@ const updateProfile = async (req, res) => {
     bio
   });
 
-  if (!updated) {
-    throw new AppError('No fields were updated. Provide at least one valid field.', 400);
-  }
+  // We don't throw an error if not updated; it just means no new valid fields were provided.
+  // We'll just fetch and return the current profile to keep the frontend happy.
 
   // Fetch and return the updated profile
   const updatedProfile = await UserProfile.getProfileByUserId(userId);

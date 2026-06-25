@@ -18,6 +18,7 @@ import { useError } from './context/ErrorContext';
 import { useApiKey } from './context/ApiKeyContext';
 import { resumeAPI, logout as logoutAPI } from './services/api';
 import { getUserAvatar } from './utils/avatar';
+import { DataSyncService } from './utils/cacheSync';
 import Footer from './components/Footer';
 import './ResumeAndSkills.css';
 
@@ -279,7 +280,13 @@ const ResumeAndSkills = ({
         if (result.data.analysisMetadata?.success) {
           addError('Resume analyzed successfully.', 'success');
         } else if (result.data.analysisMetadata?.attempted) {
-          addError('Resume uploaded, but analysis failed. Please try again later.', 'warning');
+          if (result.data.analysisMetadata?.code === 'RATE_LIMIT_EXCEEDED' || result.data.analysisMetadata?.code === 'QUOTA_EXCEEDED' || result.data.analysisMetadata?.code === 'INVALID_CUSTOM_API_KEY') {
+            showApiKeyModal(() => {
+              addError('API key saved. You can try analyzing this resume again later.', 'success');
+            });
+          } else {
+            addError('Resume uploaded, but analysis failed. Please try again later.', 'warning');
+          }
         } else {
           addError('Resume uploaded successfully.', 'success');
         }
@@ -312,19 +319,41 @@ const ResumeAndSkills = ({
     }
   };
 
-  const handleDeleteResume = (id) => {
-    // Remove from list and cache
-    setResumesList(prev => prev.filter(r => r.id !== id));
-    setAnalysisCache(prev => {
-      const newCache = { ...prev };
-      delete newCache[id];
-      return newCache;
-    });
+  const handleDeleteResume = async (id) => {
+    const isConfirmed = window.confirm("Are you sure you want to delete this resume? This action cannot be undone.");
+    if (!isConfirmed) return;
 
-    // If deleted resume was selected, select first available
-    if (selectedResumeId === id) {
-      const remainingResumes = resumesList.filter(r => r.id !== id);
-      setSelectedResumeId(remainingResumes[0]?.id || null);
+    try {
+      const result = await resumeAPI.deleteResume(id);
+      
+      if (result.success) {
+        // Remove from list and cache
+        setResumesList(prev => prev.filter(r => r.id !== id));
+        setAnalysisCache(prev => {
+          const newCache = { ...prev };
+          delete newCache[id];
+          return newCache;
+        });
+
+        // If deleted resume was selected, select first available
+        if (selectedResumeId === id) {
+          const remainingResumes = resumesList.filter(r => r.id !== id);
+          if (remainingResumes.length > 0) {
+            setSelectedResumeId(remainingResumes[0].id);
+          } else {
+            setSelectedResumeId(null);
+            setCurrentAnalysis(null);
+            setSkills([]);
+          }
+        }
+        
+        addError('Resume deleted successfully.', 'success');
+      } else {
+        addError(result.message || 'Failed to delete resume', 'error');
+      }
+    } catch (err) {
+      console.error('Error deleting resume:', err);
+      addError(err.message || 'Failed to delete resume', 'error');
     }
   };
 
@@ -374,6 +403,9 @@ const ResumeAndSkills = ({
     setSkills([...skills, newSkill]);
     // Invalidate cache so next fetch gets updated data
     DataSyncService.invalidateCache('user_skills');
+    if (selectedResumeId) {
+      DataSyncService.invalidateCache(`analysis_resume_${selectedResumeId}`);
+    }
   };
 
   // Loading state
@@ -453,6 +485,7 @@ const ResumeAndSkills = ({
               isOpen={isAddSkillModalOpen}
               onClose={() => setIsAddSkillModalOpen(false)}
               onSkillAdded={handleAddSkill}
+              resumeId={selectedResumeId}
             />
 
             <TargetRoleModal
