@@ -17,6 +17,7 @@ import KnowDeveloperPage from './components/KnowDeveloperPage'
 import HelpCenterPage from './components/HelpCenterPage'
 import TermsPolicyPage from './components/TermsPolicyPage'
 import PricingPage from './components/PricingPage'
+import AdminPortal from './components/AdminPortal'
 import ProfileCompletionModal from './components/ProfileCompletionModal'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ErrorProvider } from './context/ErrorContext'
@@ -42,6 +43,7 @@ const PAGE_TO_PATH = {
   'help-center': '/help-center',
   'terms-policy': '/terms-policy',
   'pricing': '/pricing',
+  'admin-portal': '/admin-portal',
 };
 
 const PATH_TO_PAGE = {
@@ -59,9 +61,10 @@ const PATH_TO_PAGE = {
   '/help-center': 'help-center',
   '/terms-policy': 'terms-policy',
   '/pricing': 'pricing',
+  '/admin-portal': 'admin-portal',
 };
 
-const PROTECTED_PAGES = ['onboarding', 'interviewee-dashboard', 'resume-skills', 'mock-interview-chat', 'interview-history', 'profile', 'settings'];
+const PROTECTED_PAGES = ['onboarding', 'interviewee-dashboard', 'resume-skills', 'mock-interview-chat', 'interview-history', 'profile', 'settings', 'admin-portal'];
 const COMPLETION_GATED_PAGES = ['interviewee-dashboard', 'resume-skills', 'mock-interview-chat', 'interview-history', 'settings'];
 
 const normalizePath = (pathname = '/') => {
@@ -175,6 +178,11 @@ function AppContent() {
 
   const renderPage = () => {
     switch (currentPage) {
+      case 'admin-portal':
+        return <AdminPortal 
+          onBack={() => navigateToPage('interviewee-dashboard')} 
+          onLogout={() => { logout(); navigateToPage('landing', { replace: true }); }}
+        />
       case 'login':
         return <Login 
           onBackToHome={handleBack} 

@@ -4,9 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToOnboarding, onNavigateToDashboard }) => {
-  const { signup, login, isAuthenticated, user } = useAuth();
+  const { signup, login, googleLogin, isAuthenticated, user } = useAuth();
   const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -68,6 +69,18 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToOnboarding, onNav
       await login(emailLower, formData.password);
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError('');
+      await googleLogin(credentialResponse.credential);
+    } catch (err) {
+      setError(err.message || 'Google login failed');
     } finally {
       setLoading(false);
     }
@@ -201,6 +214,30 @@ const Signup = ({ onBackToHome, onNavigateToLogin, onNavigateToOnboarding, onNav
                 <span className="truncate">Create Account</span>
               )}
             </button>
+
+            <div className="mt-2">
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-[#E7E5E4] dark:border-[#44403C]"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white dark:bg-gray-800 text-text-secondary dark:text-gray-400">
+                    Or sign up with
+                  </span>
+                </div>
+              </div>
+              <div className="mt-6 flex justify-center">
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={() => {
+                    setError('Google login failed');
+                  }}
+                  useOneTap
+                  theme="filled_blue"
+                  shape="pill"
+                />
+              </div>
+            </div>
 
             <div className="flex items-center justify-center gap-1.5 pt-2">
               <p className="text-text-secondary dark:text-gray-400 text-sm font-normal leading-normal">

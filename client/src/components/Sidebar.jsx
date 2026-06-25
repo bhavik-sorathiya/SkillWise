@@ -38,6 +38,10 @@ const Sidebar = ({ items = [], isOpen, onNavigate, onNavigateToSettings }) => {
               onNavigateToSettings();
               return;
             }
+            if (onNavigate) {
+              onNavigate('settings');
+              return;
+            }
 
             openComingSoon({ title: 'Settings', message: 'Settings are coming soon.' });
           }}

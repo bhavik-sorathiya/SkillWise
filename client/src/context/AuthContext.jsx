@@ -116,6 +116,57 @@ export const AuthProvider = ({ children }) => {
   };
 
   /**
+   * Google Login
+   */
+  const googleLogin = async (idToken) => {
+    try {
+      setError(null);
+      setLoading(true);
+
+      const response = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ idToken })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.message || 'Google Login failed');
+      }
+
+      const data = await response.json();
+      
+      const userData = data.user || data.result;
+      const newToken = data.token;
+
+      if (!userData || !newToken) {
+        throw new Error('Invalid server response');
+      }
+
+      if (userData.full_name && !userData.name) {
+        userData.name = userData.full_name;
+      }
+
+      localStorage.setItem('authToken', newToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      setToken(newToken);
+      setUser(userData);
+      setIsAuthenticated(true);
+      setLoading(false);
+
+      return { user: userData, token: newToken };
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+      clearAuth();
+      throw err;
+    }
+  };
+
+  /**
    * Signup new user
    * @param {string} name - User name
    * @param {string} email - User email
@@ -208,6 +259,7 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     login,
+    googleLogin,
     signup,
     logout,
     getToken,

@@ -22,9 +22,15 @@ if (import.meta.env.VITE_SENTRY_DSN) {
   });
 }
 
+import { GoogleOAuthProvider } from '@react-oauth/google';
+
 // React application bootstrap entry.
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || 'placeholder-client-id';
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <GoogleOAuthProvider clientId={googleClientId}>
+      <App />
+    </GoogleOAuthProvider>
   </StrictMode>,
 )

@@ -4,9 +4,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import { useComingSoon } from './context/ComingSoonContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavigateToOnboarding }) => {
-  const { login, isAuthenticated, user } = useAuth();
+  const { login, googleLogin, isAuthenticated, user } = useAuth();
   const { openComingSoon } = useComingSoon();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -51,6 +52,18 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
 
     } catch (err) {
       setError(err.message || 'Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError('');
+      await googleLogin(credentialResponse.credential);
+    } catch (err) {
+      setError(err.message || 'Google login failed');
     } finally {
       setLoading(false);
     }
@@ -169,15 +182,6 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
                       Remember me
                     </label>
                   </div>
-                  <div className="text-sm">
-                    <button
-                      type="button"
-                      className="font-medium text-primary hover:text-primary/80 transition-colors"
-                      onClick={() => openComingSoon({ title: 'Password Reset', message: 'Password recovery is coming soon.' })}
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
                 </div>
 
                 <button
@@ -209,6 +213,18 @@ const Login = ({ onBackToHome, onNavigateToSignup, onNavigateToDashboard, onNavi
                       Or continue with
                     </span>
                   </div>
+                </div>
+
+                <div className="mt-6 flex justify-center">
+                  <GoogleLogin
+                    onSuccess={handleGoogleSuccess}
+                    onError={() => {
+                      setError('Google login failed');
+                    }}
+                    useOneTap
+                    theme="filled_blue"
+                    shape="pill"
+                  />
                 </div>
 
                 <div className="mt-8 text-center">
