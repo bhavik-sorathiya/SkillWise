@@ -115,6 +115,8 @@ const getResumesList = async (req, res) => {
       uploadedDate: formatRelativeDate(resume.uploaded_at),
       uploaded_at: uploadedAt ? uploadedAt.toISOString() : null,
       uploadedAt: uploadedAt ? uploadedAt.toISOString() : null,
+      access_link: resume.file_link || null,
+      type: getFileType(resume.file_name),
       isPrimary: index === 0
     };
   });
@@ -212,7 +214,7 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
     if (!analysisResult.success && !customApiKey) {
       console.warn(`[Gemini Fallback] System key failed: ${analysisResult.error}. Checking for user custom API key...`);
       const UserApiKeyModel = require('../models/userApiKeyModel');
-      const userKeyData = await UserApiKeyModel.getUserApiKey(userId);
+      const userKeyData = await UserApiKeyModel.getApiKey(userId);
       
       if (userKeyData && userKeyData.is_valid) {
         console.log(`[Gemini Fallback] Found user custom API key, retrying...`);
@@ -240,6 +242,17 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
     let validation = validateAndSanitizeAnalysis(analysisResult.analysis);
 
     if (!validation.success) {
+      // Intercept 'not a resume' directly before retrying
+      if (validation.isNotResume) {
+        return {
+          success: false,
+          analysis: null,
+          analysisId: null,
+          error: validation.errors[0] || 'The uploaded document does not appear to be a valid resume.',
+          code: 'NOT_A_RESUME'
+        };
+      }
+
       console.warn('Analysis validation failed on Attempt 1. Retrying Gemini API call (Attempt 2)...', validation.errors);
 
       // Attempt 2 API call
@@ -275,7 +288,8 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
           success: false,
           analysis: null,
           analysisId: null,
-          error: `Analysis validation failed after retry: ${validation.errors.join('; ')}`
+          error: validation.isNotResume ? (validation.errors[0] || 'The uploaded document is not a valid resume.') : `Analysis validation failed after retry: ${validation.errors.join('; ')}`,
+          code: validation.isNotResume ? 'NOT_A_RESUME' : (customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'RATE_LIMIT_EXCEEDED')
         };
       }
     }
@@ -323,6 +337,7 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
 const uploadResume = async (req, res) => {
   let finalFilePath = null;
   let resumeId = null;
+  let uploadedFileName = null;
 
   try {
     console.log('\n📤 ========== RESUME UPLOAD STARTED ==========');
@@ -379,6 +394,7 @@ const uploadResume = async (req, res) => {
     const isPdf = req.file.mimetype === 'application/pdf';
     const fileExt = isPdf ? 'pdf' : 'docx';
     const newFileName = `${userId}_${userName}_resume_${timestamp}.${fileExt}`;
+    uploadedFileName = newFileName;
 
     // Extract text content from the uploaded resume buffer
     let extractionResult;
@@ -466,19 +482,18 @@ const uploadResume = async (req, res) => {
 
     if (!analysisResponse.success || analysisResponse.skipped) {
       console.log('[14] ❌ Analysis failed or skipped:', analysisResponse.error);
-      if (isRateLimitError(analysisResponse.error)) {
-        throw new AppError('Our free AI rate limits are currently exhausted. Please try again after some time.', 429, true, 'RATE_LIMIT_EXCEEDED');
-      } else {
-        throw new AppError(analysisResponse.error || 'Failed to analyze resume with AI', 400, true, analysisResponse.code);
+      analysisMetadata.success = false;
+      analysisMetadata.error = analysisResponse.error;
+      analysisMetadata.code = isRateLimitError(analysisResponse.error) ? 'RATE_LIMIT_EXCEEDED' : analysisResponse.code;
+    } else {
+      analysisMetadata.success = true;
+      analysisMetadata.analysisId = analysisResponse.analysisId;
+      if (analysisResponse.warnings) {
+        analysisMetadata.warnings = analysisResponse.warnings;
       }
+      console.log('[14] ✅ Analysis completed with ID:', analysisResponse.analysisId);
     }
 
-    analysisMetadata.success = true;
-    analysisMetadata.analysisId = analysisResponse.analysisId;
-    if (analysisResponse.warnings) {
-      analysisMetadata.warnings = analysisResponse.warnings;
-    }
-    console.log('[14] ✅ Analysis completed with ID:', analysisResponse.analysisId);
 
     // Build response with resume details
     console.log('[15] Building final response...');
@@ -533,10 +548,10 @@ const uploadResume = async (req, res) => {
     }
     
     // Clean up final destination files (Supabase Storage)
-    if (finalFilePath && finalFilePath.startsWith('http')) {
+    if (uploadedFileName) {
       try {
-        const filename = finalFilePath.split('/').pop();
-        await deleteFileFromSupabase(filename);
+        await deleteFileFromSupabase(uploadedFileName);
+        console.log(`[Rollback] Deleted file from Supabase: ${uploadedFileName}`);
       } catch (err) {
         console.error('Error deleting final file from Supabase:', err);
       }
@@ -722,10 +737,27 @@ const deleteResume = async (req, res) => {
     throw new AppError('Invalid resume ID', 400);
   }
 
+  // Fetch the resume to get the file_name for cloud deletion
+  const resume = await UserResume.getResumeWithAnalysis(parseInt(resumeId, 10), userId);
+  
+  if (!resume) {
+    throw new AppError('Resume not found or you do not have access to delete it', 404);
+  }
+
   const deleted = await UserResume.softDeleteResume(parseInt(resumeId, 10), userId);
 
   if (!deleted) {
-    throw new AppError('Resume not found or you do not have access to delete it', 404);
+    throw new AppError('Failed to delete resume', 500);
+  }
+
+  // Remove the physical file from cloud storage as requested by user
+  if (resume.file_name) {
+    try {
+      await deleteFileFromSupabase(resume.file_name);
+      console.log(`[Delete Resume] Physical file ${resume.file_name} removed from cloud storage`);
+    } catch (err) {
+      console.error(`[Delete Resume] Error removing physical file ${resume.file_name}:`, err);
+    }
   }
 
   console.log(`[Delete Resume] Resume ${resumeId} soft-deleted for user ${userId}`);

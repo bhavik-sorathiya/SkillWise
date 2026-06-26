@@ -381,7 +381,7 @@ function registerInterviewHandlers(io, socket) {
             try {
               console.warn(`[Interview Fallback] System key failed: ${err.message}. Checking for user custom API key...`);
               const UserApiKeyModel = require('../models/userApiKeyModel');
-              const userKeyData = await UserApiKeyModel.getUserApiKey(userId);
+              const userKeyData = await UserApiKeyModel.getApiKey(userId);
               
               if (userKeyData && userKeyData.is_valid) {
                 console.log(`[Interview Fallback] Found user custom API key, retrying question flow...`);
@@ -616,7 +616,7 @@ function registerInterviewHandlers(io, socket) {
             try {
               console.warn(`[Interview Fallback] System key failed for evaluation: ${err.message}. Checking user key...`);
               const UserApiKeyModel = require('../models/userApiKeyModel');
-              const userKeyData = await UserApiKeyModel.getUserApiKey(userId);
+              const userKeyData = await UserApiKeyModel.getApiKey(userId);
               
               if (userKeyData && userKeyData.is_valid) {
                 console.log(`[Interview Fallback] Found user custom API key, retrying evaluation...`);

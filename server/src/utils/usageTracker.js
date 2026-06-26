@@ -43,10 +43,11 @@ const UsageTracker = {
   checkInterviewLimit: async (userId) => {
     try {
       // NOTE: interview_sessions uses started_at
+      // We only count sessions where total_questions > 0 (meaning the AI actually provided evaluation/analysis)
       const [rows] = await db.execute(
         `SELECT COUNT(*) as count 
          FROM interview_sessions 
-         WHERE user_id = ? AND DATE(started_at) = CURDATE()`,
+         WHERE user_id = ? AND DATE(started_at) = CURDATE() AND total_questions > 0`,
         [userId]
       );
       

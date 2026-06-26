@@ -169,6 +169,16 @@ const validateAnalysisStructure = (analysisData) => {
       };
     }
 
+    // Intercept non-resume documents
+    if (analysisData.is_resume === false) {
+      return {
+        isValid: false,
+        isNotResume: true,
+        errors: [analysisData.reason || "The uploaded document does not appear to be a valid resume."],
+        data: null
+      };
+    }
+
     // Validate using Joi schema
     const { error, value } = resumeAnalysisSchema.validate(analysisData, {
       abortEarly: false, // Collect all errors
@@ -251,6 +261,7 @@ const validateAndSanitizeAnalysis = (analysisData) => {
       success: false,
       data: null,
       errors: structureValidation.errors,
+      isNotResume: structureValidation.isNotResume,
       stage: 'structure_validation'
     };
   }

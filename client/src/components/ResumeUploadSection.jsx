@@ -80,6 +80,26 @@ const ResumeUploadSection = ({
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                {resume.access_link && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const url = resume.access_link;
+                      try {
+                        const downloadUrl = new URL(url);
+                        downloadUrl.searchParams.append('download', 'true');
+                        window.location.href = downloadUrl.toString();
+                      } catch (err) {
+                        // Fallback if URL parsing fails
+                        window.open(url, '_blank');
+                      }
+                    }}
+                    className="p-2 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors" 
+                    title="Download Resume"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">download</span>
+                  </button>
+                )}
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();

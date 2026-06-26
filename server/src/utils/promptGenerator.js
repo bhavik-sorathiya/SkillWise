@@ -42,6 +42,15 @@ CRITICAL SCORING AND EVALUATION STRICTNESS:
 
 ANALYSIS OBJECTIVE:
 
+DOCUMENT TYPE VALIDATION (CRITICAL FIRST STEP):
+- You must FIRST determine if the provided text is actually a resume.
+- If the text is NOT a resume (e.g., it is a random document, an essay, code, or completely unrelated text), you MUST return EXACTLY this JSON and nothing else:
+{
+  "is_resume": false,
+  "reason": "Brief explanation of why this document does not appear to be a resume."
+}
+- If the text IS a resume, you must proceed with the full analysis and return the full JSON structure with "is_resume": true at the top level.
+
 Your evaluation must be professional, structured, role-aware, and hiring-impact focused.
 
 You must perform BOTH:
@@ -117,6 +126,7 @@ TARGET ROLE (User Specified): ${targetRole}
 You MUST return response strictly in this JSON structure:
 
 {
+  "is_resume": true,
   "resume_context": {
     "target_role": "${targetRole}",
     "detected_experience_level": "Fresher",
