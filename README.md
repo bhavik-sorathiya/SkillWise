@@ -12,10 +12,11 @@ At its core, SkillWise is your personal career coach. We know that landing a dre
 
 ### Core Features
 
-*   **Intelligent Resume Analysis**: Upload your resume (PDF or Word doc), and our AI engine instantly analyzes it. We identify missing keywords, suggest formatting improvements, and highlight areas where you can showcase your impact more effectively.
+*   **Intelligent Resume Analysis**: Upload your resume (PDF or Word doc), and our AI engine instantly analyzes it. We identify missing keywords, suggest formatting improvements, and highlight areas where you can showcase your impact more effectively. Resumes are securely stored in the cloud.
 *   **Real-Time Mock Interviews**: Practice makes perfect. Engage in interactive, real-time mock interviews customized to your industry. The system listens, analyzes your responses, and provides constructive feedback on your communication style and technical accuracy.
 *   **Skill Tracking & Growth**: Keep track of the skills you have and the skills you need. SkillWise helps you visualize your professional growth over time, ensuring you are always competitive in the job market.
-*   **Seamless User Experience**: A beautiful, responsive interface that works flawlessly across all your devices, allowing you to prepare for your career anytime, anywhere.
+*   **Flexible AI Access & Daily Limits**: Enjoy free daily limits for resume analysis and interviews. Once exhausted, seamlessly integrate your own Google Gemini API key to continue preparing without interruption (Bring Your Own Key - BYOK).
+*   **Admin Portal**: Secure, role-based administration dashboard to monitor platform usage, system performance, and user activity.
 
 ## Why We Built This
 

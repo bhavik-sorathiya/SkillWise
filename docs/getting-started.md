@@ -8,7 +8,8 @@ Before cloning the repository, ensure your environment meets the following speci
 - **Node.js**: v18.0.0 or higher.
 - **npm**: v9.0.0 or higher.
 - **MySQL**: v8.0 or higher (or a compatible cloud instance like PlanetScale).
-- **API Keys**: You will need a Google Gemini API Key to test the core resume analysis and mock interview functionalities.
+- **API Keys**: You will need a Google Gemini API Key.
+- **Supabase Account**: You will need a Supabase project for cloud storage of uploaded resumes.
 
 ## Initial Setup
 
@@ -47,6 +48,11 @@ JWT_SECRET=your_super_secret_jwt_string
 
 # AI Integration
 GEMINI_API_KEY=your_google_gemini_key
+GEMINI_API_KEY_2=your_secondary_gemini_key_for_fallback
+
+# Cloud Storage
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Observability (Optional)
 SENTRY_DSN=your_sentry_dsn
@@ -90,8 +96,8 @@ If you need to debug a specific layer, you can run them in isolation:
 
 - **Port Conflicts**: Ensure port `3000` and `5173` are not being used by other applications.
 - **Missing Sentry DSNs**: If `SENTRY_DSN` is empty, the application will still boot successfully. Sentry initialization is safely bypassed in local development if omitted.
-- **Upload Failures**: Resume uploads will fail if the file exceeds 3MB, or if the `server/uploads/resumes` directory is missing write permissions.
 - **WebSocket Drops**: Ensure `VITE_SOCKET_URL` strictly points to the backend port without trailing slashes.
+- **Upload Failures**: Resume uploads will fail if the file exceeds 3MB, or if your `SUPABASE_URL` and `SUPABASE_ANON_KEY` are incorrectly configured in `.env`.
 
 ---
 [⬅ Index](README.md) | [🏠 Documentation Index](README.md) | [Next Page: System Architecture ➡](architecture.md)

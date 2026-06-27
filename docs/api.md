@@ -15,7 +15,7 @@ To prevent abuse, protect the database, and preserve Gemini API quota, endpoints
 - **Global API Scope**: 800 requests per 15 minutes.
 - **Auth Scope (`/api/auth/*`)**: 15 requests per 15 minutes (Brute-force protection).
 - **AI Scope (`/api/resumes/*`, `/api/interviews/*`)**: 10 requests per 15 minutes (Quota protection).
-When limits are exceeded, a `429 Too Many Requests` response is returned.
+When limits are exceeded, a `429 Too Many Requests` response is returned. Note: if the system AI limit is reached for a user, a `QUOTA_EXCEEDED` or `INVALID_CUSTOM_API_KEY` specific error is returned inside a standard `200 OK` or `400 Bad Request` wrapping envelope, to gently prompt them for their own key.
 
 ---
 
@@ -58,7 +58,24 @@ Deep fetch. Returns the session metadata, full chat transcript, individual quest
 
 ---
 
-## 4. Socket.IO API (Live Interview)
+## 4. User API Keys & Limits (Protected)
+
+### `GET /api/user/api-keys`
+Retrieves the user's saved Gemini API key (masked) and their validity status.
+
+### `POST /api/user/api-keys`
+Saves or updates a custom Gemini API key for the user.
+
+---
+
+## 5. Admin Endpoints (Protected & Role-Restricted)
+
+All endpoints prefixed with `/api/admin` require a valid JWT belonging to a user with `role: 'admin'`.
+Includes routes for system metrics, user management, and overall system health.
+
+---
+
+## 6. Socket.IO API (Live Interview)
 
 Because HTTP is stateless and request-response driven, we use WebSockets for the live mock interview to achieve sub-second latency and persistent contextual state.
 

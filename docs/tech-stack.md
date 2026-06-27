@@ -46,8 +46,9 @@ SkillWise is built using a modern, robust JavaScript ecosystem. This document ou
 - **Winston (`winston`)**: Professional structured logging framework, configured to output JSON logs and handle automatic daily file rotation (`winston-daily-rotate-file`).
 - **Sentry Node (`@sentry/node`)**: Server-side error tracking and Node.js profiling. Captures stack traces before the process crashes.
 
-### Document Processing
+### Document Processing & Storage
 - **`multer`**: Handles multipart/form-data for resume uploads in memory.
+- **Supabase (`@supabase/supabase-js`)**: Scalable cloud storage bucket for persisting user resume files (`.pdf`, `.docx`).
 - **`mammoth` & `pdf-parse`**: Extracts raw text from DOCX and PDF files respectively, making the text digestible for the AI engine.
 
 ---

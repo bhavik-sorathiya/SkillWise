@@ -19,6 +19,7 @@ flowchart LR
   DB[(MySQL)]
   AI[Gemini API]
   WS[Socket.IO]
+  CLOUD[Supabase Storage]
 
   U -->|Interacts| FE
   FE -->|REST HTTPS| API
@@ -26,6 +27,7 @@ flowchart LR
   WS --> API
   API -->|SQL Queries| DB
   API -->|Secure RPC| AI
+  API -->|Upload File| CLOUD
   API -->|Emit| WS
   WS -->|Listen| FE
 ```
@@ -40,13 +42,16 @@ sequenceDiagram
   participant FE as Frontend
   participant API as Backend
   participant DB as MySQL
+  participant CLOUD as Supabase
   participant AI as Gemini
 
   FE->>API: POST /api/resumes/upload (DOCX/PDF)
+  API->>DB: Check Usage Limit
+  API->>CLOUD: Upload physical file
   API->>DB: INSERT into user_resumes
   API->>API: Parse Document & Extract Text
   API->>AI: Send prompt with extracted text
-  Note right of API: Exponential Backoff & Retry Logic active
+  Note right of API: 3-Tier Fallback & Retry Logic active
   AI-->>API: Return structured JSON analysis
   API->>DB: INSERT into resume_analysis
   API-->>FE: Return 200 OK + Analysis JSON
@@ -87,7 +92,12 @@ sequenceDiagram
 
 SkillWise is designed to fail gracefully and recover automatically:
 
-- **AI Fault Tolerance**: The `geminiService` implements an exponential backoff algorithm. If Google's API returns a `429 Too Many Requests`, the backend pauses and retries automatically before falling back to a secondary API key.
+- **AI Fault Tolerance & 3-Tier Fallback**: The `geminiService` implements a strict fallback algorithm to handle rate limits and quotas:
+  1. **Primary Key**: Uses `GEMINI_API_KEY` (2 attempts max).
+  2. **Secondary Key**: If the primary key hits a rate limit (e.g. `429`), it falls back to `GEMINI_API_KEY_2` (2 attempts max).
+  3. **User Key (BYOK)**: If both system keys fail or the user has exhausted their free daily limits, it safely fetches their encrypted personal API key from the database and uses it (2 attempts max).
+- **Daily Limit Enforcement**: `usageTracker.js` tracks daily operations. Limit tracking operates safely—a limit is only deducted if an interview actually progresses (`total_questions > 0`) or if a resume analysis successfully completes.
+- **Role-Based Access Control (RBAC)**: All user identities carry a `role` (`user` vs `admin`). Core API functions enforce these roles tightly, giving admins unique views into performance without resorting to hardcoded backdoors.
 - **Database Connection Pooling**: The MySQL connection utilizes a managed pool with a strict `connectTimeout` to prevent the Node.js event loop from hanging during database outages.
 - **Application Hardening**:
   - `helmet`: Injects critical HTTP security headers.
