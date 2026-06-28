@@ -146,17 +146,20 @@ const getResumesList = async (req, res) => {
 const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs = {}) => {
   try {
     // Step 1: Check daily limits and get API key if needed
-    let customApiKey = null;
-    try {
-      customApiKey = await UsageTracker.getApiKeyIfLimitExceeded(userId, 'resume');
-    } catch (limitError) {
-      return {
-        success: false,
-        analysis: null,
-        analysisId: null,
-        error: limitError.message,
-        code: limitError.code
-      };
+    let customApiKey = userInputs.providedApiKey || null;
+    
+    if (!customApiKey) {
+      try {
+        customApiKey = await UsageTracker.getApiKeyIfLimitExceeded(userId, 'resume');
+      } catch (limitError) {
+        return {
+          success: false,
+          analysis: null,
+          analysisId: null,
+          error: limitError.message,
+          code: limitError.code
+        };
+      }
     }
 
     // Step 2: Validate Gemini is initialized (if not using custom key)
@@ -234,7 +237,7 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
         analysis: null,
         analysisId: null,
         error: analysisResult.error,
-        code: customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'RATE_LIMIT_EXCEEDED'
+        code: analysisResult.isRateLimit ? 'RATE_LIMIT_EXCEEDED' : (customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'AI_ANALYSIS_FAILED')
       };
     }
 
@@ -275,7 +278,7 @@ const analyzeResumeWithGemini = async (resumeText, resumeId, userId, userInputs 
           analysis: null,
           analysisId: null,
           error: `Retry failed: ${analysisResult.error}`,
-          code: customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'RATE_LIMIT_EXCEEDED'
+          code: analysisResult.isRateLimit ? 'RATE_LIMIT_EXCEEDED' : (customApiKey ? 'INVALID_CUSTOM_API_KEY' : 'AI_ANALYSIS_FAILED')
         };
       }
 
@@ -417,7 +420,20 @@ const uploadResume = async (req, res) => {
     const fileUrl = await uploadFileToSupabase(req.file.buffer, newFileName, req.file.mimetype);
     finalFilePath = fileUrl; // For cleanup if needed, but it's a URL now
 
-    // Extract title and targetRole from request body
+    // [Backend Limit Check] Ensure daily free limit is strictly enforced.
+    // getApiKeyIfLimitExceeded checks the resume_analysis table for today's entries.
+    // If the limit is reached, it returns the user's custom API key. If they don't have one, it throws an error.
+    console.log('[13] Checking backend daily usage limits...');
+    const UsageTracker = require('../utils/usageTracker');
+    let backendResolvedApiKey = null;
+    try {
+      backendResolvedApiKey = await UsageTracker.getApiKeyIfLimitExceeded(userId, 'resume');
+    } catch (limitError) {
+      throw new AppError(limitError.message, 403, true, limitError.code || 'QUOTA_EXCEEDED');
+    }
+    
+    // Get custom API key (backend resolved takes priority over header)
+    const customApiKey = backendResolvedApiKey || req.headers['x-gemini-api-key'] || null;
     const resumeTitle = req.body.title || req.body.targetRole || `Resume ${resumeCount}`;
     const resumeTargetRole = req.body.targetRole || req.body.target_role || 'Not Specified';
 
@@ -460,7 +476,8 @@ const uploadResume = async (req, res) => {
     // Extract target role from request body (only REQUIRED user input for analysis)
     // Experience level and years are DETECTED by AI from resume
     const userInputs = {
-      targetRole: req.body.targetRole || req.body.target_role || 'Not Specified'
+      targetRole: req.body.targetRole || req.body.target_role || 'Not Specified',
+      providedApiKey: customApiKey
     };
     console.log('[13] Target role:', userInputs.targetRole);
 
@@ -481,11 +498,12 @@ const uploadResume = async (req, res) => {
     };
 
     if (!analysisResponse.success || analysisResponse.skipped) {
-      console.log('[14] ❌ Analysis failed or skipped:', analysisResponse.error);
-      const errCode = isRateLimitError(analysisResponse.error) ? 'RATE_LIMIT_EXCEEDED' : analysisResponse.code;
-      const err = new AppError(`Analysis failed: ${analysisResponse.error}`, 400);
-      err.code = errCode;
-      throw err;
+      analysisMetadata.success = false;
+      analysisMetadata.warning = analysisResponse.error;
+      console.log(`[14] ❌ Analysis failed or skipped: ${analysisResponse.error}`);
+      
+      const statusCode = analysisResponse.code === 'NOT_A_RESUME' ? 400 : (analysisResponse.code === 'QUOTA_EXCEEDED' ? 403 : 500);
+      throw new AppError(analysisResponse.error || 'Failed to analyze resume', statusCode, true, analysisResponse.code);
     } else {
       analysisMetadata.success = true;
       analysisMetadata.analysisId = analysisResponse.analysisId;
@@ -638,6 +656,12 @@ const transformAnalysisData = (resumeData) => {
   const detectedExperienceLevel = dbData.resume_context?.detected_experience_level || null;
   const detectedExperienceYears = dbData.resume_context?.detected_experience_years || null;
   
+  let completenessScore = dbData.resume_context?.completeness_score;
+  if (completenessScore === undefined || completenessScore === null) {
+    console.warn(`[WARNING] Missing completeness_score for resume ID ${resumeData.resume_id}. Defaulting to 0.`);
+    completenessScore = 0;
+  }
+  
   // Transform ATS Analysis
   const atsAnalysis = dbData.ats_analysis ? {
     score: dbData.ats_analysis.score || null,
@@ -692,6 +716,7 @@ const transformAnalysisData = (resumeData) => {
   return {
     resume_id: resumeData.resume_id,
     resume_name: resumeData.file_name,
+    completeness_score: completenessScore,
     ats_analysis: atsAnalysis,
     experience_analysis: experienceAnalysis,
     education_analysis: educationAnalysis,

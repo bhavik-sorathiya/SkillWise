@@ -4,7 +4,8 @@
  * Utility Layer - Reusable across different controllers
  */
 
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenAI, HarmCategory, HarmBlockThreshold } = require('@google/genai');
+const resumeSchema = require('./geminiSchema');
 
 let aiClient1 = null;
 let aiClient2 = null;
@@ -88,11 +89,30 @@ const analyzeResume = async (resumeText, options = {}) => {
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
+      const config = {
+        responseMimeType: 'application/json',
+        temperature: options.temperature || 1.0,
+        topK: options.topK || 40,
+        topP: options.topP || 0.95,
+        maxOutputTokens: options.maxTokens || 4096,
+        safetySettings: [
+          { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE }
+        ]
+      };
+
+      let finalContent = resumeText;
+      if (systemPrompt) {
+        finalContent = `${systemPrompt}\n\n========== RESUME TEXT ==========\n\n${resumeText}`;
+      }
+
       const response = await Promise.race([
         client.models.generateContent({
           model: modelName,
-          contents: resumeText,
-          config: systemPrompt ? { systemInstruction: systemPrompt } : undefined
+          contents: finalContent,
+          config: config
         }),
         new Promise((_, reject) =>
           controller.signal.addEventListener('abort', () =>
@@ -103,14 +123,29 @@ const analyzeResume = async (resumeText, options = {}) => {
 
       clearTimeout(timeoutId);
 
-      const analysisText = response.text;
+      // Handle the new SDK response format which might return undefined or throw if blocked
+      let analysisText;
+      try {
+        analysisText = typeof response.text === 'function' ? response.text() : response.text;
+      } catch (err) {
+        console.error(`[Gemini] Response text getter threw an error. Raw Response:`, JSON.stringify(response, null, 2));
+        throw new Error(`AI response blocked or empty: ${err.message}`);
+      }
+
+      if (!analysisText) {
+        console.error(`[Gemini] AI returned empty text. Raw Response:`, JSON.stringify(response, null, 2));
+        throw new Error('AI returned an empty response. It may have been blocked by safety filters.');
+      }
+
       let analysis = null;
       try {
+        // Handle both pure JSON and markdown-wrapped JSON
         const jsonMatch = analysisText.match(/```json\n([\s\S]*?)\n```/);
         const jsonString = jsonMatch ? jsonMatch[1] : analysisText;
         analysis = JSON.parse(jsonString);
       } catch (parseError) {
         console.error(`[Gemini] Failed to parse response as JSON from ${keyLabel}:`, parseError.message);
+        console.error(`[Gemini] Raw Response:`, analysisText.substring(0, 500) + '...');
         return { success: false, error: `Failed to parse AI response as JSON: ${parseError.message}`, isRateLimit: false };
       }
 
@@ -141,10 +176,10 @@ const analyzeResume = async (resumeText, options = {}) => {
         console.log(`[Gemini] ✓ Success with ${keyLabel}`);
         return result;
       }
-      if (result.isRateLimit && attempt < maxAttemptsPerKey) {
+      if (!result.success && attempt < maxAttemptsPerKey) {
         attempt++;
-        const waitTime = baseDelay * Math.pow(2, attempt);
-        console.warn(`[Gemini] ${keyLabel} rate limited on resume analysis. Retrying in ${waitTime}ms...`);
+        const waitTime = result.isRateLimit ? baseDelay * Math.pow(2, attempt) : 500;
+        console.warn(`[Gemini] ${keyLabel} failed (${result.isRateLimit ? 'Rate Limited' : 'Error'}). Retrying in ${waitTime}ms...`);
         await delay(waitTime);
         continue;
       }
@@ -158,8 +193,9 @@ const analyzeResume = async (resumeText, options = {}) => {
     return { success: true, analysis: primaryResult.analysis, error: null, tokens: primaryResult.tokens };
   }
 
-  if (primaryResult.isRateLimit && targetClient2) {
-    console.warn(`[Gemini] Primary key rate limited. Falling back to secondary key...`);
+  // Fallback to secondary key on ANY error, not just rate limits (as requested by user)
+  if (!primaryResult.success && targetClient2 && !apiKey) {
+    console.warn(`[Gemini] Primary key failed (${primaryResult.error}). Falling back to secondary key...`);
     const fallbackResult = await runClientWithRetries(targetClient2, 'Fallback Key (GEMINI_API_KEY_2)');
     if (fallbackResult.success) {
       return { success: true, analysis: fallbackResult.analysis, error: null, tokens: fallbackResult.tokens };
@@ -245,10 +281,10 @@ const generateText = async (prompt, options = {}) => {
         console.log(`[Gemini] ✓ Success with ${keyLabel}`);
         return result;
       }
-      if (result.isRateLimit && attempt < maxAttemptsPerKey) {
+      if (!result.success && attempt < maxAttemptsPerKey) {
         attempt++;
-        const waitTime = baseDelay * Math.pow(2, attempt);
-        console.warn(`[Gemini] ${keyLabel} rate limited. Retrying in ${waitTime}ms...`);
+        const waitTime = result.isRateLimit ? baseDelay * Math.pow(2, attempt) : 500;
+        console.warn(`[Gemini] ${keyLabel} failed (${result.isRateLimit ? 'Rate Limited' : 'Error'}). Retrying in ${waitTime}ms...`);
         await delay(waitTime);
         continue;
       }

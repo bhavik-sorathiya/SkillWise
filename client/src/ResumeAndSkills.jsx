@@ -523,6 +523,7 @@ const ResumeAndSkills = ({
                   atsAnalysis={currentAnalysis.ats_analysis}
                   experienceAnalysis={currentAnalysis.experience_analysis}
                   education={currentAnalysis.education_analysis?.educations || []}
+                  completenessScore={currentAnalysis.completeness_score}
                 />
 
                 <SWOTAnalysis swotData={currentAnalysis.swot_analysis} />

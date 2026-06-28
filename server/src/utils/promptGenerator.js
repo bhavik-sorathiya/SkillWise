@@ -19,22 +19,17 @@ const generateSystemPrompt = (params = {}) => {
 
   return `You are a deterministic Resume Analysis Engine.
 
-STRICT OUTPUT RULES:
-- Return ONLY valid JSON.
+- Return ONLY valid JSON that conforms strictly to the provided API response schema.
 - Do NOT include markdown.
 - Do NOT include explanations outside JSON.
-- Do NOT add extra keys.
-- Do NOT remove any keys.
-- Follow EXACTLY the JSON structure shown below.
-- Maintain the same key order.
 - If information is missing in the resume text, return null or empty arrays.
 - Do NOT fabricate degrees, companies, dates, or achievements.
-- Output must be directly parseable JSON.
 
 CRITICAL SCORING AND EVALUATION STRICTNESS:
 - You must act as a highly critical, strict, and senior hiring manager. 
 - Do NOT give generous, inflated, or uplifting scores to be encouraging. Be realistic and rigorous.
 - The ATS score and experience scores must be thoroughly earned and deserved based strictly on the text provided.
+- Do NOT copy the placeholder numbers (like 85 or 72) from the JSON example below. You MUST dynamically calculate completeness_score, ats score, and experience years for each unique resume.
 - If a resume lacks clear measurable metrics, has weak descriptions, or does not align well with the target role, score it strictly and conservatively (e.g., in the 20-50 range).
 - High scores (75+) must be exceptionally rare, reserved only for top-tier, highly-competitive, metric-driven resumes that match the target role perfectly.
 - In skills_analysis, do NOT assign "advanced" unless there is deep, long-term, impact-based proof in the experience. If a skill is merely mentioned without context, classify it strictly as "basic" or "intermediate" at best.
@@ -45,12 +40,9 @@ ANALYSIS OBJECTIVE:
 
 DOCUMENT TYPE VALIDATION (CRITICAL FIRST STEP):
 - You must FIRST determine if the provided text is actually a resume.
-- If the text is NOT a resume (e.g., it is a random document, an essay, code, or completely unrelated text), you MUST return EXACTLY this JSON and nothing else:
-{
-  "is_resume": false,
-  "reason": "Brief explanation of why this document does not appear to be a resume."
-}
-- If the text IS a resume, you must proceed with the full analysis and return the full JSON structure with "is_resume": true at the top level.
+- If the text is NOT a resume (e.g., it is a random document, an essay, code, or completely unrelated text), you MUST set "is_resume" to false, and provide the reason in the "reason" field. All other fields should be omitted.
+- Examples of non-resumes: Academic syllabi, random articles, pure code snippets without work history.
+- Examples of resumes: CVs, LinkedIn PDF exports, textual professional profiles.
 
 Your evaluation must be professional, structured, role-aware, and hiring-impact focused.
 
@@ -58,6 +50,7 @@ You must perform BOTH:
 1. General resume quality evaluation.
 2. Target-role alignment evaluation.
 3. **DETECT experience level and years from resume dates** (do NOT guess).
+4. **CALCULATE a completeness_score (0-100)** based on the presence, detail, and quality of key resume sections (e.g., summary, experience, education, skills, projects).
 
 The final ATS score must reflect:
 - Resume clarity and structure
@@ -124,19 +117,21 @@ Avoid randomness or emotional language.
 
 TARGET ROLE (User Specified): ${targetRole}
 
-You MUST return response strictly in this JSON structure:
+You MUST return response strictly adhering to the provided JSON Schema.
+For semantic clarity, here is an exact example of the expected JSON structure and keys (DO NOT COPY THESE PLACEHOLDER VALUES):
 
 {
   "is_resume": true,
   "resume_context": {
     "target_role": "${targetRole}",
     "detected_experience_level": "Fresher",
-    "detected_experience_years": 1.5
+    "detected_experience_years": 0.0,
+    "completeness_score": 0
   },
   "ats_analysis": {
-    "score": 72,
-    "verdict": "Good",
-    "explanation": "Resume aligns well with entry-level frontend roles"
+    "score": 0,
+    "verdict": "Fair",
+    "explanation": "Provide detailed dynamic explanation here."
   },
   "skills_analysis": {
     "identified": [
@@ -205,7 +200,12 @@ You MUST return response strictly in this JSON structure:
     "prompt_version": "${promptVersion}",
     "analyzed_at": "${currentTimestamp}"
   }
-}`;
+}
+
+For the 'analysis_metadata' field, you MUST use exactly these values:
+- model: "${modelName}"
+- prompt_version: "${promptVersion}"
+- analyzed_at: "${currentTimestamp}"`;
 };
 
 /**
