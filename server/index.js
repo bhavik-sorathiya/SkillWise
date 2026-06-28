@@ -32,6 +32,7 @@ const resumeRoutes = require('./src/routes/resumeRoutes');
 const skillsRoutes = require('./src/routes/skillsRoutes');
 const interviewHistoryRoutes = require('./src/routes/interviewHistoryRoutes');
 const profileRoutes = require('./src/routes/profileRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
 const { initializeGemini } = require('./src/utils/geminiService');
 const { initializeInterviewSocket } = require('./src/handlers/interviewHandler');
 const { globalErrorHandler } = require('./src/utils/errorHandler');
@@ -57,6 +58,7 @@ const parseOrigins = (value) => {
 
 const allowedOrigins = [
   'http://localhost:5173',
+  'http://localhost:5174',
   'http://localhost:4173',
   'http://localhost:3000',
   ...parseOrigins(process.env.CLIENT_URLS),
@@ -138,9 +140,10 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/interviewee', intervieweeDashboardRoutes);
-app.use('/api/resumes', aiLimiter, resumeRoutes);
+app.use('/api/resumes', resumeRoutes);
 app.use('/api/skills', skillsRoutes);
-app.use('/api/interviews', aiLimiter, interviewHistoryRoutes);
+app.use('/api/interviews', interviewHistoryRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health endpoint for load balancers and deployment probes.
 app.get('/health', (req, res) => {

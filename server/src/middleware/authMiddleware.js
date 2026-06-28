@@ -56,7 +56,8 @@ const verifyToken = (req, res, next) => {
     req.user = {
       id: decoded.id,
       email: decoded.email,
-      full_name: decoded.full_name || null
+      full_name: decoded.full_name || null,
+      role: decoded.role || 'user'
     };
 
     // Proceed to next middleware

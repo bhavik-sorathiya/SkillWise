@@ -42,10 +42,32 @@ const User = {
    */
   findById: async (id) => {
     const [rows] = await db.execute(
-      'SELECT id, full_name, email, is_verified, created_at, updated_at FROM users WHERE id = ?',
+      'SELECT id, full_name, email, role, is_verified, created_at, updated_at FROM users WHERE id = ?',
       [id]
     );
     return rows[0];
+  },
+
+  /**
+   * Create a new Google user record
+   */
+  createGoogleUser: async (fullName, email, googleId) => {
+    const cleanEmail = email ? email.trim().toLowerCase() : '';
+    const [result] = await db.execute(
+      'INSERT INTO users (full_name, email, google_id, auth_provider) VALUES (?, ?, ?, ?)',
+      [fullName, cleanEmail, googleId, 'google']
+    );
+    return result.insertId;
+  },
+
+  /**
+   * Update existing user with Google ID
+   */
+  updateGoogleId: async (userId, googleId) => {
+    await db.execute(
+      'UPDATE users SET google_id = ?, auth_provider = ? WHERE id = ?',
+      [googleId, 'google', userId]
+    );
   }
 };
 

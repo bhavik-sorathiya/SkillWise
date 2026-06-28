@@ -9,6 +9,8 @@ const UserProfile = require('../models/userProfileModel');
 const { AppError, validateRequest } = require('../utils/errorHandler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { OAuth2Client } = require('google-auth-library');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const signup = async (req, res) => {
   const { full_name, email, password } = req.body;
@@ -27,9 +29,9 @@ const signup = async (req, res) => {
   }
 
   // Password strength validation
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$/;
   if (!passwordRegex.test(password)) {
-    throw new AppError('Password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 400);
+    throw new AppError('Password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one allowed special character (@$!%*?&#). Emojis and other symbols are not allowed.', 400);
   }
 
   // Full name validation
@@ -113,7 +115,8 @@ const login = async (req, res) => {
     {
       id: user.id,
       email: user.email,
-      full_name: user.full_name
+      full_name: user.full_name,
+      role: user.role
     },
     process.env.JWT_SECRET || 'your_jwt_secret',
     { expiresIn: '24h' }
@@ -124,6 +127,7 @@ const login = async (req, res) => {
     id: user.id,
     full_name: user.full_name,
     email: user.email,
+    role: user.role,
     profile_completed: profileCompleted,
     gender: gender,
     created_at: user.created_at
@@ -182,9 +186,9 @@ const changePassword = async (req, res) => {
   if (!current_password || !new_password) {
     throw new AppError('Both current_password and new_password are required', 400);
   }
-  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{6,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{6,}$/;
   if (!passwordRegex.test(new_password)) {
-    throw new AppError('New password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character.', 400);
+    throw new AppError('New password must be at least 6 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one allowed special character (@$!%*?&#). Emojis and other symbols are not allowed.', 400);
   }
   if (current_password === new_password) {
     throw new AppError('New password must be different from the current password', 400);
@@ -235,4 +239,80 @@ const logout = async (req, res) => {
   });
 };
 
-module.exports = { signup, login, logout, updateName, changePassword };
+/**
+ * POST /api/auth/google
+ * Verify Google ID token and login/signup user
+ */
+const googleLogin = async (req, res) => {
+  const { idToken } = req.body;
+  if (!idToken) {
+    throw new AppError('Google ID token is required', 400);
+  }
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    let { email, name, sub: googleId } = payload;
+    const emailLower = email.toLowerCase();
+
+    // Ensure name meets the minimum 2-character requirement (fallback to email prefix)
+    if (!name || name.trim().length < 2) {
+      name = email.split('@')[0];
+      if (name.length < 2) name = "User"; // Ultimate fallback
+    }
+
+    let user = await User.findByEmail(emailLower);
+    
+    if (user) {
+      await User.updateGoogleId(user.id, googleId);
+    } else {
+      const userId = await User.createGoogleUser(name, emailLower, googleId);
+      await UserProfile.createEmptyProfile(userId);
+      user = await User.findByEmail(emailLower);
+    }
+
+    let profileCompleted = false;
+    let gender = null;
+    try {
+      const profile = await UserProfile.getProfileByUserId(user.id);
+      profileCompleted = profile?.profile_completed || false;
+      gender = profile?.gender || null;
+    } catch (profileError) {
+      console.warn('Could not fetch profile for google login response:', profileError.message);
+    }
+
+    const token = jwt.sign(
+      {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name
+      },
+      process.env.JWT_SECRET || 'your_jwt_secret',
+      { expiresIn: '24h' }
+    );
+
+    const userData = {
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      profile_completed: profileCompleted,
+      gender: gender,
+      created_at: user.created_at
+    };
+
+    res.status(200).json({
+      success: true,
+      message: 'Google login successful',
+      user: userData,
+      token
+    });
+  } catch (error) {
+    console.error('Google verification error:', error);
+    throw new AppError('Invalid Google token', 401);
+  }
+};
+
+module.exports = { signup, login, logout, updateName, changePassword, googleLogin };
