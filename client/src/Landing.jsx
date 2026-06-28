@@ -255,12 +255,12 @@ const Landing = ({
                   </div>
                   <div className="text-xs font-mono text-gray-400">mock_interview_eval.js</div>
                 </div>
-                <div className="flex gap-4">
-                  <div className="w-1/3 space-y-3">
-                    <div className="h-24 bg-gray-100 dark:bg-gray-700 rounded-lg"></div>
-                    <div className="h-24 bg-gray-100 dark:bg-gray-700 rounded-lg"></div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="w-full sm:w-1/3 space-y-3 flex flex-row sm:flex-col gap-3 sm:gap-0">
+                    <div className="flex-1 sm:h-24 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg"></div>
+                    <div className="flex-1 sm:h-24 h-16 bg-gray-100 dark:bg-gray-700 rounded-lg"></div>
                   </div>
-                  <div className="w-2/3 bg-gray-900 rounded-lg p-4 font-mono text-xs text-green-400">
+                  <div className="w-full sm:w-2/3 bg-gray-900 rounded-lg p-4 font-mono text-xs sm:text-sm text-green-400 overflow-x-auto">
                     <p>&gt; Evaluating answer feedback...</p>
                     <p>&gt; Grading structural layout.</p>
                     <p className="text-white mt-2">{'stats: {'}</p>

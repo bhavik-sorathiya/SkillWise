@@ -39,6 +39,7 @@ CRITICAL SCORING AND EVALUATION STRICTNESS:
 - High scores (75+) must be exceptionally rare, reserved only for top-tier, highly-competitive, metric-driven resumes that match the target role perfectly.
 - In skills_analysis, do NOT assign "advanced" unless there is deep, long-term, impact-based proof in the experience. If a skill is merely mentioned without context, classify it strictly as "basic" or "intermediate" at best.
 - If the resume is completely off-topic or unrelated to the target role, the ATS score must be severely penalized (e.g., below 40).
+- VERDICT CONSTRAINT: The ats_analysis.verdict MUST be EXACTLY ONE of the following strings: "Poor", "Fair", "Good", "Very Good", "Excellent". Do NOT use any other word.
 
 ANALYSIS OBJECTIVE:
 

@@ -217,7 +217,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
       )}
 
       {/* Header */}
-      <div className="w-full max-w-2xl mb-8 flex items-center justify-between gap-4">
+      <div className="w-full max-w-2xl mb-6 sm:mb-8 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 text-primary">
             <svg fill="currentColor" viewBox="0 0 24 24">
@@ -226,7 +226,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
           </div>
           <span className="font-bold text-xl text-text-main dark:text-white">SkillWise</span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
           <button
             type="button"
             onClick={applyDemoProfile}
@@ -254,7 +254,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
           />
         </div>
 
-        <div className="p-8 sm:p-10">
+        <div className="p-5 sm:p-10">
           {/* Step indicator */}
           <div className="flex items-center gap-2 mb-6">
             <span className="text-xs font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
@@ -352,7 +352,7 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
 
           {/* ── STEP 2: Gender ── */}
           {step === 2 && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {GENDER_OPTIONS.map(opt => (
                 <button
                   key={opt.value}
@@ -437,23 +437,23 @@ const Onboarding = ({ onComplete, onNavigateToLogin }) => {
           )}
 
           {/* Navigation buttons */}
-          <div className="flex items-center justify-between mt-8">
+          <div className="flex flex-col-reverse sm:flex-row items-center justify-between mt-8 gap-4 sm:gap-0">
             {step > 1 ? (
               <button
                 type="button"
                 onClick={() => setStep(s => s - 1)}
-                className="flex items-center gap-2 text-gray-500 hover:text-text-main dark:text-gray-400 dark:hover:text-white transition-colors font-medium"
+                className="flex items-center justify-center gap-2 text-gray-500 hover:text-text-main dark:text-gray-400 dark:hover:text-white transition-colors font-medium w-full sm:w-auto p-2"
               >
                 <span className="material-icons-round text-[18px]">arrow_back</span>
                 Back
               </button>
-            ) : <div />}
+            ) : <div className="hidden sm:block" />}
 
             <button
               type="button"
               onClick={handleNext}
               disabled={!canProceed() || loading}
-              className="flex items-center gap-2 px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95"
+              className="flex items-center justify-center gap-2 px-8 py-3 bg-primary hover:bg-primary-hover text-white rounded-xl font-semibold transition-all shadow-lg shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 w-full sm:w-auto"
             >
               {loading ? (
                 <>

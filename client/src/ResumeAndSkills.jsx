@@ -145,7 +145,7 @@ const ResumeAndSkills = ({
         if (err.message.includes('Session expired')) {
           onNavigateToLogin();
         }
-        setError(err.message);
+        addError(err.message, 'error');
       } finally {
         setLoadingAnalysis(false);
       }

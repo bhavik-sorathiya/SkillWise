@@ -482,9 +482,10 @@ const uploadResume = async (req, res) => {
 
     if (!analysisResponse.success || analysisResponse.skipped) {
       console.log('[14] ❌ Analysis failed or skipped:', analysisResponse.error);
-      analysisMetadata.success = false;
-      analysisMetadata.error = analysisResponse.error;
-      analysisMetadata.code = isRateLimitError(analysisResponse.error) ? 'RATE_LIMIT_EXCEEDED' : analysisResponse.code;
+      const errCode = isRateLimitError(analysisResponse.error) ? 'RATE_LIMIT_EXCEEDED' : analysisResponse.code;
+      const err = new AppError(`Analysis failed: ${analysisResponse.error}`, 400);
+      err.code = errCode;
+      throw err;
     } else {
       analysisMetadata.success = true;
       analysisMetadata.analysisId = analysisResponse.analysisId;
